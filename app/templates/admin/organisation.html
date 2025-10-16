@@ -1,0 +1,124 @@
+{% extends "base.html" %}
+
+{% block title %}Organisation Settings - FlowDeck{% endblock %}
+
+{% block content %}
+{% set organisation = organisation|default(None) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item active">Organisation Settings</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-cog text-primary"></i>
+                Organisation Settings
+            </h1>
+            <p class="text-muted">Manage your organisation profile and preferences</p>
+        </div>
+    </div>
+
+    {% if organisation %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <h5 class="mb-3">Basic Information</h5>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">Organisation Name <span class="text-danger">*</span></label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ organisation.name }}" required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email</label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ organisation.email or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="contact" class="form-label">Contact Number</label>
+                                <input type="tel" class="form-control" id="contact" name="contact" 
+                                       value="{{ organisation.contact or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="logo" class="form-label">Organisation Logo</label>
+                            {% if organisation.logo %}
+                            <div class="mb-2">
+                                <img src="{{ organisation.logo }}" alt="Current Logo" class="img-thumbnail" style="max-height: 100px;">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="logo" name="logo" accept="image/*">
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Appearance</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="color_palette" class="form-label">Color Palette</label>
+                                <select class="form-select" id="color_palette" name="color_palette">
+                                    <option value="blue" {% if organisation.color_palette == 'blue' %}selected{% endif %}>Blue</option>
+                                    <option value="green" {% if organisation.color_palette == 'green' %}selected{% endif %}>Green</option>
+                                    <option value="purple" {% if organisation.color_palette == 'purple' %}selected{% endif %}>Purple</option>
+                                    <option value="red" {% if organisation.color_palette == 'red' %}selected{% endif %}>Red</option>
+                                    <option value="orange" {% if organisation.color_palette == 'orange' %}selected{% endif %}>Orange</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="theme" class="form-label">Theme</label>
+                                <select class="form-select" id="theme" name="theme">
+                                    <option value="light" {% if organisation.theme == 'light' %}selected{% endif %}>Light</option>
+                                    <option value="dark" {% if organisation.theme == 'dark' %}selected{% endif %}>Dark</option>
+                                    <option value="auto" {% if organisation.theme == 'auto' %}selected{% endif %}>Auto</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.index') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3">Organisation Info</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Created:</dt>
+                        <dd class="col-sm-7">{{ organisation.created_at.strftime('%b %d, %Y') if organisation.created_at else '—' }}</dd>
+                        
+                        <dt class="col-sm-5">Updated:</dt>
+                        <dd class="col-sm-7">{{ organisation.updated_at.strftime('%b %d, %Y') if organisation.updated_at else '—' }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-warning">
+        <i class="fas fa-exclamation-triangle"></i>
+        No organisation data available.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

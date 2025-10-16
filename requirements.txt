@@ -1,0 +1,60 @@
+# Core Flask - Python 3.13 compatible versions
+Flask==3.0.3
+Flask-SQLAlchemy==3.1.1
+Flask-Login==0.6.3
+Flask-Mail==0.10.0
+Flask-SocketIO==5.3.6
+Flask-WTF==1.2.1
+Flask-Migrate==4.0.7
+
+# Python utilities
+python-dotenv==1.0.1
+Werkzeug==3.0.3
+email-validator==2.2.0
+
+# Socket.IO - Updated for Python 3.13
+python-socketio==5.11.2
+python-engineio==4.9.1
+eventlet==0.36.1
+
+# Forms and validation
+WTForms==3.1.2
+
+# Image processing
+Pillow==10.4.0
+
+# WSGI server
+gunicorn==22.0.0
+
+# HTTP requests
+requests==2.32.3
+
+# OpenAI (optional) - Updated
+openai==1.40.0
+
+# Google APIs (optional) - Updated
+google-auth==2.32.0
+google-auth-oauthlib==1.2.1
+google-auth-httplib2==0.2.0
+google-api-python-client==2.140.0
+
+# Email service (optional)
+sendgrid==6.11.0
+
+# Redis and Celery (optional)
+redis==5.0.8
+celery==5.4.0
+
+# JWT tokens
+PyJWT==2.9.0
+
+# Security and markdown
+bleach==6.1.0
+markdown==3.6
+
+# Additional dependencies for stability
+dnspython==2.6.1
+python-dateutil==2.9.0
+click==8.1.7
+greenlet==3.0.3
+itsdangerous==2.2.0

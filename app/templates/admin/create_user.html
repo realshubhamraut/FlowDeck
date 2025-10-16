@@ -1,0 +1,279 @@
+{% extends "base.html" %}
+
+{% block title %}Create User - FlowDeck{% endblock %}
+
+{% block content %}
+<!-- Safe defaults to prevent UndefinedError -->
+{% set departments = departments|default([]) %}
+{% set roles = roles|default([]) %}
+{% set tags = tags|default([]) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.users') }}">Users</a></li>
+                    <li class="breadcrumb-item active">Create User</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-plus text-primary"></i>
+                Create New User
+            </h1>
+            <p class="text-muted">Add a new user to your organisation</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <!-- Basic Information -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-info-circle text-primary"></i>
+                            Basic Information
+                        </h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">
+                                    Full Name <span class="text-danger">*</span>
+                                </label>
+                                <input type="text" class="form-control" id="name" name="name" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">
+                                    Email Address <span class="text-danger">*</span>
+                                </label>
+                                <input type="email" class="form-control" id="email" name="email" required>
+                                <small class="form-text text-muted">Login credentials will be sent to this email</small>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" placeholder="+1 (555) 000-0000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="designation" class="form-label">Designation</label>
+                                <input type="text" class="form-control" id="designation" name="designation" placeholder="e.g., Senior Developer">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Organisation Details -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-building text-success"></i>
+                            Organisation Details
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="department_id" class="form-label">Department</label>
+                                <select class="form-select" id="department_id" name="department_id">
+                                    <option value="">Select Department</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}">{{ dept.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="roles" class="form-label">Roles</label>
+                                <select class="form-select" id="roles" name="roles" multiple>
+                                    {% for role in roles %}
+                                    <option value="{{ role.id }}">{{ role.name }}</option>
+                                    {% endfor %}
+                                </select>
+                                <small class="form-text text-muted">Hold Ctrl/Cmd to select multiple roles</small>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <select class="form-select" id="tags" name="tags" multiple>
+                                {% for tag in tags %}
+                                <option value="{{ tag.id }}">{{ tag.name }}</option>
+                                {% endfor %}
+                            </select>
+                            <small class="form-text text-muted">Add relevant tags for skill categorization</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Social Links -->
+                        <h5 class="mb-3">
+                            <i class="fas fa-share-alt text-info"></i>
+                            Social Links <small class="text-muted">(Optional)</small>
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="linkedin" class="form-label">
+                                    <i class="fab fa-linkedin text-primary"></i> LinkedIn
+                                </label>
+                                <input type="url" class="form-control" id="linkedin" name="linkedin" placeholder="https://linkedin.com/in/username">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="twitter" class="form-label">
+                                    <i class="fab fa-twitter text-info"></i> Twitter
+                                </label>
+                                <input type="url" class="form-control" id="twitter" name="twitter" placeholder="https://twitter.com/username">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="github" class="form-label">
+                                    <i class="fab fa-github text-dark"></i> GitHub
+                                </label>
+                                <input type="url" class="form-control" id="github" name="github" placeholder="https://github.com/username">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <!-- Form Actions -->
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Create User
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Help Card -->
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i class="fas fa-question-circle text-warning"></i>
+                        Need Help?
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Automatic Password</h6>
+                        <p class="small text-muted mb-0">
+                            A secure random password will be automatically generated and sent to the user's email address.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Email Verification</h6>
+                        <p class="small text-muted mb-0">
+                            The user will receive a welcome email with login credentials and a verification link.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Required Fields</h6>
+                        <p class="small text-muted mb-0">
+                            Only name and email are required. All other fields are optional and can be updated later.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Roles & Permissions</h6>
+                        <p class="small text-muted mb-0">
+                            Assign roles to define what the user can access. Multiple roles can be assigned.
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Tip:</strong> Users can update their own profile information after logging in.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Quick Stats -->
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-chart-bar text-success"></i>
+                        Quick Stats
+                    </h6>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Available Departments:</span>
+                        <strong>{{ departments|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Available Roles:</span>
+                        <strong>{{ roles|length }}</strong>
+                    </div>
+                    <div class="d-flex justify-content-between">
+                        <span class="text-muted">Available Tags:</span>
+                        <strong>{{ tags|length }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #0d6efd;
+    box-shadow: 0 0 0 0.2rem rgba(13, 110, 253, 0.25);
+}
+
+.form-label {
+    font-weight: 500;
+    margin-bottom: 0.5rem;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Form validation
+    const form = document.querySelector('form');
+    
+    form.addEventListener('submit', function(e) {
+        const name = document.getElementById('name').value.trim();
+        const email = document.getElementById('email').value.trim();
+        
+        if (!name || !email) {
+            e.preventDefault();
+            alert('Please fill in all required fields (Name and Email)');
+            return false;
+        }
+        
+        // Email validation
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            e.preventDefault();
+            alert('Please enter a valid email address');
+            return false;
+        }
+    });
+    
+    // File size validation
+    const fileInput = document.getElementById('profile_picture');
+    fileInput.addEventListener('change', function() {
+        if (this.files[0]) {
+            const fileSize = this.files[0].size / 1024 / 1024; // in MB
+            if (fileSize > 5) {
+                alert('File size exceeds 5MB. Please choose a smaller file.');
+                this.value = '';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

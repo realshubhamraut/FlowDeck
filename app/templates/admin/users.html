@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Manage Users - FlowDeck{% endblock %}
+
+{% block content %}
+<!-- Safe defaults to prevent UndefinedError -->
+{% set pagination = pagination|default(None) %}
+{% set users = pagination.items if pagination else [] %}
+{% set departments = departments|default([]) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item active">Users</li>
+                </ol>
+            </nav>
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-users text-primary"></i>
+                        Manage Users
+                    </h1>
+                    <p class="text-muted">View and manage organisation users</p>
+                </div>
+                <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> Add User
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="GET" class="row g-3">
+                        <div class="col-md-5">
+                            <label for="search" class="form-label">Search</label>
+                            <div class="input-group">
+                                <span class="input-group-text">
+                                    <i class="fas fa-search"></i>
+                                </span>
+                                <input type="text" class="form-control" id="search" name="search" 
+                                       placeholder="Search by name, email, or designation..."
+                                       value="{{ request.args.get('search', '') }}">
+                            </div>
+                        </div>
+                        <div class="col-md-4">
+                            <label for="department" class="form-label">Department</label>
+                            <select class="form-select" id="department" name="department">
+                                <option value="">All Departments</option>
+                                {% for dept in departments %}
+                                <option value="{{ dept.id }}" 
+                                    {% if request.args.get('department') == dept.id|string %}selected{% endif %}>
+                                    {{ dept.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+                        <div class="col-md-3 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary me-2">
+                                <i class="fas fa-filter"></i> Filter
+                            </button>
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Clear
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Users List -->
+    <div class="row">
+        <div class="col-12">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-list"></i>
+                        Users List
+                        {% if users %}
+                        <span class="badge bg-primary ms-2">{{ pagination.total if pagination else users|length }}</span>
+                        {% endif %}
+                    </h5>
+                </div>
+                <div class="card-body p-0">
+                    {% if users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>User</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Designation</th>
+                                    <th>Roles</th>
+                                    <th>Status</th>
+                                    <th>Joined</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if user.profile_picture %}
+                                            <img src="{{ user.profile_picture }}" alt="{{ user.name }}" 
+                                                 class="rounded-circle me-2" width="40" height="40">
+                                            {% else %}
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                                 style="width: 40px; height: 40px; font-size: 16px;">
+                                                {{ user.name[0].upper() }}
+                                            </div>
+                                            {% endif %}
+                                            <div>
+                                                <strong>{{ user.name }}</strong>
+                                                {% if user.phone %}
+                                                <br><small class="text-muted">
+                                                    <i class="fas fa-phone fa-xs"></i> {{ user.phone }}
+                                                </small>
+                                                {% endif %}
+                                            </div>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <a href="mailto:{{ user.email }}" class="text-decoration-none">
+                                            {{ user.email }}
+                                        </a>
+                                        {% if not user.email_verified %}
+                                        <br><small class="badge bg-warning">Not Verified</small>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.department %}
+                                        <span class="badge bg-secondary">{{ user.department.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.designation %}
+                                        {{ user.designation }}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.roles %}
+                                        {% for role in user.roles[:2] %}
+                                        <span class="badge bg-info">{{ role.name }}</span>
+                                        {% endfor %}
+                                        {% if user.roles|length > 2 %}
+                                        <span class="badge bg-light text-dark">+{{ user.roles|length - 2 }}</span>
+                                        {% endif %}
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if user.is_active %}
+                                        <span class="badge bg-success">
+                                            <i class="fas fa-check"></i> Active
+                                        </span>
+                                        {% else %}
+                                        <span class="badge bg-danger">
+                                            <i class="fas fa-times"></i> Inactive
+                                        </span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ user.created_at.strftime('%b %d, %Y') if user.created_at else '—' }}
+                                        </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <div class="btn-group btn-group-sm" role="group">
+                                            <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" 
+                                               class="btn btn-outline-primary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button type="button" class="btn btn-outline-danger" 
+                                                    onclick="confirmDelete({{ user.id }}, '{{ user.name }}')"
+                                                    title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <!-- Pagination -->
+                    {% if pagination and pagination.pages > 1 %}
+                    <div class="card-footer bg-white border-top">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination justify-content-center mb-0">
+                                <!-- Previous -->
+                                <li class="page-item {% if not pagination.has_prev %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ url_for('admin.users', page=pagination.prev_num, search=request.args.get('search', ''), department=request.args.get('department', '')) }}"
+                                       {% if not pagination.has_prev %}tabindex="-1"{% endif %}>
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </a>
+                                </li>
+
+                                <!-- Page numbers -->
+                                {% for page_num in pagination.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+                                    {% if page_num %}
+                                    <li class="page-item {% if page_num == pagination.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('admin.users', page=page_num, search=request.args.get('search', ''), department=request.args.get('department', '')) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                    {% else %}
+                                    <li class="page-item disabled">
+                                        <span class="page-link">...</span>
+                                    </li>
+                                    {% endif %}
+                                {% endfor %}
+
+                                <!-- Next -->
+                                <li class="page-item {% if not pagination.has_next %}disabled{% endif %}">
+                                    <a class="page-link" href="{{ url_for('admin.users', page=pagination.next_num, search=request.args.get('search', ''), department=request.args.get('department', '')) }}"
+                                       {% if not pagination.has_next %}tabindex="-1"{% endif %}>
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            </ul>
+                        </nav>
+                        <p class="text-center text-muted small mb-0 mt-2">
+                            Showing {{ ((pagination.page - 1) * pagination.per_page) + 1 }} to 
+                            {{ min(pagination.page * pagination.per_page, pagination.total) }} 
+                            of {{ pagination.total }} users
+                        </p>
+                    </div>
+                    {% endif %}
+
+                    {% else %}
+                    <!-- Empty State -->
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-4x text-muted mb-3"></i>
+                        {% if request.args.get('search') or request.args.get('department') %}
+                        <h5>No users found</h5>
+                        <p class="text-muted">Try adjusting your filters or search query</p>
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-outline-primary">
+                            <i class="fas fa-times"></i> Clear Filters
+                        </a>
+                        {% else %}
+                        <h5>No users yet</h5>
+                        <p class="text-muted">Get started by adding your first user</p>
+                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Add First User
+                        </a>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Delete Confirmation Form (hidden) -->
+<form id="deleteForm" method="POST" style="display: none;">
+</form>
+
+<style>
+.table th {
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    color: #6c757d;
+}
+
+.table td {
+    vertical-align: middle;
+}
+
+.badge {
+    font-weight: 500;
+    padding: 0.35em 0.65em;
+}
+
+.btn-group-sm .btn {
+    padding: 0.25rem 0.5rem;
+}
+
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.pagination .page-link {
+    color: #0d6efd;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+</style>
+
+<script>
+function confirmDelete(userId, userName) {
+    if (confirm(`Are you sure you want to delete user "${userName}"?\n\nThis action cannot be undone.`)) {
+        const form = document.getElementById('deleteForm');
+        form.action = "{{ url_for('admin.delete_user', user_id=0) }}".replace('0', userId);
+        form.submit();
+    }
+}
+
+// Auto-submit form on filter change (optional)
+document.getElementById('department')?.addEventListener('change', function() {
+    // Uncomment to auto-submit on department change
+    // this.form.submit();
+});
+</script>
+{% endblock %}

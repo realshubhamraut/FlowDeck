@@ -1,0 +1,51 @@
+{% extends "base.html" %}
+
+{% block title %}Chat - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-md-4 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0">
+          <h5 class="mb-0"><i class="fas fa-hashtag me-2"></i>Channels</h5>
+        </div>
+        <div class="list-group list-group-flush">
+          {% if channels %}
+            {% for ch in channels %}
+              <a href="#" class="list-group-item list-group-item-action">{{ ch.name }}</a>
+            {% endfor %}
+          {% else %}
+            <div class="list-group-item text-muted">No channels yet</div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+    <div class="col-md-8 mb-3">
+      <div class="card border-0 shadow-sm h-100">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+          <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Direct Messages</h5>
+          <a href="#" class="btn btn-sm btn-primary disabled" aria-disabled="true"><i class="fas fa-plus me-1"></i> New Message</a>
+        </div>
+        <div class="card-body">
+          {% if recent_dms %}
+            <ul class="list-group list-group-flush">
+              {% for dm in recent_dms %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <span>{{ dm.sender.name if dm.sender_id != current_user.id else dm.recipient.name }}</span>
+                  <small class="text-muted">{{ dm.created_at.strftime('%b %d, %Y %I:%M %p') }}</small>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-envelope-open-text fa-3x mb-3"></i>
+              <p>No messages yet</p>
+            </div>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}

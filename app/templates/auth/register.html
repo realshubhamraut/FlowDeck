@@ -1,0 +1,106 @@
+{% extends "base.html" %}
+
+{% block title %}Create Organization - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container mt-5">
+    <div class="row justify-content-center">
+        <div class="col-lg-6 col-md-8">
+            <div class="card shadow">
+                <div class="card-body p-5">
+                    <h2 class="text-center mb-4">Create Your Organization</h2>
+                    <p class="text-muted text-center mb-4">Set up your organization and admin account</p>
+                    
+                    <form method="POST" action="{{ url_for('auth.register') }}">
+                        <!-- Organization Details -->
+                        <h5 class="mb-3">Organization Details</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Organization Name <span class="text-danger">*</span></label>
+                            <input type="text" name="name" class="form-control" required 
+                                   placeholder="e.g., Acme Corporation">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Organization Email <span class="text-danger">*</span></label>
+                            <input type="email" name="email" class="form-control" required 
+                                   placeholder="e.g., contact@acme.com">
+                            <small class="text-muted">This will be used for official communication</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Contact Number</label>
+                            <input type="tel" name="contact" class="form-control" 
+                                   placeholder="e.g., +1 234 567 8900">
+                        </div>
+                        
+                        <hr class="my-4">
+                        
+                        <!-- Admin Account -->
+                        <h5 class="mb-3">Admin Account</h5>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Your Name <span class="text-danger">*</span></label>
+                            <input type="text" name="admin_name" class="form-control" required 
+                                   placeholder="e.g., John Doe">
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label class="form-label">Your Email <span class="text-danger">*</span></label>
+                            <input type="email" name="admin_email" class="form-control" required 
+                                   placeholder="e.g., john@acme.com">
+                            <small class="text-muted">This will be your login email</small>
+                        </div>
+                        
+                        <div class="mb-4">
+                            <label class="form-label">Password <span class="text-danger">*</span></label>
+                            <input type="password" name="admin_password" class="form-control" required 
+                                   minlength="8" placeholder="At least 8 characters">
+                            <small class="text-muted">Must be at least 8 characters long</small>
+                        </div>
+                        
+                        <button type="submit" class="btn btn-primary w-100 btn-lg">
+                            <i class="fas fa-building"></i> Create Organization
+                        </button>
+                    </form>
+                    
+                    <div class="text-center mt-4">
+                        <p class="text-muted">
+                            Already have an account? 
+                            <a href="{{ url_for('auth.login') }}">Login here</a>
+                        </p>
+                        <p class="text-muted">
+                            <a href="{{ url_for('main.index') }}">
+                                <i class="fas fa-arrow-left"></i> Back to Home
+                            </a>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    border: none;
+    border-radius: 15px;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+    transition: transform 0.2s;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(102, 126, 234, 0.3);
+}
+</style>
+{% endblock %}

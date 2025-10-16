@@ -1,0 +1,353 @@
+{% extends "base.html" %}
+
+{% block title %}Notifications - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h1 class="display-6 mb-1"><i class="fas fa-bell me-2"></i> Notifications</h1>
+            <p class="text-muted">Stay updated with your latest activities</p>
+        </div>
+        <div class="col-md-4 text-md-end">
+            <button class="btn btn-outline-primary" id="markAllRead">
+                <i class="fas fa-check-double me-2"></i> Mark All as Read
+            </button>
+        </div>
+    </div>
+
+    <!-- Notifications Tabs -->
+    <ul class="nav nav-tabs mb-4" id="notificationTabs" role="tablist">
+        <li class="nav-item" role="presentation">
+            <button class="nav-link active" id="all-tab" data-bs-toggle="tab" data-bs-target="#all" 
+                    type="button" role="tab" aria-controls="all" aria-selected="true">
+                All <span class="badge bg-secondary ms-1">{{ all_notifications|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="unread-tab" data-bs-toggle="tab" data-bs-target="#unread" 
+                    type="button" role="tab" aria-controls="unread" aria-selected="false">
+                Unread <span class="badge bg-primary ms-1" id="unreadCount">{{ unread_notifications|length }}</span>
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="tasks-tab" data-bs-toggle="tab" data-bs-target="#tasks" 
+                    type="button" role="tab" aria-controls="tasks" aria-selected="false">
+                Tasks
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="messages-tab" data-bs-toggle="tab" data-bs-target="#messages" 
+                    type="button" role="tab" aria-controls="messages" aria-selected="false">
+                Messages
+            </button>
+        </li>
+        <li class="nav-item" role="presentation">
+            <button class="nav-link" id="system-tab" data-bs-toggle="tab" data-bs-target="#system" 
+                    type="button" role="tab" aria-controls="system" aria-selected="false">
+                System
+            </button>
+        </li>
+    </ul>
+
+    <!-- Tab Content -->
+    <div class="tab-content" id="notificationTabsContent">
+        <!-- All Notifications -->
+        <div class="tab-pane fade show active" id="all" role="tabpanel" aria-labelledby="all-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="list-group list-group-flush">
+                    {% if all_notifications %}
+                        {% for notification in all_notifications %}
+                        <a href="{{ notification.action_url or '#' }}" 
+                           class="list-group-item list-group-item-action notification-item {% if not notification.is_read %}unread{% endif %}"
+                           data-notification-id="{{ notification.id }}">
+                            <div class="d-flex w-100 justify-content-between align-items-start">
+                                <div class="flex-grow-1">
+                                    <div class="d-flex align-items-center mb-1">
+                                        {% if not notification.is_read %}
+                                            <span class="badge bg-primary me-2">New</span>
+                                        {% endif %}
+                                        <h6 class="mb-0">{{ notification.title }}</h6>
+                                    </div>
+                                    <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                    <small class="text-muted">
+                                        <i class="fas fa-clock me-1"></i>
+                                        {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                    </small>
+                                </div>
+                                <div class="ms-3">
+                                    <button class="btn btn-sm btn-outline-secondary mark-read-btn" 
+                                            data-notification-id="{{ notification.id }}"
+                                            onclick="event.preventDefault(); markAsRead({{ notification.id }});">
+                                        <i class="fas fa-check"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    {% else %}
+                        <div class="list-group-item text-center py-5">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No notifications yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Unread Notifications -->
+        <div class="tab-pane fade" id="unread" role="tabpanel" aria-labelledby="unread-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="list-group list-group-flush">
+                    {% set unread_found = false %}
+                    {% for notification in all_notifications %}
+                        {% if not notification.is_read %}
+                            {% set unread_found = true %}
+                            <a href="{{ notification.action_url or '#' }}" 
+                               class="list-group-item list-group-item-action notification-item unread"
+                               data-notification-id="{{ notification.id }}">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <span class="badge bg-primary me-2">New</span>
+                                            <h6 class="mb-0">{{ notification.title }}</h6>
+                                        </div>
+                                        <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                        </small>
+                                    </div>
+                                    <div class="ms-3">
+                                        <button class="btn btn-sm btn-outline-secondary mark-read-btn" 
+                                                data-notification-id="{{ notification.id }}"
+                                                onclick="event.preventDefault(); markAsRead({{ notification.id }});">
+                                            <i class="fas fa-check"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not unread_found %}
+                        <div class="list-group-item text-center py-5">
+                            <i class="fas fa-check-circle fa-3x text-success mb-3"></i>
+                            <p class="text-muted">All caught up! No unread notifications</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Task Notifications -->
+        <div class="tab-pane fade" id="tasks" role="tabpanel" aria-labelledby="tasks-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="list-group list-group-flush">
+                    {% set task_found = false %}
+                    {% for notification in all_notifications %}
+                        {% if 'task' in notification.title.lower() or 'assigned' in notification.message.lower() %}
+                            {% set task_found = true %}
+                            <a href="{{ notification.action_url or '#' }}" 
+                               class="list-group-item list-group-item-action notification-item {% if not notification.is_read %}unread{% endif %}"
+                               data-notification-id="{{ notification.id }}">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="fas fa-tasks text-primary me-2"></i>
+                                            {% if not notification.is_read %}
+                                                <span class="badge bg-primary me-2">New</span>
+                                            {% endif %}
+                                            <h6 class="mb-0">{{ notification.title }}</h6>
+                                        </div>
+                                        <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not task_found %}
+                        <div class="list-group-item text-center py-5">
+                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No task notifications</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Message Notifications -->
+        <div class="tab-pane fade" id="messages" role="tabpanel" aria-labelledby="messages-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="list-group list-group-flush">
+                    {% set message_found = false %}
+                    {% for notification in all_notifications %}
+                        {% if 'message' in notification.title.lower() or 'chat' in notification.message.lower() %}
+                            {% set message_found = true %}
+                            <a href="{{ notification.action_url or '#' }}" 
+                               class="list-group-item list-group-item-action notification-item {% if not notification.is_read %}unread{% endif %}"
+                               data-notification-id="{{ notification.id }}">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="fas fa-envelope text-warning me-2"></i>
+                                            {% if not notification.is_read %}
+                                                <span class="badge bg-primary me-2">New</span>
+                                            {% endif %}
+                                            <h6 class="mb-0">{{ notification.title }}</h6>
+                                        </div>
+                                        <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not message_found %}
+                        <div class="list-group-item text-center py-5">
+                            <i class="fas fa-envelope fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No message notifications</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- System Notifications -->
+        <div class="tab-pane fade" id="system" role="tabpanel" aria-labelledby="system-tab">
+            <div class="card border-0 shadow-sm">
+                <div class="list-group list-group-flush">
+                    {% set system_found = false %}
+                    {% for notification in all_notifications %}
+                        {% if 'system' in notification.title.lower() or 'update' in notification.message.lower() %}
+                            {% set system_found = true %}
+                            <a href="{{ notification.action_url or '#' }}" 
+                               class="list-group-item list-group-item-action notification-item {% if not notification.is_read %}unread{% endif %}"
+                               data-notification-id="{{ notification.id }}">
+                                <div class="d-flex w-100 justify-content-between align-items-start">
+                                    <div class="flex-grow-1">
+                                        <div class="d-flex align-items-center mb-1">
+                                            <i class="fas fa-cog text-secondary me-2"></i>
+                                            {% if not notification.is_read %}
+                                                <span class="badge bg-primary me-2">New</span>
+                                            {% endif %}
+                                            <h6 class="mb-0">{{ notification.title }}</h6>
+                                        </div>
+                                        <p class="mb-1 text-muted">{{ notification.message }}</p>
+                                        <small class="text-muted">
+                                            <i class="fas fa-clock me-1"></i>
+                                            {{ notification.created_at.strftime('%b %d, %Y at %I:%M %p') }}
+                                        </small>
+                                    </div>
+                                </div>
+                            </a>
+                        {% endif %}
+                    {% endfor %}
+                    {% if not system_found %}
+                        <div class="list-group-item text-center py-5">
+                            <i class="fas fa-cog fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No system notifications</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.notification-item.unread {
+    background-color: #f8f9fa;
+    border-left: 4px solid #0d6efd;
+}
+
+.notification-item:hover {
+    background-color: #e9ecef;
+}
+
+.mark-read-btn {
+    opacity: 0.6;
+}
+
+.mark-read-btn:hover {
+    opacity: 1;
+}
+
+.notification-item.unread .mark-read-btn {
+    opacity: 1;
+}
+</style>
+
+<script>
+// Mark single notification as read
+function markAsRead(notificationId) {
+    fetch(`{{ url_for('dashboard.mark_notification_read', notif_id=0) }}`.replace('0', notificationId), {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove unread styling
+            const item = document.querySelector(`[data-notification-id="${notificationId}"]`);
+            if (item) {
+                item.classList.remove('unread');
+                const newBadge = item.querySelector('.badge.bg-primary');
+                if (newBadge) newBadge.remove();
+            }
+            
+            // Update unread count
+            const unreadCount = document.getElementById('unreadCount');
+            const currentCount = parseInt(unreadCount.textContent);
+            if (currentCount > 0) {
+                unreadCount.textContent = currentCount - 1;
+            }
+            
+            // Update navbar badge
+            updateNotificationBadge();
+        }
+    })
+    .catch(error => console.error('Error marking notification as read:', error));
+}
+
+// Mark all as read
+document.getElementById('markAllRead').addEventListener('click', function() {
+    fetch('{{ url_for("dashboard.mark_all_notifications_read") }}', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            // Remove all unread styling
+            document.querySelectorAll('.notification-item.unread').forEach(item => {
+                item.classList.remove('unread');
+                const newBadge = item.querySelector('.badge.bg-primary');
+                if (newBadge) newBadge.remove();
+            });
+            
+            // Update unread count
+            document.getElementById('unreadCount').textContent = '0';
+            
+            // Update navbar badge
+            updateNotificationBadge();
+            
+            // Show success message
+            alert('All notifications marked as read');
+        }
+    })
+    .catch(error => console.error('Error marking all as read:', error));
+});
+</script>
+{% endblock %}

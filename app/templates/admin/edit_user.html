@@ -1,0 +1,200 @@
+{% extends "base.html" %}
+
+{% block title %}Edit User - FlowDeck{% endblock %}
+
+{% block content %}
+{% set user = user|default(None) %}
+{% set departments = departments|default([]) %}
+{% set roles = roles|default([]) %}
+{% set tags = tags|default([]) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.users') }}">Users</a></li>
+                    <li class="breadcrumb-item active">Edit User</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-edit text-primary"></i>
+                Edit User
+            </h1>
+            <p class="text-muted">Update user information and permissions</p>
+        </div>
+    </div>
+
+    {% if user %}
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <h5 class="mb-3">Basic Information</h5>
+                        
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="name" class="form-label">Full Name <span class="text-danger">*</span></label>
+                                <input type="text" class="form-control" id="name" name="name" 
+                                       value="{{ user.name }}" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="email" class="form-label">Email Address <span class="text-danger">*</span></label>
+                                <input type="email" class="form-control" id="email" name="email" 
+                                       value="{{ user.email }}" required>
+                            </div>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ user.phone or '' }}">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="designation" class="form-label">Designation</label>
+                                <input type="text" class="form-control" id="designation" name="designation" 
+                                       value="{{ user.designation or '' }}">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            {% if user.profile_picture %}
+                            <div class="mb-2">
+                                <img src="{{ user.profile_picture }}" alt="{{ user.name }}" 
+                                     class="rounded-circle" width="60" height="60">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Organisation Details</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="department_id" class="form-label">Department</label>
+                                <select class="form-select" id="department_id" name="department_id">
+                                    <option value="">Select Department</option>
+                                    {% for dept in departments %}
+                                    <option value="{{ dept.id }}" 
+                                        {% if user.department_id == dept.id %}selected{% endif %}>
+                                        {{ dept.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="roles" class="form-label">Roles</label>
+                                <select class="form-select" id="roles" name="roles" multiple>
+                                    {% for role in roles %}
+                                    <option value="{{ role.id }}"
+                                        {% if role in user.roles %}selected{% endif %}>
+                                        {{ role.name }}
+                                    </option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="tags" class="form-label">Tags</label>
+                            <select class="form-select" id="tags" name="tags" multiple>
+                                {% for tag in tags %}
+                                <option value="{{ tag.id }}"
+                                    {% if tag in user.tags %}selected{% endif %}>
+                                    {{ tag.name }}
+                                </option>
+                                {% endfor %}
+                            </select>
+                        </div>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="is_active" name="is_active"
+                                       {% if user.is_active %}checked{% endif %}>
+                                <label class="form-check-label" for="is_active">
+                                    Active User
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">Social Links</h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="linkedin" class="form-label">LinkedIn</label>
+                                <input type="url" class="form-control" id="linkedin" name="linkedin" 
+                                       value="{{ user.linkedin or '' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="twitter" class="form-label">Twitter</label>
+                                <input type="url" class="form-control" id="twitter" name="twitter" 
+                                       value="{{ user.twitter or '' }}">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="github" class="form-label">GitHub</label>
+                                <input type="url" class="form-control" id="github" name="github" 
+                                       value="{{ user.github or '' }}">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('admin.users') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <h5 class="mb-3">User Info</h5>
+                    <dl class="row mb-0">
+                        <dt class="col-sm-5">Joined:</dt>
+                        <dd class="col-sm-7">{{ user.created_at.strftime('%b %d, %Y') if user.created_at else '—' }}</dd>
+                        
+                        <dt class="col-sm-5">Email Verified:</dt>
+                        <dd class="col-sm-7">
+                            {% if user.email_verified %}
+                            <span class="badge bg-success">Yes</span>
+                            {% else %}
+                            <span class="badge bg-warning">No</span>
+                            {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-5">Status:</dt>
+                        <dd class="col-sm-7">
+                            {% if user.is_active %}
+                            <span class="badge bg-success">Active</span>
+                            {% else %}
+                            <span class="badge bg-danger">Inactive</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% else %}
+    <div class="alert alert-danger">
+        <i class="fas fa-exclamation-triangle"></i>
+        User not found.
+    </div>
+    {% endif %}
+</div>
+{% endblock %}

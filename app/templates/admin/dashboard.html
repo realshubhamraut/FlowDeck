@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Admin Dashboard - FlowDeck{% endblock %}
+
+{% block content %}
+<!-- Safe defaults to prevent UndefinedError -->
+{% set stats = stats|default({}) %}
+{% set total_users = stats.total_users|default(0) %}
+{% set total_departments = stats.total_departments|default(0) %}
+{% set total_tasks = stats.total_tasks|default(0) %}
+{% set recent_users = recent_users|default([]) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-shield-alt text-primary"></i>
+                Admin Dashboard
+            </h1>
+            <p class="text-muted">Organisation management and overview</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <!-- Total Users -->
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2">Total Users</h6>
+                            <h2 class="mb-0">{{ total_users }}</h2>
+                        </div>
+                        <div class="icon-shape bg-primary text-white rounded-circle p-3">
+                            <i class="fas fa-users fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary">
+                            Manage Users <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Departments -->
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2">Departments</h6>
+                            <h2 class="mb-0">{{ total_departments }}</h2>
+                        </div>
+                        <div class="icon-shape bg-success text-white rounded-circle p-3">
+                            <i class="fas fa-building fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('admin.departments') }}" class="btn btn-sm btn-outline-success">
+                            Manage Departments <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Total Tasks -->
+        <div class="col-md-4 mb-3">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted text-uppercase mb-2">Total Tasks</h6>
+                            <h2 class="mb-0">{{ total_tasks }}</h2>
+                        </div>
+                        <div class="icon-shape bg-info text-white rounded-circle p-3">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-info">
+                            View Analytics <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Recent Users -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0">
+                            <i class="fas fa-user-plus text-primary"></i>
+                            Recent Users
+                        </h5>
+                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-sm btn-primary">
+                            <i class="fas fa-plus"></i> Add User
+                        </a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_users %}
+                    <div class="table-responsive">
+                        <table class="table table-hover mb-0">
+                            <thead class="table-light">
+                                <tr>
+                                    <th>Name</th>
+                                    <th>Email</th>
+                                    <th>Department</th>
+                                    <th>Joined</th>
+                                    <th class="text-end">Actions</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for user in recent_users %}
+                                <tr>
+                                    <td>
+                                        <div class="d-flex align-items-center">
+                                            {% if user.profile_picture %}
+                                            <img src="{{ user.profile_picture }}" alt="{{ user.name }}" 
+                                                 class="rounded-circle me-2" width="32" height="32">
+                                            {% else %}
+                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                                 style="width: 32px; height: 32px; font-size: 14px;">
+                                                {{ user.name[0].upper() }}
+                                            </div>
+                                            {% endif %}
+                                            <span>{{ user.name }}</span>
+                                        </div>
+                                    </td>
+                                    <td>{{ user.email }}</td>
+                                    <td>
+                                        {% if user.department %}
+                                        <span class="badge bg-secondary">{{ user.department.name }}</span>
+                                        {% else %}
+                                        <span class="text-muted">—</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        <small class="text-muted">
+                                            {{ user.created_at.strftime('%b %d, %Y') }}
+                                        </small>
+                                    </td>
+                                    <td class="text-end">
+                                        <a href="{{ url_for('admin.edit_user', user_id=user.id) }}" 
+                                           class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="text-center py-5">
+                        <i class="fas fa-users fa-3x text-muted mb-3"></i>
+                        <p class="text-muted">No users yet</p>
+                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> Create First User
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-bolt text-warning"></i>
+                        Quick Actions
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-outline-primary text-start">
+                            <i class="fas fa-user-plus me-2"></i>
+                            Add New User
+                        </a>
+                        <a href="{{ url_for('admin.create_department') }}" class="btn btn-outline-success text-start">
+                            <i class="fas fa-building me-2"></i>
+                            Create Department
+                        </a>
+                        <a href="{{ url_for('admin.organisation') }}" class="btn btn-outline-info text-start">
+                            <i class="fas fa-cog me-2"></i>
+                            Organisation Settings
+                        </a>
+                        <a href="{{ url_for('admin.roles') }}" class="btn btn-outline-secondary text-start">
+                            <i class="fas fa-user-shield me-2"></i>
+                            Manage Roles
+                        </a>
+                        <a href="{{ url_for('admin.analytics') }}" class="btn btn-outline-dark text-start">
+                            <i class="fas fa-chart-line me-2"></i>
+                            View Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Organisation Info -->
+            <div class="card border-0 shadow-sm mt-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-info"></i>
+                        Organisation
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if current_user.organisation %}
+                    <div class="mb-3">
+                        {% if current_user.organisation.logo %}
+                        <img src="{{ current_user.organisation.logo }}" 
+                             alt="{{ current_user.organisation.name }}" 
+                             class="img-fluid mb-2" style="max-height: 60px;">
+                        {% endif %}
+                        <h6 class="mb-1">{{ current_user.organisation.name }}</h6>
+                        {% if current_user.organisation.email %}
+                        <p class="small text-muted mb-1">
+                            <i class="fas fa-envelope me-1"></i>
+                            {{ current_user.organisation.email }}
+                        </p>
+                        {% endif %}
+                        {% if current_user.organisation.contact %}
+                        <p class="small text-muted mb-0">
+                            <i class="fas fa-phone me-1"></i>
+                            {{ current_user.organisation.contact }}
+                        </p>
+                        {% endif %}
+                    </div>
+                    <a href="{{ url_for('admin.organisation') }}" class="btn btn-sm btn-outline-primary w-100">
+                        <i class="fas fa-edit me-1"></i> Edit Settings
+                    </a>
+                    {% else %}
+                    <p class="text-muted mb-0">No organisation data</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.icon-shape {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 64px;
+    height: 64px;
+}
+
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15) !important;
+}
+</style>
+{% endblock %}

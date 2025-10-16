@@ -1,0 +1,226 @@
+{% extends "base.html" %}
+
+{% block title %}My Profile - FlowDeck{% endblock %}
+
+{% block content %}
+{% set user = user|default(current_user) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="h3 mb-0">
+                        <i class="fas fa-user text-primary"></i>
+                        My Profile
+                    </h1>
+                    <p class="text-muted">View and manage your profile information</p>
+                </div>
+                <div>
+                    <a href="{{ url_for('user.edit_profile') }}" class="btn btn-primary me-2">
+                        <i class="fas fa-edit"></i> Edit Profile
+                    </a>
+                    <a href="{{ url_for('user.settings') }}" class="btn btn-outline-secondary">
+                        <i class="fas fa-cog"></i> Settings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-4">
+            <!-- Profile Card -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-body text-center">
+                    {% if user.profile_picture %}
+                    <img src="{{ user.profile_picture }}" alt="{{ user.name }}" 
+                         class="rounded-circle mb-3" width="120" height="120">
+                    {% else %}
+                    <div class="bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3"
+                         style="width: 120px; height: 120px; font-size: 48px;">
+                        {{ user.name[0].upper() }}
+                    </div>
+                    {% endif %}
+                    
+                    <h4 class="mb-1">{{ user.name }}</h4>
+                    {% if user.designation %}
+                    <p class="text-muted mb-2">{{ user.designation }}</p>
+                    {% endif %}
+                    {% if user.department %}
+                    <span class="badge bg-primary">{{ user.department.name }}</span>
+                    {% endif %}
+
+                    {% if user.bio %}
+                    <hr class="my-3">
+                    <p class="small text-muted">{{ user.bio }}</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Contact Info -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-address-card text-info"></i>
+                        Contact Information
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <dl class="row mb-0">
+                        <dt class="col-sm-4">Email:</dt>
+                        <dd class="col-sm-8">
+                            <a href="mailto:{{ user.email }}">{{ user.email }}</a>
+                        </dd>
+                        
+                        {% if user.phone %}
+                        <dt class="col-sm-4">Phone:</dt>
+                        <dd class="col-sm-8">{{ user.phone }}</dd>
+                        {% endif %}
+                    </dl>
+                </div>
+            </div>
+
+            <!-- Social Links -->
+            {% if user.linkedin or user.twitter or user.github %}
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-share-alt text-success"></i>
+                        Social Links
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if user.linkedin %}
+                    <a href="{{ user.linkedin }}" target="_blank" class="btn btn-outline-primary btn-sm w-100 mb-2">
+                        <i class="fab fa-linkedin"></i> LinkedIn
+                    </a>
+                    {% endif %}
+                    {% if user.twitter %}
+                    <a href="{{ user.twitter }}" target="_blank" class="btn btn-outline-info btn-sm w-100 mb-2">
+                        <i class="fab fa-twitter"></i> Twitter
+                    </a>
+                    {% endif %}
+                    {% if user.github %}
+                    <a href="{{ user.github }}" target="_blank" class="btn btn-outline-dark btn-sm w-100">
+                        <i class="fab fa-github"></i> GitHub
+                    </a>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <div class="col-lg-8">
+            <!-- Account Details -->
+            <div class="card border-0 shadow-sm mb-4">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-info-circle text-primary"></i>
+                        Account Details
+                    </h5>
+                </div>
+                <div class="card-body">
+                    <div class="row">
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Full Name</label>
+                            <p class="mb-0"><strong>{{ user.name }}</strong></p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Email</label>
+                            <p class="mb-0">{{ user.email }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Department</label>
+                            <p class="mb-0">
+                                {% if user.department %}
+                                {{ user.department.name }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Designation</label>
+                            <p class="mb-0">
+                                {% if user.designation %}
+                                {{ user.designation }}
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                            </p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Member Since</label>
+                            <p class="mb-0">{{ user.created_at.strftime('%B %d, %Y') if user.created_at else '—' }}</p>
+                        </div>
+                        <div class="col-md-6 mb-3">
+                            <label class="text-muted small">Email Verified</label>
+                            <p class="mb-0">
+                                {% if user.email_verified %}
+                                <span class="badge bg-success">
+                                    <i class="fas fa-check"></i> Verified
+                                </span>
+                                {% else %}
+                                <span class="badge bg-warning">
+                                    <i class="fas fa-clock"></i> Pending
+                                </span>
+                                {% endif %}
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Roles & Tags -->
+            <div class="row">
+                {% if user.roles %}
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-user-shield text-warning"></i>
+                                Roles
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for role in user.roles %}
+                            <span class="badge bg-info me-1 mb-1">{{ role.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+
+                {% if user.tags %}
+                <div class="col-md-6 mb-4">
+                    <div class="card border-0 shadow-sm h-100">
+                        <div class="card-header bg-white border-bottom">
+                            <h5 class="mb-0">
+                                <i class="fas fa-tags text-success"></i>
+                                Skills & Tags
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            {% for tag in user.tags %}
+                            <span class="badge bg-secondary me-1 mb-1">{{ tag.name }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.card {
+    transition: transform 0.2s, box-shadow 0.2s;
+}
+
+.badge {
+    font-weight: 500;
+}
+</style>
+{% endblock %}

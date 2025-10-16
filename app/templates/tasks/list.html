@@ -1,0 +1,411 @@
+{% extends "base.html" %}
+
+{% block title %}Tasks - FlowDeck{% endblock %}
+
+{% block content %}
+{# Provide safe defaults and normalize variables #}
+{% set total_count = total_count|default(0) %}
+{% set todo_count = todo_count|default(0) %}
+{% set in_progress_count = in_progress_count|default(0) %}
+{% set done_count = done_count|default(0) %}
+{% set pagination = pagination|default(None) %}
+{% set tasks = tasks|default(pagination if pagination is not none else []) %}
+<div class="container-fluid py-4">
+    <!-- Header with Actions -->
+    <div class="row mb-4">
+        <div class="col-md-6">
+            <h1 class="display-6 mb-1"><i class="fas fa-tasks me-2"></i> Tasks</h1>
+            <p class="text-muted">Manage and track your tasks</p>
+        </div>
+        <div class="col-md-6 text-md-end">
+            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
+                <i class="fas fa-plus me-2"></i> Create Task
+            </a>
+            <a href="{{ url_for('tasks.list_tasks', view='kanban') }}" class="btn btn-outline-secondary">
+                <i class="fas fa-columns me-2"></i> Kanban View
+            </a>
+        </div>
+    </div>
+
+    <!-- Filters and Search -->
+    <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+            <form method="GET" action="{{ url_for('tasks.list_tasks') }}" class="row g-3">
+                <!-- Search -->
+                <div class="col-md-3">
+                    <input type="text" name="search" class="form-control" placeholder="Search tasks..." 
+                           value="{{ request.args.get('search', '') }}">
+                </div>
+
+                <!-- Status Filter -->
+                <div class="col-md-2">
+                    <select name="status" class="form-select">
+                        <option value="">All Status</option>
+                        <option value="todo" {% if request.args.get('status') == 'todo' %}selected{% endif %}>To Do</option>
+                        <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
+                        <option value="done" {% if request.args.get('status') == 'done' %}selected{% endif %}>Done</option>
+                        <option value="archived" {% if request.args.get('status') == 'archived' %}selected{% endif %}>Archived</option>
+                    </select>
+                </div>
+
+                <!-- Priority Filter -->
+                <div class="col-md-2">
+                    <select name="priority" class="form-select">
+                        <option value="">All Priority</option>
+                        <option value="urgent" {% if request.args.get('priority') == 'urgent' %}selected{% endif %}>Urgent</option>
+                        <option value="high" {% if request.args.get('priority') == 'high' %}selected{% endif %}>High</option>
+                        <option value="medium" {% if request.args.get('priority') == 'medium' %}selected{% endif %}>Medium</option>
+                        <option value="low" {% if request.args.get('priority') == 'low' %}selected{% endif %}>Low</option>
+                    </select>
+                </div>
+
+                <!-- Assigned Filter -->
+                <div class="col-md-2">
+                    <select name="assigned" class="form-select">
+                        <option value="">All Tasks</option>
+                        <option value="me" {% if request.args.get('assigned') == 'me' %}selected{% endif %}>Assigned to Me</option>
+                        <option value="created" {% if request.args.get('assigned') == 'created' %}selected{% endif %}>Created by Me</option>
+                    </select>
+                </div>
+
+                <!-- Sort -->
+                <div class="col-md-2">
+                    <select name="sort" class="form-select">
+                        <option value="due_date" {% if request.args.get('sort', 'due_date') == 'due_date' %}selected{% endif %}>Due Date</option>
+                        <option value="created" {% if request.args.get('sort') == 'created' %}selected{% endif %}>Date Created</option>
+                        <option value="priority" {% if request.args.get('sort') == 'priority' %}selected{% endif %}>Priority</option>
+                        <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Title</option>
+                    </select>
+                </div>
+
+                <!-- Filter Button -->
+                <div class="col-md-1">
+                    <button type="submit" class="btn btn-outline-primary w-100">
+                        <i class="fas fa-filter"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Task Statistics -->
+    <div class="row mb-4">
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h3 class="mb-0">{{ total_count }}</h3>
+                    <small class="text-muted">Total Tasks</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h3 class="mb-0 text-warning">{{ todo_count }}</h3>
+                    <small class="text-muted">To Do</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h3 class="mb-0 text-info">{{ in_progress_count }}</h3>
+                    <small class="text-muted">In Progress</small>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3 mb-3">
+            <div class="card border-0 shadow-sm text-center">
+                <div class="card-body">
+                    <h3 class="mb-0 text-success">{{ done_count }}</h3>
+                    <small class="text-muted">Completed</small>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="card border-0 shadow-sm">
+        <div class="card-body p-0">
+            {% if tasks %}
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead class="table-light">
+                            <tr>
+                                <th style="width: 40%;">Task</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Assigned To</th>
+                                <th>Due Date</th>
+                                <th>Progress</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% set task_items = tasks.items if tasks is not string and (tasks.items is defined) else tasks %}
+                            {% for task in task_items %}
+                            <tr class="{% if task.is_overdue() and task.status != 'done' %}table-danger{% endif %}">
+                                <td>
+                                    <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" 
+                                       class="text-decoration-none fw-semibold">
+                                        {{ task.title }}
+                                    </a>
+                                    {% if task.description %}
+                                        <br>
+                                        <small class="text-muted">
+                                            {{ task.description[:80] }}{% if task.description|length > 80 %}...{% endif %}
+                                        </small>
+                                    {% endif %}
+                                    <br>
+                                    <small class="text-muted">
+                                        <i class="fas fa-user me-1"></i> {{ task.creator.username }}
+                                        <i class="fas fa-clock ms-2 me-1"></i> {{ task.created_at.strftime('%b %d, %Y') }}
+                                    </small>
+                                </td>
+                                <td>
+                                    <span class="badge task-priority-{{ task.priority }}">
+                                        {% if task.priority == 'urgent' %}
+                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                        {% elif task.priority == 'high' %}
+                                            <i class="fas fa-arrow-up me-1"></i>
+                                        {% elif task.priority == 'medium' %}
+                                            <i class="fas fa-equals me-1"></i>
+                                        {% else %}
+                                            <i class="fas fa-arrow-down me-1"></i>
+                                        {% endif %}
+                                        {{ task.priority|capitalize }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge task-status-{{ task.status }}">
+                                        {{ task.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if task.assignees %}
+                                        <div class="d-flex align-items-center">
+                                            {% for assignee in task.assignees[:3] %}
+                                                {% if assignee.profile_picture %}
+                                                    <img src="{{ url_for('static', filename='uploads/' + assignee.profile_picture) }}" 
+                                                         class="rounded-circle me-1" width="25" height="25" 
+                                                         title="{{ assignee.username }}" alt="">
+                                                {% else %}
+                                                    <div class="avatar-xs bg-primary text-white rounded-circle me-1" 
+                                                         title="{{ assignee.username }}">
+                                                        {{ assignee.username[0]|upper }}
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                            {% if task.assignees|length > 3 %}
+                                                <span class="badge bg-secondary">+{{ task.assignees|length - 3 }}</span>
+                                            {% endif %}
+                                        </div>
+                                    {% else %}
+                                        <span class="text-muted">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.due_date %}
+                                        <small class="{% if task.is_overdue() and task.status != 'done' %}text-danger fw-bold{% endif %}">
+                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            {{ task.due_date.strftime('%b %d, %Y') }}
+                                            {% if task.is_overdue() and task.status != 'done' %}
+                                                <br><span class="badge bg-danger">Overdue</span>
+                                            {% endif %}
+                                        </small>
+                                    {% else %}
+                                        <span class="text-muted">No due date</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
+                                            <div class="progress-bar" role="progressbar" 
+                                                 style="width: {{ task.completion_percentage() }}%"
+                                                 aria-valuenow="{{ task.completion_percentage() }}" 
+                                                 aria-valuemin="0" aria-valuemax="100"></div>
+                                        </div>
+                                        <small class="text-muted">{{ task.completion_percentage() }}%</small>
+                                    </div>
+                                </td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" 
+                                           class="btn btn-outline-primary" title="View">
+                                            <i class="fas fa-eye"></i>
+                                        </a>
+                                        {% if can_edit_task(task) %}
+                                            <a href="{{ url_for('tasks.edit_task', task_id=task.id) }}" 
+                                               class="btn btn-outline-secondary" title="Edit">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <button class="btn btn-outline-danger" 
+                                                    onclick="confirmDelete({{ task.id }})" title="Delete">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        {% endif %}
+                                    </div>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                {% if tasks.has_prev or tasks.has_next %}
+                <div class="card-footer bg-white border-0">
+                    <nav aria-label="Task pagination">
+                        <ul class="pagination justify-content-center mb-0">
+                            {% if tasks.has_prev %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('tasks.list_tasks', page=tasks.prev_num, **request.args) }}">
+                                        <i class="fas fa-chevron-left"></i> Previous
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link"><i class="fas fa-chevron-left"></i> Previous</span>
+                                </li>
+                            {% endif %}
+
+                            {% for page_num in tasks.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+                                {% if page_num %}
+                                    <li class="page-item {% if page_num == tasks.page %}active{% endif %}">
+                                        <a class="page-link" href="{{ url_for('tasks.list_tasks', page=page_num, **request.args) }}">
+                                            {{ page_num }}
+                                        </a>
+                                    </li>
+                                {% else %}
+                                    <li class="page-item disabled"><span class="page-link">...</span></li>
+                                {% endif %}
+                            {% endfor %}
+
+                            {% if tasks.has_next %}
+                                <li class="page-item">
+                                    <a class="page-link" href="{{ url_for('tasks.list_tasks', page=tasks.next_num, **request.args) }}">
+                                        Next <i class="fas fa-chevron-right"></i>
+                                    </a>
+                                </li>
+                            {% else %}
+                                <li class="page-item disabled">
+                                    <span class="page-link">Next <i class="fas fa-chevron-right"></i></span>
+                                </li>
+                            {% endif %}
+                        </ul>
+                    </nav>
+                    <div class="text-center mt-2">
+                        <small class="text-muted">
+                            Showing {{ ((tasks.page - 1) * tasks.per_page) + 1 }} to 
+                            {{ min(tasks.page * tasks.per_page, tasks.total) }} of {{ tasks.total }} tasks
+                        </small>
+                    </div>
+                </div>
+                {% endif %}
+            {% else %}
+                <div class="text-center py-5">
+                    <i class="fas fa-tasks fa-4x text-muted mb-3"></i>
+                    <h5 class="text-muted">No tasks found</h5>
+                    <p class="text-muted">
+                        {% if request.args.get('search') or request.args.get('status') or request.args.get('priority') %}
+                            Try adjusting your filters or search query.
+                        {% else %}
+                            Create your first task to get started!
+                        {% endif %}
+                    </p>
+                    <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
+                        <i class="fas fa-plus me-2"></i> Create Task
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-xs {
+    width: 25px;
+    height: 25px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 10px;
+}
+
+.task-priority-urgent {
+    background-color: #dc3545;
+    color: white;
+}
+
+.task-priority-high {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.task-priority-medium {
+    background-color: #0dcaf0;
+    color: white;
+}
+
+.task-priority-low {
+    background-color: #198754;
+    color: white;
+}
+
+.task-status-todo {
+    background-color: #6c757d;
+    color: white;
+}
+
+.task-status-in_progress {
+    background-color: #0d6efd;
+    color: white;
+}
+
+.task-status-done {
+    background-color: #198754;
+    color: white;
+}
+
+.task-status-archived {
+    background-color: #adb5bd;
+    color: white;
+}
+
+tr:hover {
+    background-color: #f8f9fa;
+}
+</style>
+
+<script>
+function confirmDelete(taskId) {
+    if (confirm('Are you sure you want to delete this task? This action cannot be undone.')) {
+        fetch(`/tasks/${taskId}/delete`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            }
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                location.reload();
+            } else {
+                alert('Error deleting task: ' + (data.message || 'Unknown error'));
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('Error deleting task');
+        });
+    }
+}
+
+// Auto-submit form on filter change
+document.querySelectorAll('select[name="status"], select[name="priority"], select[name="assigned"], select[name="sort"]').forEach(select => {
+    select.addEventListener('change', function() {
+        this.closest('form').submit();
+    });
+});
+</script>
+{% endblock %}

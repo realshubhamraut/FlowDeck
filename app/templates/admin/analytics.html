@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Analytics - FlowDeck{% endblock %}
+
+{% block content %}
+{% set stats = stats|default(None) %}
+{% set dept_stats = dept_stats|default([]) %}
+{% set top_users = top_users|default([]) %}
+
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('admin.index') }}">Admin</a></li>
+                    <li class="breadcrumb-item active">Analytics</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-chart-line text-primary"></i>
+                Organisation Analytics
+            </h1>
+            <p class="text-muted">Insights and performance metrics</p>
+        </div>
+    </div>
+
+    <!-- Overview Stats -->
+    {% if stats %}
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-building fa-2x text-primary mb-2"></i>
+                    <h3>{{ stats.total_departments or 0 }}</h3>
+                    <p class="text-muted mb-0">Departments</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-users fa-2x text-success mb-2"></i>
+                    <h3>{{ stats.total_users or 0 }}</h3>
+                    <p class="text-muted mb-0">Users</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-tasks fa-2x text-info mb-2"></i>
+                    <h3>{{ stats.total_tasks or 0 }}</h3>
+                    <p class="text-muted mb-0">Total Tasks</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body text-center">
+                    <i class="fas fa-check-circle fa-2x text-warning mb-2"></i>
+                    <h3>{{ stats.completed_tasks or 0 }}</h3>
+                    <p class="text-muted mb-0">Completed</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Department Performance -->
+    <div class="row mb-4">
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-chart-bar text-success"></i>
+                        Department Efficiency
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if dept_stats %}
+                    <div class="table-responsive">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Department</th>
+                                    <th>Tasks</th>
+                                    <th>Completion</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for dept in dept_stats[:10] %}
+                                <tr>
+                                    <td>{{ dept.department_name or 'N/A' }}</td>
+                                    <td>{{ dept.total_tasks or 0 }}</td>
+                                    <td>
+                                        <div class="progress" style="height: 20px;">
+                                            <div class="progress-bar bg-success" role="progressbar" 
+                                                 style="width: {{ dept.completion_percentage or 0 }}%">
+                                                {{ "%.0f"|format(dept.completion_percentage or 0) }}%
+                                            </div>
+                                        </div>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No department data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Top Performers -->
+        <div class="col-lg-6">
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-bottom">
+                    <h5 class="mb-0">
+                        <i class="fas fa-trophy text-warning"></i>
+                        Top Performers
+                    </h5>
+                </div>
+                <div class="card-body">
+                    {% if top_users %}
+                    <div class="list-group list-group-flush">
+                        {% for user in top_users[:10] %}
+                        <div class="list-group-item d-flex justify-content-between align-items-center">
+                            <div>
+                                <strong>{{ user.user_name or 'N/A' }}</strong>
+                                <br>
+                                <small class="text-muted">{{ user.completed_tasks or 0 }} tasks completed</small>
+                            </div>
+                            <span class="badge bg-primary rounded-pill">
+                                {{ "%.0f"|format(user.completion_percentage or 0) }}%
+                            </span>
+                        </div>
+                        {% endfor %}
+                    </div>
+                    {% else %}
+                    <p class="text-muted text-center py-4">No user data available</p>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-12">
+            <div class="alert alert-info">
+                <i class="fas fa-info-circle"></i>
+                <strong>Analytics Note:</strong> Data is computed from database views and may be cached. Refresh the page to see the latest statistics.
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

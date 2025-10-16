@@ -1,0 +1,157 @@
+{% extends "base.html" %}
+
+{% block title %}Settings - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="h3 mb-0">
+                <i class="fas fa-cog text-primary"></i>
+                User Settings
+            </h1>
+            <p class="text-muted">Manage your preferences and notifications</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST">
+                        <h5 class="mb-3">
+                            <i class="fas fa-palette text-primary"></i>
+                            Appearance
+                        </h5>
+                        
+                        <div class="mb-4">
+                            <label for="theme" class="form-label">Theme Preference</label>
+                            <select class="form-select" id="theme" name="theme">
+                                <option value="light" {% if current_user.theme_preference == 'light' %}selected{% endif %}>
+                                    Light Mode
+                                </option>
+                                <option value="dark" {% if current_user.theme_preference == 'dark' %}selected{% endif %}>
+                                    Dark Mode
+                                </option>
+                                <option value="auto" {% if current_user.theme_preference == 'auto' %}selected{% endif %}>
+                                    Auto (System)
+                                </option>
+                            </select>
+                            <small class="form-text text-muted">Choose your preferred color scheme</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">
+                            <i class="fas fa-bell text-warning"></i>
+                            Notifications
+                        </h5>
+
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="notifications" name="notifications"
+                                       {% if current_user.notification_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="notifications">
+                                    <strong>In-App Notifications</strong>
+                                    <br>
+                                    <small class="text-muted">Receive notifications within FlowDeck</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div class="mb-4">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" id="email_notifications" name="email_notifications"
+                                       {% if current_user.email_notification_enabled %}checked{% endif %}>
+                                <label class="form-check-label" for="email_notifications">
+                                    <strong>Email Notifications</strong>
+                                    <br>
+                                    <small class="text-muted">Receive notifications via email</small>
+                                </label>
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('user.profile') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-arrow-left"></i> Back to Profile
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Settings
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i class="fas fa-info-circle text-info"></i>
+                        About Settings
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Theme</h6>
+                        <p class="small text-muted mb-0">
+                            Choose between light and dark mode, or let the system decide automatically based on your device settings.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Notifications</h6>
+                        <p class="small text-muted mb-0">
+                            Control how you receive updates about tasks, comments, and mentions. You can enable or disable in-app and email notifications separately.
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lightbulb"></i>
+                        <strong>Tip:</strong> Your settings are saved automatically and will apply across all your devices.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-user-circle text-success"></i>
+                        Account
+                    </h6>
+                    <dl class="row mb-0 small">
+                        <dt class="col-sm-5">Name:</dt>
+                        <dd class="col-sm-7">{{ current_user.name }}</dd>
+                        
+                        <dt class="col-sm-5">Email:</dt>
+                        <dd class="col-sm-7">{{ current_user.email }}</dd>
+                        
+                        <dt class="col-sm-5">Department:</dt>
+                        <dd class="col-sm-7">
+                            {% if current_user.department %}
+                            {{ current_user.department.name }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.form-check-input:checked {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.form-check-label strong {
+    display: block;
+    margin-bottom: 0.25rem;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,319 @@
+{% extends "base.html" %}
+
+{% block title %}Calendar - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-6 mb-1"><i class="fas fa-calendar me-2"></i> Calendar</h1>
+            <p class="text-muted">View your tasks, meetings, and holidays in calendar view</p>
+        </div>
+    </div>
+
+    <!-- Calendar -->
+    <div class="row">
+        <div class="col-lg-9 mb-4">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <div id="calendar"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sidebar -->
+        <div class="col-lg-3">
+            <!-- Filters -->
+            <div class="card border-0 shadow-sm mb-3">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">Filters</h6>
+                </div>
+                <div class="card-body">
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="showTasks" checked>
+                        <label class="form-check-label" for="showTasks">
+                            Tasks
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="showHolidays" checked>
+                        <label class="form-check-label" for="showHolidays">
+                            Holidays
+                        </label>
+                    </div>
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" id="showLeaves" checked>
+                        <label class="form-check-label" for="showLeaves">
+                            Leave Requests
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Upcoming Events -->
+            <div class="card border-0 shadow-sm">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">Upcoming Events</h6>
+                </div>
+                <div class="card-body p-0">
+                    <div class="list-group list-group-flush" id="upcomingEvents">
+                        <div class="list-group-item">
+                            <div class="text-center py-3 text-muted">
+                                <i class="fas fa-spinner fa-spin"></i> Loading...
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Legend -->
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-header bg-white border-0">
+                    <h6 class="mb-0">Legend</h6>
+                </div>
+                <div class="card-body">
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-danger me-2" style="width: 20px; height: 20px;"></span>
+                        <small>Urgent Tasks</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-warning me-2" style="width: 20px; height: 20px;"></span>
+                        <small>High Priority</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-info me-2" style="width: 20px; height: 20px;"></span>
+                        <small>Medium Priority</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-success me-2" style="width: 20px; height: 20px;"></span>
+                        <small>Low Priority</small>
+                    </div>
+                    <div class="d-flex align-items-center mb-2">
+                        <span class="badge bg-secondary me-2" style="width: 20px; height: 20px;"></span>
+                        <small>Holidays</small>
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-primary me-2" style="width: 20px; height: 20px;"></span>
+                        <small>Leave Requests</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Event Detail Modal -->
+<div class="modal fade" id="eventModal" tabindex="-1" aria-labelledby="eventModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="eventModalLabel">Event Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body" id="eventModalBody">
+                <!-- Event details will be loaded here -->
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                <a href="#" id="viewEventBtn" class="btn btn-primary">View Details</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.9/index.global.min.js"></script>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const calendarEl = document.getElementById('calendar');
+    let calendar;
+    
+    // Initialize calendar
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
+        },
+        events: function(info, successCallback, failureCallback) {
+            fetch('{{ url_for("dashboard.calendar_events") }}')
+                .then(response => response.json())
+                .then(data => {
+                    const events = [];
+                    
+                    // Add tasks
+                    if (document.getElementById('showTasks').checked) {
+                        data.tasks.forEach(task => {
+                            const priorityColors = {
+                                'urgent': '#dc3545',
+                                'high': '#fd7e14',
+                                'medium': '#0dcaf0',
+                                'low': '#198754'
+                            };
+                            
+                            events.push({
+                                id: 'task-' + task.id,
+                                title: task.title,
+                                start: task.due_date,
+                                backgroundColor: priorityColors[task.priority] || '#6c757d',
+                                borderColor: priorityColors[task.priority] || '#6c757d',
+                                extendedProps: {
+                                    type: 'task',
+                                    taskId: task.id,
+                                    priority: task.priority,
+                                    status: task.status
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Add holidays
+                    if (document.getElementById('showHolidays').checked) {
+                        data.holidays.forEach(holiday => {
+                            events.push({
+                                id: 'holiday-' + holiday.id,
+                                title: '🎉 ' + holiday.name,
+                                start: holiday.date,
+                                backgroundColor: '#6c757d',
+                                borderColor: '#6c757d',
+                                allDay: true,
+                                extendedProps: {
+                                    type: 'holiday',
+                                    description: holiday.description
+                                }
+                            });
+                        });
+                    }
+                    
+                    // Add leave requests
+                    if (document.getElementById('showLeaves').checked) {
+                        data.leaves.forEach(leave => {
+                            if (leave.status === 'approved') {
+                                events.push({
+                                    id: 'leave-' + leave.id,
+                                    title: '🏖️ ' + leave.type,
+                                    start: leave.start_date,
+                                    end: leave.end_date,
+                                    backgroundColor: '#0d6efd',
+                                    borderColor: '#0d6efd',
+                                    allDay: true,
+                                    extendedProps: {
+                                        type: 'leave',
+                                        leaveId: leave.id,
+                                        reason: leave.reason
+                                    }
+                                });
+                            }
+                        });
+                    }
+                    
+                    successCallback(events);
+                    updateUpcomingEvents(events);
+                })
+                .catch(error => {
+                    console.error('Error fetching events:', error);
+                    failureCallback(error);
+                });
+        },
+        eventClick: function(info) {
+            showEventModal(info.event);
+        },
+        dateClick: function(info) {
+            // Optionally navigate to create task with selected date
+            window.location.href = '{{ url_for("tasks.create_task") }}?date=' + info.dateStr;
+        }
+    });
+    
+    calendar.render();
+    
+    // Refresh calendar when filters change
+    document.getElementById('showTasks').addEventListener('change', () => calendar.refetchEvents());
+    document.getElementById('showHolidays').addEventListener('change', () => calendar.refetchEvents());
+    document.getElementById('showLeaves').addEventListener('change', () => calendar.refetchEvents());
+    
+    // Show event modal
+    function showEventModal(event) {
+        const modalBody = document.getElementById('eventModalBody');
+        const viewBtn = document.getElementById('viewEventBtn');
+        const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+        
+        let content = `<h5>${event.title}</h5>`;
+        content += `<p><strong>Date:</strong> ${event.start.toLocaleDateString()}</p>`;
+        
+        if (event.extendedProps.type === 'task') {
+            content += `<p><strong>Priority:</strong> <span class="badge task-priority-${event.extendedProps.priority}">${event.extendedProps.priority}</span></p>`;
+            content += `<p><strong>Status:</strong> <span class="badge task-status-${event.extendedProps.status}">${event.extendedProps.status.replace('_', ' ')}</span></p>`;
+            viewBtn.href = '{{ url_for("tasks.view_task", task_id=0) }}'.replace('0', event.extendedProps.taskId);
+            viewBtn.style.display = 'inline-block';
+        } else if (event.extendedProps.type === 'holiday') {
+            content += `<p>${event.extendedProps.description || 'Public holiday'}</p>`;
+            viewBtn.style.display = 'none';
+        } else if (event.extendedProps.type === 'leave') {
+            content += `<p><strong>Reason:</strong> ${event.extendedProps.reason || 'N/A'}</p>`;
+            viewBtn.href = '{{ url_for("user.leave_requests") }}';
+            viewBtn.style.display = 'inline-block';
+        }
+        
+        modalBody.innerHTML = content;
+        eventModal.show();
+    }
+    
+    // Update upcoming events sidebar
+    function updateUpcomingEvents(events) {
+        const upcomingList = document.getElementById('upcomingEvents');
+        const now = new Date();
+        
+        // Filter and sort upcoming events
+        const upcoming = events
+            .filter(event => new Date(event.start) >= now)
+            .sort((a, b) => new Date(a.start) - new Date(b.start))
+            .slice(0, 5);
+        
+        if (upcoming.length === 0) {
+            upcomingList.innerHTML = '<div class="list-group-item text-center text-muted">No upcoming events</div>';
+            return;
+        }
+        
+        let html = '';
+        upcoming.forEach(event => {
+            const date = new Date(event.start);
+            const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            
+            html += `
+                <div class="list-group-item">
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div>
+                            <h6 class="mb-1">${event.title}</h6>
+                            <small class="text-muted">
+                                <i class="fas fa-calendar-alt me-1"></i>${dateStr}
+                            </small>
+                        </div>
+                        <span class="badge" style="background-color: ${event.backgroundColor};">${event.extendedProps.type}</span>
+                    </div>
+                </div>
+            `;
+        });
+        
+        upcomingList.innerHTML = html;
+    }
+});
+</script>
+
+<style>
+#calendar {
+    max-width: 100%;
+    margin: 0 auto;
+}
+
+.fc-event {
+    cursor: pointer;
+}
+
+.fc-daygrid-event {
+    padding: 2px 4px;
+}
+</style>
+{% endblock %}

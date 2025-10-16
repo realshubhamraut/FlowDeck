@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Kanban - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h1 class="h4 mb-0"><i class="fas fa-columns me-2"></i>Kanban Board</h1>
+    <div>
+      <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-list me-1"></i> List View
+      </a>
+      <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus me-1"></i> New Task
+      </a>
+    </div>
+  </div>
+
+  <div class="row g-3">
+    {% set cols = {
+      'todo': {'title': 'To Do', 'class': 'bg-secondary-subtle'},
+      'in_progress': {'title': 'In Progress', 'class': 'bg-info-subtle'},
+      'done': {'title': 'Done', 'class': 'bg-success-subtle'}
+    } %}
+
+    {% for key, meta in cols.items() %}
+      <div class="col-md-4">
+        <div class="card border-0 shadow-sm">
+          <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+            <h5 class="mb-0">{{ meta.title }}</h5>
+            <span class="badge bg-light text-muted">{{ (tasks_by_status[key] | length) if tasks_by_status and (key in tasks_by_status) else 0 }}</span>
+          </div>
+          <div class="card-body" style="min-height: 300px;">
+            {% set bucket = tasks_by_status[key] if tasks_by_status and (key in tasks_by_status) else [] %}
+            {% if bucket %}
+              {% for task in bucket %}
+                <div class="card mb-2 border-0 shadow-sm">
+                  <div class="card-body">
+                    <a class="fw-semibold text-decoration-none" href="{{ url_for('tasks.view_task', task_id=task.id) }}">{{ task.title }}</a>
+                    {% if task.description %}
+                      <div class="small text-muted mt-1">{{ task.description[:100] }}{% if task.description|length > 100 %}...{% endif %}</div>
+                    {% endif %}
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                      <span class="badge task-priority-{{ task.priority }}">
+                        {{ task.priority|capitalize }}
+                      </span>
+                      <small class="text-muted">
+                        <i class="fas fa-calendar-alt me-1"></i>
+                        {{ task.due_date.strftime('%b %d') if task.due_date else 'No due date' }}
+                      </small>
+                    </div>
+                  </div>
+                </div>
+              {% endfor %}
+            {% else %}
+              <div class="text-center text-muted py-4">No tasks</div>
+            {% endif %}
+          </div>
+        </div>
+      </div>
+    {% endfor %}
+  </div>
+</div>
+
+<style>
+.task-priority-urgent{background:#dc3545;color:#fff}
+.task-priority-high{background:#fd7e14;color:#fff}
+.task-priority-medium{background:#0dcaf0;color:#fff}
+.task-priority-low{background:#198754;color:#fff}
+</style>
+{% endblock %}

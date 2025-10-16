@@ -1,0 +1,191 @@
+{% extends "base.html" %}
+
+{% block title %}Edit Profile - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <div class="row mb-4">
+        <div class="col-12">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('user.profile') }}">Profile</a></li>
+                    <li class="breadcrumb-item active">Edit Profile</li>
+                </ol>
+            </nav>
+            <h1 class="h3 mb-0">
+                <i class="fas fa-user-edit text-primary"></i>
+                Edit Profile
+            </h1>
+            <p class="text-muted">Update your personal information</p>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm">
+                <div class="card-body">
+                    <form method="POST" enctype="multipart/form-data">
+                        <h5 class="mb-3">
+                            <i class="fas fa-user text-primary"></i>
+                            Personal Information
+                        </h5>
+                        
+                        <div class="mb-3">
+                            <label for="name" class="form-label">
+                                Full Name <span class="text-danger">*</span>
+                            </label>
+                            <input type="text" class="form-control" id="name" name="name" 
+                                   value="{{ current_user.name }}" required>
+                        </div>
+
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="phone" class="form-label">Phone Number</label>
+                                <input type="tel" class="form-control" id="phone" name="phone" 
+                                       value="{{ current_user.phone or '' }}" placeholder="+1 (555) 000-0000">
+                            </div>
+                            <div class="col-md-6">
+                                <label for="designation" class="form-label">Designation</label>
+                                <input type="text" class="form-control" id="designation" name="designation" 
+                                       value="{{ current_user.designation or '' }}" placeholder="e.g., Senior Developer">
+                            </div>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="bio" class="form-label">Bio</label>
+                            <textarea class="form-control" id="bio" name="bio" rows="3" 
+                                      placeholder="Tell us about yourself...">{{ current_user.bio or '' }}</textarea>
+                            <small class="form-text text-muted">Brief description about yourself</small>
+                        </div>
+
+                        <div class="mb-3">
+                            <label for="profile_picture" class="form-label">Profile Picture</label>
+                            {% if current_user.profile_picture %}
+                            <div class="mb-2">
+                                <img src="{{ current_user.profile_picture }}" alt="{{ current_user.name }}" 
+                                     class="rounded-circle" width="60" height="60">
+                            </div>
+                            {% endif %}
+                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <h5 class="mb-3">
+                            <i class="fas fa-share-alt text-success"></i>
+                            Social Links <small class="text-muted">(Optional)</small>
+                        </h5>
+
+                        <div class="row mb-3">
+                            <div class="col-md-4">
+                                <label for="linkedin" class="form-label">
+                                    <i class="fab fa-linkedin text-primary"></i> LinkedIn
+                                </label>
+                                <input type="url" class="form-control" id="linkedin" name="linkedin" 
+                                       value="{{ current_user.linkedin or '' }}" placeholder="https://linkedin.com/in/username">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="twitter" class="form-label">
+                                    <i class="fab fa-twitter text-info"></i> Twitter
+                                </label>
+                                <input type="url" class="form-control" id="twitter" name="twitter" 
+                                       value="{{ current_user.twitter or '' }}" placeholder="https://twitter.com/username">
+                            </div>
+                            <div class="col-md-4">
+                                <label for="github" class="form-label">
+                                    <i class="fab fa-github text-dark"></i> GitHub
+                                </label>
+                                <input type="url" class="form-control" id="github" name="github" 
+                                       value="{{ current_user.github or '' }}" placeholder="https://github.com/username">
+                            </div>
+                        </div>
+
+                        <hr class="my-4">
+
+                        <div class="d-flex justify-content-between">
+                            <a href="{{ url_for('user.profile') }}" class="btn btn-outline-secondary">
+                                <i class="fas fa-times"></i> Cancel
+                            </a>
+                            <button type="submit" class="btn btn-primary">
+                                <i class="fas fa-save"></i> Save Changes
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm bg-light">
+                <div class="card-body">
+                    <h5 class="mb-3">
+                        <i class="fas fa-info-circle text-info"></i>
+                        Profile Tips
+                    </h5>
+                    
+                    <div class="mb-3">
+                        <h6 class="text-primary">Profile Picture</h6>
+                        <p class="small text-muted mb-0">
+                            A professional profile picture helps your team recognize you. Use a clear, recent photo for best results.
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <h6 class="text-primary">Bio</h6>
+                        <p class="small text-muted mb-0">
+                            Share a brief description of your role, expertise, or interests. This helps team members understand your background.
+                        </p>
+                    </div>
+
+                    <div class="alert alert-info mb-0">
+                        <i class="fas fa-lock"></i>
+                        <strong>Privacy:</strong> Your email and phone number are only visible to your team members.
+                    </div>
+                </div>
+            </div>
+
+            <div class="card border-0 shadow-sm mt-3">
+                <div class="card-body">
+                    <h6 class="mb-3">
+                        <i class="fas fa-shield-alt text-warning"></i>
+                        Account Info
+                    </h6>
+                    <dl class="row mb-0 small">
+                        <dt class="col-sm-5">Email:</dt>
+                        <dd class="col-sm-7">{{ current_user.email }}</dd>
+                        
+                        <dt class="col-sm-5">Department:</dt>
+                        <dd class="col-sm-7">
+                            {% if current_user.department %}
+                            {{ current_user.department.name }}
+                            {% else %}
+                            <span class="text-muted">—</span>
+                            {% endif %}
+                        </dd>
+                        
+                        <dt class="col-sm-5">Member Since:</dt>
+                        <dd class="col-sm-7">{{ current_user.created_at.strftime('%b %Y') if current_user.created_at else '—' }}</dd>
+                    </dl>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // File size validation
+    const fileInput = document.getElementById('profile_picture');
+    fileInput.addEventListener('change', function() {
+        if (this.files[0]) {
+            const fileSize = this.files[0].size / 1024 / 1024; // in MB
+            if (fileSize > 5) {
+                alert('File size exceeds 5MB. Please choose a smaller file.');
+                this.value = '';
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

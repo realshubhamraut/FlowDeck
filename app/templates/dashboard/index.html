@@ -1,0 +1,316 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - FlowDeck{% endblock %}
+
+{% block content %}
+{# Normalize context defaults to prevent UndefinedError #}
+{% set total_tasks = total_tasks|default(0) %}
+{% set completed_tasks = completed_tasks|default(0) %}
+{% set in_progress_tasks = in_progress_tasks|default(0) %}
+{% set overdue_tasks = overdue_tasks|default(0) %}
+{% set unread_notifications = unread_notifications|default(0) %}
+{% set unread_messages = unread_messages|default(0) %}
+{% set upcoming_tasks = upcoming_tasks|default([]) %}
+{% set recent_notifications = recent_notifications|default([]) %}
+<div class="container-fluid py-4">
+    <!-- Welcome Section -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h1 class="display-5 mb-1">Welcome back, {{ current_user.username }}! 👋</h1>
+            <p class="text-muted">Here's what's happening with your tasks today.</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <!-- Total Tasks Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Total Tasks</h6>
+                            <h2 class="mb-0">{{ total_tasks }}</h2>
+                        </div>
+                        <div class="avatar-icon bg-primary-subtle text-primary">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('tasks.list_tasks') }}" class="text-decoration-none small">
+                            View all tasks <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Completed Tasks Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Completed</h6>
+                            <h2 class="mb-0 text-success">{{ completed_tasks }}</h2>
+                        </div>
+                        <div class="avatar-icon bg-success-subtle text-success">
+                            <i class="fas fa-check-circle fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <small class="text-muted">
+                            {% if (total_tasks) > 0 %}
+                                {{ ((completed_tasks / total_tasks) * 100)|round|int }}% completion rate
+                            {% else %}
+                                No tasks yet
+                            {% endif %}
+                        </small>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- In Progress Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">In Progress</h6>
+                            <h2 class="mb-0 text-info">{{ in_progress_tasks }}</h2>
+                        </div>
+                        <div class="avatar-icon bg-info-subtle text-info">
+                            <i class="fas fa-spinner fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('tasks.list_tasks', status='in_progress') }}" class="text-decoration-none small">
+                            View active tasks <i class="fas fa-arrow-right ms-1"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Overdue Tasks Card -->
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Overdue</h6>
+                            <h2 class="mb-0 text-danger">{{ overdue_tasks }}</h2>
+                        </div>
+                        <div class="avatar-icon bg-danger-subtle text-danger">
+                            <i class="fas fa-exclamation-triangle fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        {% if (overdue_tasks) > 0 %}
+                            <span class="badge bg-danger">Action Required</span>
+                        {% else %}
+                            <span class="badge bg-success">All up to date!</span>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Stats Row -->
+    <div class="row mb-4">
+        <!-- Messages Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Unread Messages</h6>
+                            <h3 class="mb-0">{{ unread_messages }}</h3>
+                        </div>
+                        <div class="avatar-icon bg-warning-subtle text-warning">
+                            <i class="fas fa-envelope fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-outline-warning">
+                            <i class="fas fa-comment-dots me-1"></i> Go to Chat
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Notifications Card -->
+        <div class="col-xl-4 col-md-6 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div>
+                            <h6 class="text-muted mb-1">Notifications</h6>
+                            <h3 class="mb-0">{{ unread_notifications }}</h3>
+                        </div>
+                        <div class="avatar-icon bg-info-subtle text-info">
+                            <i class="fas fa-bell fa-2x"></i>
+                        </div>
+                    </div>
+                    <div class="mt-3">
+                        <a href="{{ url_for('dashboard.notifications') }}" class="btn btn-sm btn-outline-info">
+                            <i class="fas fa-list me-1"></i> View All
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions Card -->
+        <div class="col-xl-4 col-md-12 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-body">
+                    <h6 class="text-muted mb-3">Quick Actions</h6>
+                    <div class="d-grid gap-2">
+                        <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary btn-sm">
+                            <i class="fas fa-plus me-2"></i> Create Task
+                        </a>
+                        <a href="{{ url_for('dashboard.calendar') }}" class="btn btn-outline-primary btn-sm">
+                            <i class="fas fa-calendar me-2"></i> View Calendar
+                        </a>
+                        <a href="{{ url_for('dashboard.analytics') }}" class="btn btn-outline-secondary btn-sm">
+                            <i class="fas fa-chart-line me-2"></i> Analytics
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Upcoming Tasks & Recent Notifications -->
+    <div class="row">
+        <!-- Upcoming Tasks -->
+        <div class="col-lg-8 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-list-check me-2"></i> Upcoming Tasks</h5>
+                        <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-sm btn-outline-primary">View All</a>
+                    </div>
+                </div>
+                <div class="card-body">
+                    {% if upcoming_tasks %}
+                        <div class="table-responsive">
+                            <table class="table table-hover">
+                                <thead class="table-light">
+                                    <tr>
+                                        <th>Task</th>
+                                        <th>Priority</th>
+                                        <th>Due Date</th>
+                                        <th>Status</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {% for task in upcoming_tasks %}
+                                    <tr>
+                                        <td>
+                                            <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="text-decoration-none">
+                                                {{ task.title }}
+                                            </a>
+                                        </td>
+                                        <td>
+                                            <span class="badge task-priority-{{ task.priority }}">
+                                                {{ task.priority|capitalize }}
+                                            </span>
+                                        </td>
+                                        <td>
+                                            <small class="text-muted">
+                                                <i class="fas fa-calendar-alt me-1"></i>
+                                                {{ task.due_date.strftime('%b %d, %Y') if task.due_date else 'No due date' }}
+                                            </small>
+                                        </td>
+                                        <td>
+                                            <span class="badge task-status-{{ task.status }}">
+                                                {{ task.status|replace('_', ' ')|title }}
+                                            </span>
+                                        </td>
+                                    </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No upcoming tasks</p>
+                            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
+                                <i class="fas fa-plus me-2"></i> Create Your First Task
+                            </a>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+
+        <!-- Recent Notifications -->
+        <div class="col-lg-4 mb-4">
+            <div class="card border-0 shadow-sm h-100">
+                <div class="card-header bg-white border-0 py-3">
+                    <div class="d-flex justify-content-between align-items-center">
+                        <h5 class="mb-0"><i class="fas fa-bell me-2"></i> Recent Activity</h5>
+                        <a href="{{ url_for('dashboard.notifications') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+                    </div>
+                </div>
+                <div class="card-body p-0">
+                    {% if recent_notifications %}
+                        <div class="list-group list-group-flush">
+                            {% for notification in recent_notifications %}
+                            <a href="{{ notification.action_url or '#' }}" 
+                               class="list-group-item list-group-item-action border-0 {% if not notification.is_read %}bg-light{% endif %}">
+                                <div class="d-flex w-100 justify-content-between">
+                                    <h6 class="mb-1">{{ notification.title }}</h6>
+                                    <small class="text-muted">
+                                        {{ notification.created_at.strftime('%I:%M %p') }}
+                                    </small>
+                                </div>
+                                <p class="mb-1 small text-muted">{{ notification.message }}</p>
+                                {% if not notification.is_read %}
+                                    <span class="badge bg-primary">New</span>
+                                {% endif %}
+                            </a>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="text-center py-5">
+                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
+                            <p class="text-muted">No notifications yet</p>
+                        </div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+.avatar-icon {
+    width: 60px;
+    height: 60px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+}
+
+.card {
+    transition: transform 0.2s;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+}
+
+.table-responsive {
+    max-height: 400px;
+    overflow-y: auto;
+}
+</style>
+{% endblock %}

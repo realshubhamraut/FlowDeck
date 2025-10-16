@@ -1,0 +1,151 @@
+{% extends "base.html" %}
+
+{% block title %}About FlowDeck{% endblock %}
+
+{% block content %}
+<div class="about-page">
+    <!-- Hero Section -->
+    <section class="hero bg-primary text-white py-5">
+        <div class="container py-5 text-center">
+            <h1 class="display-3 fw-bold mb-4">About FlowDeck</h1>
+            <p class="lead">Empowering organizations to work smarter, not harder</p>
+        </div>
+    </section>
+    
+    <!-- Mission Section -->
+    <section class="py-5">
+        <div class="container py-5">
+            <div class="row align-items-center mb-5">
+                <div class="col-lg-6">
+                    <h2 class="display-5 fw-bold mb-4">Our Mission</h2>
+                    <p class="lead mb-4">
+                        FlowDeck was created to simplify organizational workflow management and enhance team collaboration. 
+                        We believe that productivity shouldn't be complicated.
+                    </p>
+                    <p>
+                        Our platform combines powerful task management, real-time communication, and intelligent automation 
+                        to help teams of all sizes achieve their goals efficiently.
+                    </p>
+                </div>
+                <div class="col-lg-6">
+                    <div class="card border-0 shadow-lg">
+                        <div class="card-body p-5">
+                            <h4 class="mb-4">Our Values</h4>
+                            <ul class="list-unstyled">
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Simplicity:</strong> Intuitive design that anyone can use
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Collaboration:</strong> Breaking down communication barriers
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Innovation:</strong> Leveraging AI to enhance productivity
+                                </li>
+                                <li class="mb-3">
+                                    <i class="fas fa-check-circle text-success me-2"></i>
+                                    <strong>Security:</strong> Protecting your data with enterprise-grade security
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- Features Overview -->
+    <section class="bg-light py-5">
+        <div class="container py-5">
+            <div class="text-center mb-5">
+                <h2 class="display-5 fw-bold">What Makes FlowDeck Different</h2>
+                <p class="lead text-muted">Comprehensive features designed for modern organizations</p>
+            </div>
+            
+            <div class="row g-4">
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center">
+                        <div class="feature-icon bg-primary text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-tasks fa-2x"></i>
+                        </div>
+                        <h5>Task Management</h5>
+                        <p class="text-muted">Kanban boards, calendar views, and smart prioritization</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center">
+                        <div class="feature-icon bg-success text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-comments fa-2x"></i>
+                        </div>
+                        <h5>Real-time Chat</h5>
+                        <p class="text-muted">Instant messaging and team channels</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center">
+                        <div class="feature-icon bg-info text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-robot fa-2x"></i>
+                        </div>
+                        <h5>AI Integration</h5>
+                        <p class="text-muted">Smart task cards and automation</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-6 col-lg-3">
+                    <div class="text-center">
+                        <div class="feature-icon bg-warning text-white rounded-circle d-inline-flex align-items-center justify-content-center mb-3" style="width: 80px; height: 80px;">
+                            <i class="fas fa-chart-line fa-2x"></i>
+                        </div>
+                        <h5>Analytics</h5>
+                        <p class="text-muted">Insights and productivity reports</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- CTA Section -->
+    <section class="py-5">
+        <div class="container py-5 text-center">
+            <h2 class="display-5 fw-bold mb-4">Ready to Get Started?</h2>
+            <p class="lead text-muted mb-4">Join organizations worldwide using FlowDeck</p>
+            <div class="d-flex gap-3 justify-content-center">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary btn-lg">
+                    <i class="fas fa-building"></i> Create Organisation
+                </a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-outline-primary btn-lg">
+                    <i class="fas fa-sign-in-alt"></i> Login
+                </a>
+            </div>
+        </div>
+    </section>
+</div>
+
+<style>
+.hero {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.feature-icon {
+    transition: transform 0.3s ease;
+}
+
+.feature-icon:hover {
+    transform: scale(1.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    border: none;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.4);
+}
+</style>
+{% endblock %}
