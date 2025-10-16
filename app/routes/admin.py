@@ -188,17 +188,39 @@ def create_user():
         
         db.session.commit()
         
-        # Send welcome email with credentials
-        from app.utils.email import send_welcome_email
-        send_welcome_email(user, password, verification_token)
+        # IMPORTANT: Display password to admin (do NOT email it - email system may not be configured)
+        # Store password in session for one-time display on next page
+        from flask import session
+        session['new_user_password'] = {
+            'name': user.name,
+            'email': user.email,
+            'password': password
+        }
         
-        flash(f'User {user.name} created successfully! Login credentials sent to {user.email}', 'success')
-        return redirect(url_for('admin.users'))
+        flash(f'User {user.name} created successfully!', 'success')
+        return redirect(url_for('admin.show_new_user_credentials'))
     
     return render_template('admin/create_user.html',
                          departments=get_departments(),
                          roles=get_roles(),
                          tags=get_tags())
+
+
+@bp.route('/users/credentials')
+@login_required
+@admin_required
+def show_new_user_credentials():
+    """Show newly created user credentials (one-time view)"""
+    from flask import session
+    
+    # Get credentials from session
+    creds = session.pop('new_user_password', None)
+    
+    if not creds:
+        flash('No credentials to display. Credentials can only be viewed once after user creation.', 'warning')
+        return redirect(url_for('admin.users'))
+    
+    return render_template('admin/user_credentials.html', credentials=creds)
 
 
 @bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])

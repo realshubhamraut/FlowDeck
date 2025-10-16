@@ -30,11 +30,11 @@
             <h5 class="mb-0">{{ meta.title }}</h5>
             <span class="badge bg-light text-muted">{{ (tasks_by_status[key] | length) if tasks_by_status and (key in tasks_by_status) else 0 }}</span>
           </div>
-          <div class="card-body" style="min-height: 300px;">
+          <div class="card-body kanban-column" data-status="{{ key }}" style="min-height: 300px;">
             {% set bucket = tasks_by_status[key] if tasks_by_status and (key in tasks_by_status) else [] %}
             {% if bucket %}
               {% for task in bucket %}
-                <div class="card mb-2 border-0 shadow-sm">
+                <div class="card mb-2 border-0 shadow-sm kanban-card" draggable="true" data-task-id="{{ task.id }}">
                   <div class="card-body">
                     <a class="fw-semibold text-decoration-none" href="{{ url_for('tasks.view_task', task_id=task.id) }}">{{ task.title }}</a>
                     {% if task.description %}
@@ -53,7 +53,7 @@
                 </div>
               {% endfor %}
             {% else %}
-              <div class="text-center text-muted py-4">No tasks</div>
+              <div class="text-center text-muted py-4 drop-placeholder">No tasks</div>
             {% endif %}
           </div>
         </div>
@@ -67,5 +67,162 @@
 .task-priority-high{background:#fd7e14;color:#fff}
 .task-priority-medium{background:#0dcaf0;color:#fff}
 .task-priority-low{background:#198754;color:#fff}
+
+.kanban-card {
+  cursor: move;
+  transition: opacity 0.2s, transform 0.2s;
+}
+
+.kanban-card.dragging {
+  opacity: 0.5;
+}
+
+.kanban-column {
+  transition: background-color 0.2s;
+}
+
+.kanban-column.drag-over {
+  background-color: #f8f9fa;
+  border: 2px dashed #0d6efd;
+  border-radius: 8px;
+}
+
+.drop-placeholder {
+  pointer-events: none;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  let draggedCard = null;
+  
+  // Get all kanban cards
+  const cards = document.querySelectorAll('.kanban-card');
+  const columns = document.querySelectorAll('.kanban-column');
+  
+  // Add drag event listeners to cards
+  cards.forEach(card => {
+    card.addEventListener('dragstart', function(e) {
+      draggedCard = this;
+      this.classList.add('dragging');
+      e.dataTransfer.effectAllowed = 'move';
+      e.dataTransfer.setData('text/html', this.innerHTML);
+    });
+    
+    card.addEventListener('dragend', function(e) {
+      this.classList.remove('dragging');
+      columns.forEach(col => col.classList.remove('drag-over'));
+    });
+  });
+  
+  // Add drag event listeners to columns
+  columns.forEach(column => {
+    column.addEventListener('dragover', function(e) {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      this.classList.add('drag-over');
+    });
+    
+    column.addEventListener('dragleave', function(e) {
+      this.classList.remove('drag-over');
+    });
+    
+    column.addEventListener('drop', function(e) {
+      e.preventDefault();
+      this.classList.remove('drag-over');
+      
+      if (draggedCard) {
+        const taskId = draggedCard.dataset.taskId;
+        const newStatus = this.dataset.status;
+        const oldColumn = draggedCard.closest('.kanban-column');
+        const oldStatus = oldColumn.dataset.status;
+        
+        // Only update if status changed
+        if (newStatus !== oldStatus) {
+          // Remove placeholder if exists
+          const placeholder = this.querySelector('.drop-placeholder');
+          if (placeholder) {
+            placeholder.remove();
+          }
+          
+          // Move card to new column
+          this.insertBefore(draggedCard, this.firstChild);
+          
+          // Update status via AJAX
+          updateTaskStatus(taskId, newStatus, oldStatus, draggedCard, oldColumn);
+        }
+      }
+    });
+  });
+  
+  function updateTaskStatus(taskId, newStatus, oldStatus, card, oldColumn) {
+    fetch(`/tasks/${taskId}/update-status`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ status: newStatus })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Update badge counts
+        updateBadgeCounts(oldStatus, newStatus);
+        
+        // Show success feedback
+        showNotification('Task status updated successfully', 'success');
+      } else {
+        // Revert on error
+        oldColumn.insertBefore(card, oldColumn.firstChild);
+        showNotification('Failed to update task: ' + (data.error || 'Unknown error'), 'error');
+      }
+    })
+    .catch(error => {
+      // Revert on error
+      oldColumn.insertBefore(card, oldColumn.firstChild);
+      showNotification('Network error: ' + error.message, 'error');
+    });
+  }
+  
+  function updateBadgeCounts(oldStatus, newStatus) {
+    // Update the badge counts in column headers
+    const columns = {
+      'todo': document.querySelector('[data-status="todo"]').closest('.card').querySelector('.badge'),
+      'in_progress': document.querySelector('[data-status="in_progress"]').closest('.card').querySelector('.badge'),
+      'done': document.querySelector('[data-status="done"]').closest('.card').querySelector('.badge')
+    };
+    
+    // Decrease old column count
+    if (columns[oldStatus]) {
+      const oldCount = parseInt(columns[oldStatus].textContent);
+      columns[oldStatus].textContent = Math.max(0, oldCount - 1);
+    }
+    
+    // Increase new column count
+    if (columns[newStatus]) {
+      const newCount = parseInt(columns[newStatus].textContent);
+      columns[newStatus].textContent = newCount + 1;
+    }
+  }
+  
+  function showNotification(message, type) {
+    // Create toast notification
+    const toast = document.createElement('div');
+    toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+    toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px;';
+    toast.innerHTML = `
+      ${message}
+      <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+    `;
+    
+    document.body.appendChild(toast);
+    
+    // Auto-remove after 3 seconds
+    setTimeout(() => {
+      toast.remove();
+    }, 3000);
+  }
+});
+</script>
+
 {% endblock %}

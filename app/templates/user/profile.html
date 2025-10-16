@@ -2,6 +2,10 @@
 
 {% block title %}My Profile - FlowDeck{% endblock %}
 
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='user') }}">
+{% endblock %}
+
 {% block content %}
 {% set user = user|default(current_user) %}
 

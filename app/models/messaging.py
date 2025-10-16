@@ -115,7 +115,7 @@ class Notification(db.Model):
     # Relationships
     user = db.relationship('User', back_populates='notifications')
     task = db.relationship('Task')
-    message = db.relationship('Message')
+    related_message = db.relationship('Message')
     
     def mark_as_read(self):
         """Mark notification as read"""

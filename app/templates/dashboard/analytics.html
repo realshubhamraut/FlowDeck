@@ -2,6 +2,10 @@
 
 {% block title %}Analytics - FlowDeck{% endblock %}
 
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='analytics') }}">
+{% endblock %}
+
 {% block content %}
 <!-- Safe defaults to prevent UndefinedError -->
 {% set stats = stats|default({}) %}

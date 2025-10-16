@@ -93,7 +93,8 @@ def list_tasks():
             total_count=total_count,
             todo_count=todo_count,
             in_progress_count=in_progress_count,
-            done_count=done_count
+            done_count=done_count,
+            can_edit_task=can_edit_task
         )
 
 
@@ -160,13 +161,26 @@ def create_task():
         
         # Assign users
         if assignee_ids:
+            # Convert string IDs to integers
+            assignee_ids = [int(aid) for aid in assignee_ids if aid]
             assignees = User.query.filter(User.id.in_(assignee_ids)).all()
             task.assignees.extend(assignees)
-            
-            # Create notifications for assignees
-            for assignee in assignees:
+        
+        # Assign tags
+        if tag_ids:
+            # Convert string IDs to integers
+            tag_ids = [int(tid) for tid in tag_ids if tid]
+            tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
+            task.tags.extend(tags)
+        
+        # Commit task and relationships first
+        db.session.commit()
+        
+        # Now create notifications for assignees (after commit)
+        if assignee_ids:
+            for assignee_id in assignee_ids:
                 notif = Notification(
-                    user_id=assignee.id,
+                    user_id=assignee_id,
                     title='New Task Assigned',
                     message=f'You have been assigned to: {task.title}',
                     notification_type='task_assigned',
@@ -174,13 +188,7 @@ def create_task():
                     action_url=f'/tasks/{task.id}'
                 )
                 db.session.add(notif)
-        
-        # Assign tags
-        if tag_ids:
-            tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
-            task.tags.extend(tags)
-        
-        db.session.commit()
+            db.session.commit()
         
         flash(f'Task "{task.title}" created successfully!', 'success')
         return redirect(url_for('tasks.view_task', task_id=task.id))
@@ -487,6 +495,46 @@ def add_time_log(task_id):
     
     flash('Time log added successfully!', 'success')
     return redirect(url_for('tasks.view_task', task_id=task_id))
+
+
+@bp.route('/<int:task_id>/update-status', methods=['POST'])
+@login_required
+def update_task_status(task_id):
+    """Update task status (AJAX endpoint for kanban drag-and-drop)"""
+    task = Task.query.get_or_404(task_id)
+    
+    # Check permission
+    if not can_edit_task(task):
+        return jsonify({'success': False, 'error': 'Permission denied'}), 403
+    
+    data = request.get_json()
+    new_status = data.get('status')
+    
+    if new_status not in ['todo', 'in_progress', 'done']:
+        return jsonify({'success': False, 'error': 'Invalid status'}), 400
+    
+    old_status = task.status
+    task.status = new_status
+    
+    # Log history
+    from app.models import TaskHistory
+    history = TaskHistory(
+        task_id=task.id,
+        user_id=current_user.id,
+        action='status_changed',
+        field_changed='status',
+        old_value=old_status,
+        new_value=new_status
+    )
+    db.session.add(history)
+    db.session.commit()
+    
+    return jsonify({
+        'success': True,
+        'task_id': task.id,
+        'old_status': old_status,
+        'new_status': new_status
+    })
 
 
 # Helper functions

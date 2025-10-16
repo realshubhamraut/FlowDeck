@@ -2,6 +2,10 @@
 
 {% block title %}Tasks - FlowDeck{% endblock %}
 
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='tasks') }}">
+{% endblock %}
+
 {% block content %}
 {# Provide safe defaults and normalize variables #}
 {% set total_count = total_count|default(0) %}
@@ -221,11 +225,11 @@
                                     <div class="d-flex align-items-center">
                                         <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
                                             <div class="progress-bar" role="progressbar" 
-                                                 style="width: {{ task.completion_percentage() }}%"
-                                                 aria-valuenow="{{ task.completion_percentage() }}" 
+                                                 style="width: {{ task.get_completion_percentage() }}%"
+                                                 aria-valuenow="{{ task.get_completion_percentage() }}" 
                                                  aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                        <small class="text-muted">{{ task.completion_percentage() }}%</small>
+                                        <small class="text-muted">{{ task.get_completion_percentage() }}%</small>
                                     </div>
                                 </td>
                                 <td>

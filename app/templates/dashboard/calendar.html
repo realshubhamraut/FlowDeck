@@ -2,6 +2,10 @@
 
 {% block title %}Calendar - FlowDeck{% endblock %}
 
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='calendar') }}">
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <!-- Header -->

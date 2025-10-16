@@ -2,6 +2,10 @@
 
 {% block title %}Dashboard - FlowDeck{% endblock %}
 
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='dashboard') }}">
+{% endblock %}
+
 {% block content %}
 {# Normalize context defaults to prevent UndefinedError #}
 {% set total_tasks = total_tasks|default(0) %}

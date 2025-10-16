@@ -1,0 +1,324 @@
+{% extends "base.html" %}
+
+{% block title %}Chat with {{ recipient.name }} - FlowDeck{% endblock %}
+
+{% block favicon %}
+<link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='chat') }}">
+{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <div class="row">
+    <div class="col-md-12">
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white border-0 d-flex justify-content-between align-items-center">
+          <div class="d-flex align-items-center">
+            <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-outline-secondary me-3">
+              <i class="fas fa-arrow-left"></i> Back
+            </a>
+            {% if recipient.profile_picture %}
+              <img src="{{ url_for('static', filename='uploads/profiles/' + recipient.profile_picture.split('/')[-1]) }}" 
+                   alt="{{ recipient.name }}" 
+                   class="rounded-circle me-2" 
+                   style="width: 40px; height: 40px; object-fit: cover;">
+            {% else %}
+              <div class="avatar-circle me-2" style="background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][recipient.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][recipient.id % 8] }} 100%);">
+                <span>{{ recipient.name[0].upper() }}</span>
+              </div>
+            {% endif %}
+            <a href="#" class="text-decoration-none text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#userProfileModal">
+              {{ recipient.name }}
+            </a>
+          </div>
+          <small class="text-muted">{{ recipient.email }}</small>
+        </div>
+        <div class="card-body" style="height: 500px; overflow-y: auto;" id="messageContainer">
+          {% if messages %}
+            {% for msg in messages %}
+              <div class="mb-3 {% if msg.sender_id == current_user.id %}text-end{% endif %}">
+                <div class="d-inline-block" style="max-width: 70%;">
+                  <div class="{% if msg.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %} {% if msg.message_type == 'image' %}p-2{% else %}p-3{% endif %} rounded">
+                    {% if msg.message_type == 'image' and msg.attachment_path %}
+                      <img src="{{ msg.attachment_path }}" class="img-fluid rounded mb-2" style="max-width: 300px;" alt="{{ msg.attachment_filename or 'Image' }}">
+                      {% if msg.content and msg.content != 'Sent an image' %}
+                        <div class="mb-1">{{ msg.content }}</div>
+                      {% endif %}
+                    {% else %}
+                      <div class="mb-1">{{ msg.content }}</div>
+                    {% endif %}
+                    <small class="text-muted" style="{% if msg.sender_id == current_user.id %}color: rgba(255,255,255,0.7) !important;{% endif %}">
+                      {{ msg.created_at.strftime('%b %d, %I:%M %p') }}
+                    </small>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          {% else %}
+            <div class="text-center text-muted py-5">
+              <i class="fas fa-comments fa-3x mb-3"></i>
+              <p>No messages yet. Start the conversation!</p>
+            </div>
+          {% endif %}
+        </div>
+        <div class="card-footer bg-white border-0">
+          <form id="messageForm" class="d-flex gap-2 align-items-end">
+            <div class="flex-grow-1">
+              <input type="text" 
+                     id="messageInput" 
+                     class="form-control" 
+                     placeholder="Type your message..." 
+                     required>
+              <input type="file" 
+                     id="imageInput" 
+                     class="d-none" 
+                     accept="image/*">
+              <div id="imagePreview" class="mt-2" style="display: none;">
+                <img id="previewImg" src="" alt="Preview" class="img-thumbnail" style="max-height: 100px;">
+                <button type="button" class="btn btn-sm btn-danger ms-2" id="removeImage">
+                  <i class="fas fa-times"></i>
+                </button>
+              </div>
+            </div>
+            <button type="button" class="btn btn-outline-secondary" id="attachImageBtn">
+              <i class="fas fa-image"></i>
+            </button>
+            <button type="submit" class="btn btn-primary">
+              <i class="fas fa-paper-plane"></i> Send
+            </button>
+          </form>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- User Profile Modal -->
+<div class="modal fade" id="userProfileModal" tabindex="-1" aria-labelledby="userProfileModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header border-0">
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body text-center">
+        {% if recipient.profile_picture %}
+          <img src="{{ url_for('static', filename='uploads/profiles/' + recipient.profile_picture.split('/')[-1]) }}" 
+               alt="{{ recipient.name }}" 
+               class="rounded-circle mb-3" 
+               style="width: 120px; height: 120px; object-fit: cover;">
+        {% else %}
+          <div class="avatar-circle mx-auto mb-3" style="width: 120px; height: 120px; font-size: 48px; background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][recipient.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][recipient.id % 8] }} 100%);">
+            <span>{{ recipient.name[0].upper() }}</span>
+          </div>
+        {% endif %}
+        <h4 class="mb-2">{{ recipient.name }}</h4>
+        <p class="text-muted mb-3">{{ recipient.email }}</p>
+        
+        <div class="row text-start">
+          <div class="col-6 mb-3">
+            <small class="text-muted">Department</small>
+            <div class="fw-semibold">{{ recipient.department.name if recipient.department else 'N/A' }}</div>
+          </div>
+          <div class="col-6 mb-3">
+            <small class="text-muted">Role</small>
+            <div class="fw-semibold">
+              {% if recipient.roles %}
+                {{ recipient.roles[0].name }}
+              {% else %}
+                N/A
+              {% endif %}
+            </div>
+          </div>
+          <div class="col-12 mb-3">
+            <small class="text-muted">Tags</small>
+            <div class="mt-1">
+              {% if recipient.tags %}
+                {% for tag in recipient.tags %}
+                  <span class="badge" style="background-color: {{ tag.color }}">{{ tag.name }}</span>
+                {% endfor %}
+              {% else %}
+                <span class="text-muted">No tags</span>
+              {% endif %}
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<style>
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+</style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+  const messageForm = document.getElementById('messageForm');
+  const messageInput = document.getElementById('messageInput');
+  const messageContainer = document.getElementById('messageContainer');
+  const attachImageBtn = document.getElementById('attachImageBtn');
+  const imageInput = document.getElementById('imageInput');
+  const imagePreview = document.getElementById('imagePreview');
+  const previewImg = document.getElementById('previewImg');
+  const removeImageBtn = document.getElementById('removeImage');
+  let selectedImage = null;
+  
+  // Auto-scroll to bottom on load
+  messageContainer.scrollTop = messageContainer.scrollHeight;
+  
+  // Handle image attach button
+  attachImageBtn.addEventListener('click', function() {
+    imageInput.click();
+  });
+  
+  // Handle image selection
+  imageInput.addEventListener('change', function(e) {
+    const file = e.target.files[0];
+    if (file && file.type.startsWith('image/')) {
+      selectedImage = file;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        previewImg.src = e.target.result;
+        imagePreview.style.display = 'block';
+        messageInput.required = false;
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+  
+  // Remove image
+  removeImageBtn.addEventListener('click', function() {
+    selectedImage = null;
+    imageInput.value = '';
+    imagePreview.style.display = 'none';
+    messageInput.required = true;
+  });
+  
+  // Handle form submission
+  messageForm.addEventListener('submit', function(e) {
+    e.preventDefault();
+    
+    const content = messageInput.value.trim();
+    if (!content && !selectedImage) return;
+    
+    // Prepare form data
+    const formData = new FormData();
+    formData.append('recipient_id', {{ recipient.id }});
+    
+    if (selectedImage) {
+      formData.append('image', selectedImage);
+      formData.append('content', content || 'Sent an image');
+      formData.append('message_type', 'image');
+    } else {
+      formData.append('content', content);
+      formData.append('message_type', 'text');
+    }
+    
+    // Send message via AJAX
+    fetch('{{ url_for("chat.send_message") }}', {
+      method: 'POST',
+      body: formData
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // Add message to UI
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mb-3 text-end';
+        
+        let messageContent = '';
+        if (data.message.message_type === 'image' && data.message.attachment_url) {
+          messageContent = `
+            <div class="d-inline-block" style="max-width: 70%;">
+              <div class="bg-primary text-white p-2 rounded">
+                <img src="${data.message.attachment_url}" class="img-fluid rounded mb-2" style="max-width: 300px;">
+                ${data.message.content && data.message.content !== 'Sent an image' ? `<div>${data.message.content}</div>` : ''}
+                <small class="text-muted" style="color: rgba(255,255,255,0.7) !important;">
+                  Just now
+                </small>
+              </div>
+            </div>
+          `;
+        } else {
+          messageContent = `
+            <div class="d-inline-block" style="max-width: 70%;">
+              <div class="bg-primary text-white p-3 rounded">
+                <div class="mb-1">${data.message.content}</div>
+                <small class="text-muted" style="color: rgba(255,255,255,0.7) !important;">
+                  Just now
+                </small>
+              </div>
+            </div>
+          `;
+        }
+        
+        messageDiv.innerHTML = messageContent;
+        messageContainer.appendChild(messageDiv);
+        
+        // Clear inputs and scroll to bottom
+        messageInput.value = '';
+        selectedImage = null;
+        imageInput.value = '';
+        imagePreview.style.display = 'none';
+        messageInput.required = true;
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      } else {
+        alert('Failed to send message: ' + (data.error || 'Unknown error'));
+      }
+    })
+    .catch(error => {
+      alert('Network error: ' + error.message);
+    });
+  });
+  
+  // Socket.IO real-time message handling (if available)
+  if (typeof io !== 'undefined') {
+    const socket = io();
+    
+    socket.on('new_direct_message', function(data) {
+      // Only show messages from the current conversation partner
+      if (data.sender_id === {{ recipient.id }}) {
+        const messageDiv = document.createElement('div');
+        messageDiv.className = 'mb-3';
+        
+        let messageContent = '';
+        if (data.message_type === 'image' && data.attachment_url) {
+          messageContent = `
+            <div class="d-inline-block" style="max-width: 70%;">
+              <div class="bg-light p-2 rounded">
+                <img src="${data.attachment_url}" class="img-fluid rounded mb-2" style="max-width: 300px;">
+                ${data.content && data.content !== 'Sent an image' ? `<div>${data.content}</div>` : ''}
+                <small class="text-muted">Just now</small>
+              </div>
+            </div>
+          `;
+        } else {
+          messageContent = `
+            <div class="d-inline-block" style="max-width: 70%;">
+              <div class="bg-light p-3 rounded">
+                <div class="mb-1">${data.content}</div>
+                <small class="text-muted">Just now</small>
+              </div>
+            </div>
+          `;
+        }
+        
+        messageDiv.innerHTML = messageContent;
+        messageContainer.appendChild(messageDiv);
+        messageContainer.scrollTop = messageContainer.scrollHeight;
+      }
+    });
+  }
+});
+</script>
+
+{% endblock %}

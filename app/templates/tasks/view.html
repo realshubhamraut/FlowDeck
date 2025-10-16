@@ -1,0 +1,312 @@
+{% extends "base.html" %}
+
+{% block title %}{{ task.title }} - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container py-4">
+  <!-- Header -->
+  <div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h1 class="h4 mb-1">
+        <i class="fas fa-tasks me-2"></i>{{ task.title }}
+      </h1>
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb mb-0">
+          <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+          <li class="breadcrumb-item"><a href="{{ url_for('tasks.list_tasks') }}">Tasks</a></li>
+          <li class="breadcrumb-item active">{{ task.title }}</li>
+        </ol>
+      </nav>
+    </div>
+    <div>
+      <a href="{{ url_for('tasks.edit_task', task_id=task.id) }}" class="btn btn-outline-primary btn-sm">
+        <i class="fas fa-edit me-1"></i>Edit
+      </a>
+      <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-outline-secondary btn-sm">
+        <i class="fas fa-arrow-left me-1"></i>Back
+      </a>
+    </div>
+  </div>
+
+  <div class="row">
+    <!-- Main Content -->
+    <div class="col-lg-8">
+      <!-- Task Details Card -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-body">
+          <!-- Status and Priority -->
+          <div class="d-flex gap-2 mb-3">
+            {% if task.status == 'todo' %}
+              <span class="badge bg-secondary"><i class="fas fa-circle me-1"></i>To Do</span>
+            {% elif task.status == 'in_progress' %}
+              <span class="badge bg-primary"><i class="fas fa-spinner me-1"></i>In Progress</span>
+            {% elif task.status == 'done' %}
+              <span class="badge bg-success"><i class="fas fa-check-circle me-1"></i>Done</span>
+            {% elif task.status == 'archived' %}
+              <span class="badge bg-dark"><i class="fas fa-archive me-1"></i>Archived</span>
+            {% endif %}
+
+            {% if task.priority == 'urgent' %}
+              <span class="badge bg-danger"><i class="fas fa-exclamation-circle me-1"></i>Urgent</span>
+            {% elif task.priority == 'high' %}
+              <span class="badge bg-warning"><i class="fas fa-arrow-up me-1"></i>High</span>
+            {% elif task.priority == 'medium' %}
+              <span class="badge bg-info"><i class="fas fa-minus me-1"></i>Medium</span>
+            {% elif task.priority == 'low' %}
+              <span class="badge bg-secondary"><i class="fas fa-arrow-down me-1"></i>Low</span>
+            {% endif %}
+          </div>
+
+          <!-- Description -->
+          <h5 class="card-title">Description</h5>
+          <p class="card-text">{{ task.description or 'No description provided.' }}</p>
+
+          <!-- Metadata -->
+          <div class="row g-3 mt-3">
+            <div class="col-md-6">
+              <small class="text-muted d-block">Created By</small>
+              <strong>{{ task.creator.name if task.creator else 'Unknown' }}</strong>
+            </div>
+            <div class="col-md-6">
+              <small class="text-muted d-block">Created At</small>
+              <strong>{{ task.created_at.strftime('%B %d, %Y %I:%M %p') if task.created_at else 'N/A' }}</strong>
+            </div>
+            {% if task.due_date %}
+            <div class="col-md-6">
+              <small class="text-muted d-block">Due Date</small>
+              <strong>{{ task.due_date.strftime('%B %d, %Y %I:%M %p') }}</strong>
+            </div>
+            {% endif %}
+            {% if task.department %}
+            <div class="col-md-6">
+              <small class="text-muted d-block">Department</small>
+              <strong>{{ task.department.name }}</strong>
+            </div>
+            {% endif %}
+            {% if task.estimated_hours %}
+            <div class="col-md-6">
+              <small class="text-muted d-block">Estimated Hours</small>
+              <strong>{{ task.estimated_hours }} hours</strong>
+            </div>
+            {% endif %}
+          </div>
+
+          <!-- Tags -->
+          {% if task.tags %}
+          <div class="mt-3">
+            <small class="text-muted d-block mb-2">Tags</small>
+            <div class="d-flex gap-2 flex-wrap">
+              {% for tag in task.tags %}
+              <span class="badge" style="background-color: {{ tag.color or '#6c757d' }};">
+                {{ tag.name }}
+              </span>
+              {% endfor %}
+            </div>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Comments Section -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-comments me-2"></i>Comments ({{ comments|length }})</h5>
+        </div>
+        <div class="card-body">
+          {% if comments %}
+            {% for comment in comments %}
+            <div class="d-flex mb-3 pb-3 border-bottom">
+              <div class="flex-shrink-0">
+                <div class="avatar-circle">
+                  {{ comment.user.name[0] if comment.user else '?' }}
+                </div>
+              </div>
+              <div class="flex-grow-1 ms-3">
+                <div class="d-flex justify-content-between">
+                  <strong>{{ comment.user.name if comment.user else 'Unknown' }}</strong>
+                  <small class="text-muted">{{ comment.created_at.strftime('%b %d, %Y %I:%M %p') if comment.created_at else '' }}</small>
+                </div>
+                <p class="mb-0 mt-1">{{ comment.comment }}</p>
+              </div>
+            </div>
+            {% endfor %}
+          {% else %}
+            <p class="text-muted text-center py-3">No comments yet.</p>
+          {% endif %}
+
+          <!-- Add Comment Form -->
+          <form method="POST" action="{{ url_for('tasks.add_comment', task_id=task.id) }}" class="mt-3">
+            <div class="mb-3">
+              <textarea class="form-control" name="comment" rows="3" placeholder="Add a comment..." required></textarea>
+            </div>
+            <button type="submit" class="btn btn-primary btn-sm">
+              <i class="fas fa-paper-plane me-1"></i>Post Comment
+            </button>
+          </form>
+        </div>
+      </div>
+
+      <!-- Attachments Section -->
+      {% if attachments %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h5 class="mb-0"><i class="fas fa-paperclip me-2"></i>Attachments ({{ attachments|length }})</h5>
+        </div>
+        <div class="card-body">
+          <div class="list-group list-group-flush">
+            {% for attachment in attachments %}
+            <div class="list-group-item d-flex justify-content-between align-items-center">
+              <div>
+                <i class="fas fa-file me-2"></i>
+                <a href="{{ url_for('static', filename='uploads/attachments/' + attachment.file_name) }}" target="_blank">
+                  {{ attachment.file_name }}
+                </a>
+                <small class="text-muted d-block ms-4">
+                  Uploaded by {{ attachment.uploaded_by.name if attachment.uploaded_by else 'Unknown' }} 
+                  on {{ attachment.uploaded_at.strftime('%b %d, %Y') if attachment.uploaded_at else '' }}
+                </small>
+              </div>
+              <a href="{{ url_for('static', filename='uploads/attachments/' + attachment.file_name) }}" 
+                 class="btn btn-sm btn-outline-primary" download>
+                <i class="fas fa-download"></i>
+              </a>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+
+    <!-- Sidebar -->
+    <div class="col-lg-4">
+      <!-- Assigned Users -->
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="fas fa-users me-2"></i>Assigned To</h6>
+        </div>
+        <div class="card-body">
+          {% if task.assigned_to %}
+            <div class="d-flex flex-column gap-2">
+              {% for user in task.assigned_to %}
+              <div class="d-flex align-items-center">
+                <div class="avatar-circle-sm me-2">
+                  {{ user.name[0] }}
+                </div>
+                <div>
+                  <div class="fw-medium">{{ user.name }}</div>
+                  <small class="text-muted">{{ user.email }}</small>
+                </div>
+              </div>
+              {% endfor %}
+            </div>
+          {% else %}
+            <p class="text-muted mb-0">Not assigned</p>
+          {% endif %}
+        </div>
+      </div>
+
+      <!-- Time Logs -->
+      {% if time_logs %}
+      <div class="card border-0 shadow-sm mb-4">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="fas fa-clock me-2"></i>Time Logs</h6>
+        </div>
+        <div class="card-body">
+          {% set total_hours = time_logs|sum(attribute='hours_spent') %}
+          <p class="mb-2"><strong>Total:</strong> {{ "%.1f"|format(total_hours) }} hours</p>
+          <div class="list-group list-group-flush">
+            {% for log in time_logs[:5] %}
+            <div class="list-group-item px-0">
+              <div class="d-flex justify-content-between">
+                <small>{{ log.user.name if log.user else 'Unknown' }}</small>
+                <small class="text-muted">{{ log.hours_spent }}h</small>
+              </div>
+              {% if log.description %}
+              <small class="text-muted">{{ log.description }}</small>
+              {% endif %}
+              <small class="text-muted d-block">{{ log.log_date.strftime('%b %d, %Y') if log.log_date else '' }}</small>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+
+      <!-- Activity History -->
+      {% if history %}
+      <div class="card border-0 shadow-sm">
+        <div class="card-header bg-white">
+          <h6 class="mb-0"><i class="fas fa-history me-2"></i>Recent Activity</h6>
+        </div>
+        <div class="card-body">
+          <div class="timeline">
+            {% for item in history[:10] %}
+            <div class="timeline-item mb-3">
+              <small class="text-muted d-block">{{ item.created_at.strftime('%b %d, %I:%M %p') if item.created_at else '' }}</small>
+              <div class="mt-1">
+                <strong>{{ item.user.name if item.user else 'System' }}</strong>
+                <small class="text-muted">{{ item.action }}</small>
+              </div>
+              {% if item.changes %}
+              <small class="text-muted">{{ item.changes }}</small>
+              {% endif %}
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+      </div>
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<style>
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.avatar-circle-sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 20px;
+  border-left: 2px solid #e9ecef;
+}
+
+.timeline-item:last-child {
+  border-left: none;
+}
+
+.timeline-item::before {
+  content: '';
+  position: absolute;
+  left: -5px;
+  top: 5px;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #667eea;
+}
+</style>
+{% endblock %}
