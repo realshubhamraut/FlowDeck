@@ -6,6 +6,53 @@
 <link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='admin') }}">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+}
+
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.icon-shape {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0) !important;
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+}
+
+.btn-primary, .btn-outline-primary:hover {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    border: none;
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+}
+
+.btn-outline-primary {
+    border: 2px solid #6c7cdb;
+    color: #6c7cdb;
+}
+
+.table {
+    background: rgba(255, 255, 255, 0.6);
+}
+
+.table thead {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Safe defaults to prevent UndefinedError -->
 {% set stats = stats|default({}) %}

@@ -6,6 +6,351 @@
 <link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='tasks') }}">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+}
+
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    box-shadow: 0 12px 32px rgba(0, 0, 0, 0.12);
+    transform: translateY(-3px);
+}
+
+/* Stat Cards */
+.stat-card {
+    position: relative;
+    overflow: hidden;
+    padding: 2rem;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.stat-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    z-index: -1;
+}
+
+.stat-card:hover {
+    transform: translateY(-5px) scale(1.02);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+}
+
+.stat-card.total {
+    border-left: 5px solid #6c7cdb;
+}
+
+.stat-card.todo {
+    border-left: 5px solid #ffc107;
+}
+
+.stat-card.in-progress {
+    border-left: 5px solid #0dcaf0;
+}
+
+.stat-card.completed {
+    border-left: 5px solid #198754;
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative;
+    overflow: hidden;
+}
+
+.stat-icon::before {
+    content: '';
+    position: absolute;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    animation: shine 3s infinite;
+}
+
+@keyframes shine {
+    0% { transform: translateX(-100%) translateY(-100%) rotate(45deg); }
+    100% { transform: translateX(100%) translateY(100%) rotate(45deg); }
+}
+
+.stat-icon.total {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    color: white;
+}
+
+.stat-icon.todo {
+    background: linear-gradient(135deg, #ffc107, #ffca2c);
+    color: white;
+}
+
+.stat-icon.in-progress {
+    background: linear-gradient(135deg, #0dcaf0, #31d2f2);
+    color: white;
+}
+
+.stat-icon.completed {
+    background: linear-gradient(135deg, #198754, #20c997);
+    color: white;
+}
+
+.stat-value {
+    font-size: 2.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+    background: linear-gradient(135deg, #2c3e50, #34495e);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    font-size: 0.9rem;
+    color: #6c757d;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Buttons */
+.btn-primary {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    border: none;
+    box-shadow: 0 4px 15px rgba(108, 124, 219, 0.3);
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6bc9, #7580ce);
+    box-shadow: 0 6px 20px rgba(108, 124, 219, 0.4);
+    transform: translateY(-2px);
+}
+
+.btn-outline-secondary {
+    border: 2px solid rgba(108, 124, 219, 0.3);
+    background: rgba(255, 255, 255, 0.95);
+    border-radius: 12px;
+    padding: 0.75rem 1.5rem;
+    font-weight: 600;
+    color: #6c7cdb;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    border-color: #6c7cdb;
+    color: #6c7cdb;
+    transform: translateY(-2px);
+}
+
+/* Filter Card */
+.filter-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.85));
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 1.5rem;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+.form-control, .form-select {
+    border-radius: 12px;
+    border: 2px solid rgba(108, 124, 219, 0.1);
+    padding: 0.75rem 1rem;
+    background: rgba(255, 255, 255, 0.9);
+    transition: all 0.3s ease;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #6c7cdb;
+    box-shadow: 0 0 0 3px rgba(108, 124, 219, 0.1);
+    background: white;
+}
+
+/* Table Styling */
+.task-table {
+    background: transparent;
+}
+
+.task-table thead th {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    color: #6c7cdb;
+    border: none;
+    padding: 1.25rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.85rem;
+    letter-spacing: 0.5px;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+}
+
+.task-table tbody tr {
+    background: rgba(255, 255, 255, 0.6);
+    border-bottom: 1px solid rgba(108, 124, 219, 0.1);
+    transition: all 0.3s ease;
+}
+
+.task-table tbody tr:hover {
+    background: linear-gradient(135deg, rgba(243, 229, 245, 0.8), rgba(225, 190, 231, 0.6));
+    transform: scale(1.01);
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.15);
+}
+
+.task-table tbody td {
+    padding: 1.25rem;
+    vertical-align: middle;
+    border: none;
+}
+
+/* Task Title Link */
+.task-title {
+    color: #2c3e50;
+    font-weight: 600;
+    font-size: 1.05rem;
+    transition: all 0.3s ease;
+}
+
+.task-title:hover {
+    color: #6c7cdb;
+    text-decoration: none;
+}
+
+/* Badge Styling */
+.badge {
+    border-radius: 10px;
+    padding: 0.5rem 1rem;
+    font-weight: 600;
+    font-size: 0.85rem;
+    letter-spacing: 0.3px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Progress Bar */
+.progress {
+    height: 10px;
+    border-radius: 10px;
+    background: rgba(108, 124, 219, 0.1);
+    overflow: hidden;
+}
+
+.progress-bar {
+    background: linear-gradient(90deg, #6c7cdb, #8791e0);
+    border-radius: 10px;
+    transition: width 0.6s ease;
+}
+
+/* Action Buttons */
+.btn-group-sm .btn {
+    border-radius: 8px;
+    padding: 0.5rem 0.75rem;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-primary {
+    border: 2px solid #6c7cdb;
+    color: #6c7cdb;
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    color: white;
+    transform: translateY(-2px);
+}
+
+.btn-outline-danger {
+    border: 2px solid #dc3545;
+    color: #dc3545;
+}
+
+.btn-outline-danger:hover {
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
+    color: white;
+    transform: translateY(-2px);
+}
+
+/* Pagination */
+.pagination .page-link {
+    border-radius: 10px;
+    margin: 0 0.25rem;
+    border: 2px solid rgba(108, 124, 219, 0.2);
+    color: #6c7cdb;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.pagination .page-link:hover {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    color: white;
+    border-color: transparent;
+}
+
+.pagination .page-item.active .page-link {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    border-color: transparent;
+}
+
+/* Empty State */
+.empty-state {
+    padding: 4rem 2rem;
+    text-align: center;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+/* Header */
+.page-header {
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    font-size: 2.5rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #2c3e50, #6c7cdb);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.5rem;
+}
+
+.page-header .subtitle {
+    color: #6c757d;
+    font-size: 1.1rem;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {# Provide safe defaults and normalize variables #}
 {% set total_count = total_count|default(0) %}
@@ -16,114 +361,123 @@
 {% set tasks = tasks|default(pagination if pagination is not none else []) %}
 <div class="container-fluid py-4">
     <!-- Header with Actions -->
-    <div class="row mb-4">
-        <div class="col-md-6">
-            <h1 class="display-6 mb-1"><i class="fas fa-tasks me-2"></i> Tasks</h1>
-            <p class="text-muted">Manage and track your tasks</p>
-        </div>
-        <div class="col-md-6 text-md-end">
-            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
-                <i class="fas fa-plus me-2"></i> Create Task
-            </a>
-            <a href="{{ url_for('tasks.list_tasks', view='kanban') }}" class="btn btn-outline-secondary">
-                <i class="fas fa-columns me-2"></i> Kanban View
-            </a>
+    <div class="page-header">
+        <div class="row align-items-center mb-4">
+            <div class="col-md-6">
+                <h1><i class="fas fa-tasks me-3"></i>Tasks Management</h1>
+                <p class="subtitle mb-0">Organize, track, and complete your tasks efficiently</p>
+            </div>
+            <div class="col-md-6 text-md-end">
+                <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary me-2">
+                    <i class="fas fa-plus-circle me-2"></i> Create New Task
+                </a>
+                <a href="{{ url_for('tasks.list_tasks', view='kanban') }}" class="btn btn-outline-secondary">
+                    <i class="fas fa-columns me-2"></i> Kanban Board
+                </a>
+            </div>
         </div>
     </div>
 
     <!-- Filters and Search -->
-    <div class="card border-0 shadow-sm mb-4">
-        <div class="card-body">
-            <form method="GET" action="{{ url_for('tasks.list_tasks') }}" class="row g-3">
-                <!-- Search -->
-                <div class="col-md-3">
-                    <input type="text" name="search" class="form-control" placeholder="Search tasks..." 
-                           value="{{ request.args.get('search', '') }}">
+    <div class="filter-card mb-4">
+        <form method="GET" action="{{ url_for('tasks.list_tasks') }}" class="row g-3 align-items-center">
+            <!-- Search -->
+            <div class="col-md-3">
+                <div class="input-group">
+                    <span class="input-group-text bg-white border-end-0" style="border-radius: 12px 0 0 12px; border-color: rgba(108, 124, 219, 0.1);">
+                        <i class="fas fa-search text-muted"></i>
+                    </span>
+                    <input type="text" name="search" class="form-control border-start-0" placeholder="Search tasks..." 
+                           value="{{ request.args.get('search', '') }}" style="border-radius: 0 12px 12px 0;">
                 </div>
+            </div>
 
-                <!-- Status Filter -->
-                <div class="col-md-2">
-                    <select name="status" class="form-select">
-                        <option value="">All Status</option>
-                        <option value="todo" {% if request.args.get('status') == 'todo' %}selected{% endif %}>To Do</option>
-                        <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>In Progress</option>
-                        <option value="done" {% if request.args.get('status') == 'done' %}selected{% endif %}>Done</option>
-                        <option value="archived" {% if request.args.get('status') == 'archived' %}selected{% endif %}>Archived</option>
-                    </select>
-                </div>
+            <!-- Status Filter -->
+            <div class="col-md-2">
+                <select name="status" class="form-select">
+                    <option value="">All Status</option>
+                    <option value="todo" {% if request.args.get('status') == 'todo' %}selected{% endif %}>📋 To Do</option>
+                    <option value="in_progress" {% if request.args.get('status') == 'in_progress' %}selected{% endif %}>⚡ In Progress</option>
+                    <option value="done" {% if request.args.get('status') == 'done' %}selected{% endif %}>✅ Done</option>
+                    <option value="archived" {% if request.args.get('status') == 'archived' %}selected{% endif %}>📦 Archived</option>
+                </select>
+            </div>
 
-                <!-- Priority Filter -->
-                <div class="col-md-2">
-                    <select name="priority" class="form-select">
-                        <option value="">All Priority</option>
-                        <option value="urgent" {% if request.args.get('priority') == 'urgent' %}selected{% endif %}>Urgent</option>
-                        <option value="high" {% if request.args.get('priority') == 'high' %}selected{% endif %}>High</option>
-                        <option value="medium" {% if request.args.get('priority') == 'medium' %}selected{% endif %}>Medium</option>
-                        <option value="low" {% if request.args.get('priority') == 'low' %}selected{% endif %}>Low</option>
-                    </select>
-                </div>
+            <!-- Priority Filter -->
+            <div class="col-md-2">
+                <select name="priority" class="form-select">
+                    <option value="">All Priority</option>
+                    <option value="urgent" {% if request.args.get('priority') == 'urgent' %}selected{% endif %}>🔴 Urgent</option>
+                    <option value="high" {% if request.args.get('priority') == 'high' %}selected{% endif %}>🟠 High</option>
+                    <option value="medium" {% if request.args.get('priority') == 'medium' %}selected{% endif %}>🟡 Medium</option>
+                    <option value="low" {% if request.args.get('priority') == 'low' %}selected{% endif %}>🟢 Low</option>
+                </select>
+            </div>
 
-                <!-- Assigned Filter -->
-                <div class="col-md-2">
-                    <select name="assigned" class="form-select">
-                        <option value="">All Tasks</option>
-                        <option value="me" {% if request.args.get('assigned') == 'me' %}selected{% endif %}>Assigned to Me</option>
-                        <option value="created" {% if request.args.get('assigned') == 'created' %}selected{% endif %}>Created by Me</option>
-                    </select>
-                </div>
+            <!-- Assigned Filter -->
+            <div class="col-md-2">
+                <select name="assigned" class="form-select">
+                    <option value="">All Tasks</option>
+                    <option value="me" {% if request.args.get('assigned') == 'me' %}selected{% endif %}>👤 Assigned to Me</option>
+                    <option value="created" {% if request.args.get('assigned') == 'created' %}selected{% endif %}>✏️ Created by Me</option>
+                </select>
+            </div>
 
-                <!-- Sort -->
-                <div class="col-md-2">
-                    <select name="sort" class="form-select">
-                        <option value="due_date" {% if request.args.get('sort', 'due_date') == 'due_date' %}selected{% endif %}>Due Date</option>
-                        <option value="created" {% if request.args.get('sort') == 'created' %}selected{% endif %}>Date Created</option>
-                        <option value="priority" {% if request.args.get('sort') == 'priority' %}selected{% endif %}>Priority</option>
-                        <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>Title</option>
-                    </select>
-                </div>
+            <!-- Sort -->
+            <div class="col-md-2">
+                <select name="sort" class="form-select">
+                    <option value="due_date" {% if request.args.get('sort', 'due_date') == 'due_date' %}selected{% endif %}>📅 Due Date</option>
+                    <option value="created" {% if request.args.get('sort') == 'created' %}selected{% endif %}>🕐 Date Created</option>
+                    <option value="priority" {% if request.args.get('sort') == 'priority' %}selected{% endif %}>⚠️ Priority</option>
+                    <option value="title" {% if request.args.get('sort') == 'title' %}selected{% endif %}>🔤 Title</option>
+                </select>
+            </div>
 
-                <!-- Filter Button -->
-                <div class="col-md-1">
-                    <button type="submit" class="btn btn-outline-primary w-100">
-                        <i class="fas fa-filter"></i>
-                    </button>
-                </div>
-            </form>
-        </div>
+            <!-- Filter Button -->
+            <div class="col-md-1">
+                <button type="submit" class="btn btn-primary w-100">
+                    <i class="fas fa-filter"></i>
+                </button>
+            </div>
+        </form>
     </div>
 
     <!-- Task Statistics -->
     <div class="row mb-4">
-        <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <h3 class="mb-0">{{ total_count }}</h3>
-                    <small class="text-muted">Total Tasks</small>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card total">
+                <div class="stat-icon total">
+                    <i class="fas fa-clipboard-list"></i>
                 </div>
+                <div class="stat-value">{{ total_count }}</div>
+                <div class="stat-label">Total Tasks</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <h3 class="mb-0 text-warning">{{ todo_count }}</h3>
-                    <small class="text-muted">To Do</small>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card todo">
+                <div class="stat-icon todo">
+                    <i class="fas fa-clipboard"></i>
                 </div>
+                <div class="stat-value">{{ todo_count }}</div>
+                <div class="stat-label">To Do</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <h3 class="mb-0 text-info">{{ in_progress_count }}</h3>
-                    <small class="text-muted">In Progress</small>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card in-progress">
+                <div class="stat-icon in-progress">
+                    <i class="fas fa-spinner fa-pulse"></i>
                 </div>
+                <div class="stat-value">{{ in_progress_count }}</div>
+                <div class="stat-label">In Progress</div>
             </div>
         </div>
-        <div class="col-md-3 mb-3">
-            <div class="card border-0 shadow-sm text-center">
-                <div class="card-body">
-                    <h3 class="mb-0 text-success">{{ done_count }}</h3>
-                    <small class="text-muted">Completed</small>
+        <div class="col-lg-3 col-md-6 mb-3">
+            <div class="stat-card completed">
+                <div class="stat-icon completed">
+                    <i class="fas fa-check-circle"></i>
                 </div>
+                <div class="stat-value">{{ done_count }}</div>
+                <div class="stat-label">Completed</div>
             </div>
         </div>
     </div>
@@ -133,16 +487,16 @@
         <div class="card-body p-0">
             {% if tasks %}
                 <div class="table-responsive">
-                    <table class="table table-hover mb-0">
-                        <thead class="table-light">
+                    <table class="table task-table mb-0">
+                        <thead>
                             <tr>
-                                <th style="width: 40%;">Task</th>
-                                <th>Priority</th>
-                                <th>Status</th>
-                                <th>Assigned To</th>
-                                <th>Due Date</th>
-                                <th>Progress</th>
-                                <th>Actions</th>
+                                <th style="width: 40%;"><i class="fas fa-file-alt me-2"></i>Task</th>
+                                <th><i class="fas fa-exclamation-triangle me-2"></i>Priority</th>
+                                <th><i class="fas fa-info-circle me-2"></i>Status</th>
+                                <th><i class="fas fa-user me-2"></i>Assigned To</th>
+                                <th><i class="fas fa-calendar me-2"></i>Due Date</th>
+                                <th><i class="fas fa-chart-line me-2"></i>Progress</th>
+                                <th><i class="fas fa-cog me-2"></i>Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -151,7 +505,7 @@
                             <tr class="{% if task.is_overdue() and task.status != 'done' %}table-danger{% endif %}">
                                 <td>
                                     <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" 
-                                       class="text-decoration-none fw-semibold">
+                                       class="task-title text-decoration-none">
                                         {{ task.title }}
                                     </a>
                                     {% if task.description %}
@@ -162,18 +516,18 @@
                                     {% endif %}
                                     <br>
                                     <small class="text-muted">
-                                        <i class="fas fa-user me-1"></i> {{ task.creator.username }}
+                                        <i class="fas fa-user-circle me-1"></i> {{ task.creator.username }}
                                         <i class="fas fa-clock ms-2 me-1"></i> {{ task.created_at.strftime('%b %d, %Y') }}
                                     </small>
                                 </td>
                                 <td>
                                     <span class="badge task-priority-{{ task.priority }}">
                                         {% if task.priority == 'urgent' %}
-                                            <i class="fas fa-exclamation-circle me-1"></i>
+                                            <i class="fas fa-fire me-1"></i>
                                         {% elif task.priority == 'high' %}
                                             <i class="fas fa-arrow-up me-1"></i>
                                         {% elif task.priority == 'medium' %}
-                                            <i class="fas fa-equals me-1"></i>
+                                            <i class="fas fa-minus me-1"></i>
                                         {% else %}
                                             <i class="fas fa-arrow-down me-1"></i>
                                         {% endif %}
@@ -182,6 +536,13 @@
                                 </td>
                                 <td>
                                     <span class="badge task-status-{{ task.status }}">
+                                        {% if task.status == 'done' %}
+                                            <i class="fas fa-check me-1"></i>
+                                        {% elif task.status == 'in_progress' %}
+                                            <i class="fas fa-spinner fa-spin me-1"></i>
+                                        {% else %}
+                                            <i class="fas fa-circle me-1"></i>
+                                        {% endif %}
                                         {{ task.status|replace('_', ' ')|title }}
                                     </span>
                                 </td>
@@ -191,61 +552,62 @@
                                             {% for assignee in task.assignees[:3] %}
                                                 {% if assignee.profile_picture %}
                                                     <img src="{{ url_for('static', filename='uploads/' + assignee.profile_picture) }}" 
-                                                         class="rounded-circle me-1" width="25" height="25" 
-                                                         title="{{ assignee.username }}" alt="">
+                                                         class="rounded-circle me-1" width="32" height="32" 
+                                                         title="{{ assignee.username }}" alt="" style="border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                                                 {% else %}
                                                     <div class="avatar-xs bg-primary text-white rounded-circle me-1" 
-                                                         title="{{ assignee.username }}">
+                                                         title="{{ assignee.username }}"
+                                                         style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                                                         {{ assignee.username[0]|upper }}
                                                     </div>
                                                 {% endif %}
                                             {% endfor %}
                                             {% if task.assignees|length > 3 %}
-                                                <span class="badge bg-secondary">+{{ task.assignees|length - 3 }}</span>
+                                                <span class="badge bg-secondary ms-1">+{{ task.assignees|length - 3 }}</span>
                                             {% endif %}
                                         </div>
                                     {% else %}
-                                        <span class="text-muted">Unassigned</span>
+                                        <span class="text-muted"><i class="fas fa-user-slash me-1"></i>Unassigned</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     {% if task.due_date %}
                                         <small class="{% if task.is_overdue() and task.status != 'done' %}text-danger fw-bold{% endif %}">
-                                            <i class="fas fa-calendar-alt me-1"></i>
+                                            <i class="fas fa-calendar-day me-1"></i>
                                             {{ task.due_date.strftime('%b %d, %Y') }}
                                             {% if task.is_overdue() and task.status != 'done' %}
-                                                <br><span class="badge bg-danger">Overdue</span>
+                                                <br><span class="badge bg-danger mt-1"><i class="fas fa-exclamation-triangle me-1"></i>Overdue</span>
                                             {% endif %}
                                         </small>
                                     {% else %}
-                                        <span class="text-muted">No due date</span>
+                                        <span class="text-muted"><i class="fas fa-calendar-times me-1"></i>No due date</span>
                                     {% endif %}
                                 </td>
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <div class="progress flex-grow-1 me-2" style="height: 8px; min-width: 60px;">
+                                        <div class="progress flex-grow-1 me-2" style="height: 10px; min-width: 70px;">
                                             <div class="progress-bar" role="progressbar" 
                                                  style="width: {{ task.get_completion_percentage() }}%"
                                                  aria-valuenow="{{ task.get_completion_percentage() }}" 
                                                  aria-valuemin="0" aria-valuemax="100"></div>
                                         </div>
-                                        <small class="text-muted">{{ task.get_completion_percentage() }}%</small>
+                                        <small class="text-muted fw-bold">{{ task.get_completion_percentage() }}%</small>
                                     </div>
                                 </td>
                                 <td>
                                     <div class="btn-group btn-group-sm" role="group">
                                         <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" 
-                                           class="btn btn-outline-primary" title="View">
+                                           class="btn btn-outline-primary" title="View Task">
                                             <i class="fas fa-eye"></i>
                                         </a>
                                         {% if can_edit_task(task) %}
                                             <a href="{{ url_for('tasks.edit_task', task_id=task.id) }}" 
-                                               class="btn btn-outline-secondary" title="Edit">
+                                               class="btn btn-outline-secondary" title="Edit Task">
                                                 <i class="fas fa-edit"></i>
                                             </a>
                                             <button class="btn btn-outline-danger" 
-                                                    onclick="confirmDelete({{ task.id }})" title="Delete">
-                                                <i class="fas fa-trash"></i>
+                                                    onclick="confirmDelete({{ task.id }})" title="Delete Task">
+                                                <i class="fas fa-trash-alt"></i>
                                             </button>
                                         {% endif %}
                                     </div>
@@ -307,18 +669,18 @@
                 </div>
                 {% endif %}
             {% else %}
-                <div class="text-center py-5">
-                    <i class="fas fa-tasks fa-4x text-muted mb-3"></i>
-                    <h5 class="text-muted">No tasks found</h5>
-                    <p class="text-muted">
+                <div class="empty-state">
+                    <i class="fas fa-tasks mb-4"></i>
+                    <h4 class="text-muted mb-3">No Tasks Found</h4>
+                    <p class="text-muted mb-4">
                         {% if request.args.get('search') or request.args.get('status') or request.args.get('priority') %}
-                            Try adjusting your filters or search query.
+                            Try adjusting your filters or search query to find more tasks.
                         {% else %}
-                            Create your first task to get started!
+                            Start organizing your work by creating your first task!
                         {% endif %}
                     </p>
-                    <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
-                        <i class="fas fa-plus me-2"></i> Create Task
+                    <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary btn-lg">
+                        <i class="fas fa-plus-circle me-2"></i> Create Your First Task
                     </a>
                 </div>
             {% endif %}
@@ -327,57 +689,57 @@
 </div>
 
 <style>
+/* Avatar styling */
 .avatar-xs {
-    width: 25px;
-    height: 25px;
+    width: 32px;
+    height: 32px;
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    font-size: 10px;
+    font-size: 14px;
+    font-weight: 600;
 }
 
+/* Priority Badge Colors */
 .task-priority-urgent {
-    background-color: #dc3545;
+    background: linear-gradient(135deg, #dc3545, #e74c3c);
     color: white;
 }
 
 .task-priority-high {
-    background-color: #fd7e14;
+    background: linear-gradient(135deg, #fd7e14, #ff922b);
     color: white;
 }
 
 .task-priority-medium {
-    background-color: #0dcaf0;
+    background: linear-gradient(135deg, #0dcaf0, #31d2f2);
     color: white;
 }
 
 .task-priority-low {
-    background-color: #198754;
+    background: linear-gradient(135deg, #198754, #20c997);
     color: white;
 }
 
+/* Status Badge Colors */
 .task-status-todo {
-    background-color: #6c757d;
+    background: linear-gradient(135deg, #6c757d, #868e96);
     color: white;
 }
 
 .task-status-in_progress {
-    background-color: #0d6efd;
+    background: linear-gradient(135deg, #0d6efd, #3d8bfd);
     color: white;
 }
 
 .task-status-done {
-    background-color: #198754;
+    background: linear-gradient(135deg, #198754, #20c997);
     color: white;
 }
 
 .task-status-archived {
-    background-color: #adb5bd;
+    background: linear-gradient(135deg, #adb5bd, #ced4da);
     color: white;
-}
-
-tr:hover {
-    background-color: #f8f9fa;
 }
 </style>
 

@@ -119,6 +119,7 @@ class User(UserMixin, db.Model):
     name = db.Column(db.String(100), nullable=False)
     phone = db.Column(db.String(20))
     designation = db.Column(db.String(100))
+    date_of_birth = db.Column(db.Date)
     profile_picture = db.Column(db.String(255))
     bio = db.Column(db.Text)
     
@@ -197,5 +198,33 @@ class User(UserMixin, db.Model):
         alphabet = string.ascii_letters + string.digits + string.punctuation
         return ''.join(secrets.choice(alphabet) for _ in range(length))
     
+    def is_birthday_today(self):
+        """Check if today is user's birthday"""
+        if not self.date_of_birth:
+            return False
+        today = datetime.utcnow().date()
+        return (self.date_of_birth.month == today.month and 
+                self.date_of_birth.day == today.day)
+    
+    def age(self):
+        """Calculate user's current age"""
+        if not self.date_of_birth:
+            return None
+        today = datetime.utcnow().date()
+        age = today.year - self.date_of_birth.year
+        if today.month < self.date_of_birth.month or (today.month == self.date_of_birth.month and today.day < self.date_of_birth.day):
+            age -= 1
+        return age
+    
     def __repr__(self):
         return f'<User {self.email}>'
+
+    @property
+    def username(self):
+        """Compatibility alias for templates expecting `username`.
+
+        Some templates reference `user.username`. The canonical field in this
+        model is `name`. Expose a `username` property that returns `name`
+        (or email as a fallback) to avoid UndefinedError in templates.
+        """
+        return self.name or self.email

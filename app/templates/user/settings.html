@@ -2,6 +2,41 @@
 
 {% block title %}Settings - FlowDeck{% endblock %}
 
+{% block extra_css %}
+<style>
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+}
+
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+}
+
+.form-control, .form-select {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.form-control:focus, .form-select:focus {
+    background: white;
+    border-color: #6c7cdb;
+    box-shadow: 0 0 0 3px rgba(108, 124, 219, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    border: none;
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container-fluid py-4">
     <div class="row mb-4">

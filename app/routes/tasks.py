@@ -54,11 +54,40 @@ def list_tasks():
     
     # Sort
     sort = request.args.get('sort', 'due_date')
+    sort_order = request.args.get('sort_order', 'asc')  # 'asc' or 'desc'
+    
+    # Determine sort direction
+    desc_order = (sort_order == 'desc')
+    
+    # Apply sorting based on field
     if sort == 'priority':
-        tasks_query = tasks_query.order_by(Task.priority.desc())
+        # Priority mapping: urgent=4, high=3, medium=2, low=1
+        priority_order = db.case(
+            (Task.priority == 'urgent', 4),
+            (Task.priority == 'high', 3),
+            (Task.priority == 'medium', 2),
+            (Task.priority == 'low', 1),
+            else_=0
+        )
+        tasks_query = tasks_query.order_by(priority_order.desc() if desc_order else priority_order.asc())
+    elif sort == 'status':
+        # Status mapping: todo=1, in_progress=2, done=3, archived=4
+        status_order = db.case(
+            (Task.status == 'todo', 1),
+            (Task.status == 'in_progress', 2),
+            (Task.status == 'done', 3),
+            (Task.status == 'archived', 4),
+            else_=0
+        )
+        tasks_query = tasks_query.order_by(status_order.desc() if desc_order else status_order.asc())
+    elif sort == 'title':
+        tasks_query = tasks_query.order_by(Task.title.desc() if desc_order else Task.title.asc())
+    elif sort == 'due_date':
+        tasks_query = tasks_query.order_by(Task.due_date.desc() if desc_order else Task.due_date.asc())
     elif sort == 'created':
-        tasks_query = tasks_query.order_by(Task.created_at.desc())
+        tasks_query = tasks_query.order_by(Task.created_at.desc() if desc_order else Task.created_at.asc())
     else:
+        # Default to due_date ascending
         tasks_query = tasks_query.order_by(Task.due_date.asc())
     
     if view == 'kanban':
@@ -109,6 +138,7 @@ def create_task():
         priority = request.form.get('priority', 'medium')
         status = request.form.get('status', 'todo')
         department_id = request.form.get('department_id')
+        start_date_str = request.form.get('start_date')
         due_date_str = request.form.get('due_date')
         estimated_hours = request.form.get('estimated_hours', type=float)
         assignee_ids = request.form.getlist('assignees')
@@ -125,6 +155,17 @@ def create_task():
                                  users=get_users(),
                                  tags=Tag.query.all())
         
+        # Parse start date
+        start_date = None
+        if start_date_str:
+            try:
+                start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                try:
+                    start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+                except ValueError:
+                    pass
+        
         # Parse due date
         due_date = None
         if due_date_str:
@@ -136,6 +177,14 @@ def create_task():
                 except ValueError:
                     pass
         
+        # Validate that start_date is before due_date
+        if start_date and due_date and start_date > due_date:
+            flash('Start date cannot be after due date.', 'warning')
+            return render_template('tasks/create.html',
+                                 departments=get_departments(),
+                                 users=get_users(),
+                                 tags=Tag.query.all())
+        
         # Create task
         task = Task(
             title=title,
@@ -143,6 +192,7 @@ def create_task():
             priority=priority,
             status=status,
             department_id=department_id if department_id else current_user.department_id,
+            start_date=start_date,
             due_date=due_date,
             estimated_hours=estimated_hours,
             created_by_id=current_user.id
@@ -254,6 +304,17 @@ def edit_task(task_id):
         task.status = request.form.get('status', task.status)
         task.department_id = request.form.get('department_id') or task.department_id
         
+        # Update start date
+        start_date_str = request.form.get('start_date')
+        if start_date_str:
+            try:
+                task.start_date = datetime.strptime(start_date_str, '%Y-%m-%dT%H:%M')
+            except ValueError:
+                try:
+                    task.start_date = datetime.strptime(start_date_str, '%Y-%m-%d')
+                except ValueError:
+                    pass
+        
         # Update due date
         due_date_str = request.form.get('due_date')
         if due_date_str:
@@ -264,6 +325,15 @@ def edit_task(task_id):
                     task.due_date = datetime.strptime(due_date_str, '%Y-%m-%d')
                 except ValueError:
                     pass
+        
+        # Validate that start_date is before due_date
+        if task.start_date and task.due_date and task.start_date > task.due_date:
+            flash('Start date cannot be after due date.', 'warning')
+            return render_template('tasks/edit.html',
+                                 task=task,
+                                 departments=get_departments(),
+                                 users=get_users(),
+                                 tags=Tag.query.all())
         
         task.estimated_hours = request.form.get('estimated_hours', type=float) or task.estimated_hours
         

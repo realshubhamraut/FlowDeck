@@ -117,9 +117,18 @@ def create_user():
         email = request.form.get('email', '').strip().lower()
         phone = request.form.get('phone', '').strip()
         designation = request.form.get('designation', '').strip()
+        date_of_birth_str = request.form.get('date_of_birth', '').strip()
         department_id = request.form.get('department_id')
         role_ids = request.form.getlist('roles')
         tag_ids = request.form.getlist('tags')
+        
+        # Parse date of birth
+        date_of_birth = None
+        if date_of_birth_str:
+            try:
+                date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
         
         # Social links
         linkedin = request.form.get('linkedin', '').strip()
@@ -151,6 +160,7 @@ def create_user():
             email=email,
             phone=phone,
             designation=designation,
+            date_of_birth=date_of_birth,
             department_id=department_id if department_id else None,
             organisation_id=current_user.organisation_id,
             linkedin=linkedin,
@@ -203,7 +213,8 @@ def create_user():
     return render_template('admin/create_user.html',
                          departments=get_departments(),
                          roles=get_roles(),
-                         tags=get_tags())
+                         tags=get_tags(),
+                         today=datetime.now().strftime('%Y-%m-%d'))
 
 
 @bp.route('/users/credentials')
@@ -243,6 +254,16 @@ def edit_user(user_id):
         user.department_id = request.form.get('department_id') or None
         user.is_active = request.form.get('is_active') == 'on'
         
+        # Parse date of birth
+        date_of_birth_str = request.form.get('date_of_birth', '').strip()
+        if date_of_birth_str:
+            try:
+                user.date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
+            except ValueError:
+                pass
+        else:
+            user.date_of_birth = None
+        
         # Social links
         user.linkedin = request.form.get('linkedin', '').strip()
         user.twitter = request.form.get('twitter', '').strip()
@@ -275,7 +296,8 @@ def edit_user(user_id):
                          user=user,
                          departments=get_departments(),
                          roles=get_roles(),
-                         tags=get_tags())
+                         tags=get_tags(),
+                         today=datetime.now().strftime('%Y-%m-%d'))
 
 
 @bp.route('/users/<int:user_id>/delete', methods=['POST'])

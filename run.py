@@ -5,6 +5,10 @@ FlowDeck Application Entry Point
 from app import create_app, socketio, db
 from app.database import init_database_features
 import os
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 # Create Flask application
 app = create_app()
@@ -22,7 +26,7 @@ def __routes():
         routes = sorted([f"{r.rule} -> {r.endpoint}" for r in app.url_map.iter_rules()])
         return "\n".join(routes), 200, {'Content-Type': 'text/plain; charset=utf-8'}
     except Exception as e:
-        return f"error: {e}", 500
+        return f"error: {e}", 500   
 
 @app.route('/__whoami')
 def __whoami():
@@ -116,6 +120,8 @@ def create_admin():
 if __name__ == '__main__':
     # Run with Socket.IO
     port = int(os.getenv('FLASK_PORT', 5000))
+    print(f"\n🚀 Starting FlowDeck on port {port}")
+    print(f"📍 FLASK_PORT from .env: {os.getenv('FLASK_PORT')}")
     socketio.run(
         app,
         host='0.0.0.0',

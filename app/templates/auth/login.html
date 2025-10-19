@@ -5,7 +5,7 @@
 {% block content %}
 <div class="container">
     <div class="row justify-content-center align-items-center min-vh-100">
-        <div class="col-md-5">
+        <div class="col-md-6">
             <div class="card shadow-lg border-0">
                 <div class="card-body p-5">
                     <div class="text-center mb-4">
@@ -15,30 +15,131 @@
                         <p class="text-muted">Sign in to your account</p>
                     </div>
                     
-                    <form method="POST" action="{{ url_for('auth.login') }}">
-                        <div class="mb-3">
-                            <label for="email" class="form-label">Email Address</label>
-                            <input type="email" class="form-control" id="email" name="email" required autofocus>
+                    <!-- Login Type Tabs -->
+                    <ul class="nav nav-pills nav-justified mb-4" id="loginTabs" role="tablist">
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link active" id="user-tab" data-bs-toggle="pill" 
+                                    data-bs-target="#user-login" type="button" role="tab" 
+                                    aria-controls="user-login" aria-selected="true">
+                                <i class="fas fa-user me-2"></i>User Login
+                            </button>
+                        </li>
+                        <li class="nav-item" role="presentation">
+                            <button class="nav-link" id="admin-tab" data-bs-toggle="pill" 
+                                    data-bs-target="#admin-login" type="button" role="tab" 
+                                    aria-controls="admin-login" aria-selected="false">
+                                <i class="fas fa-user-shield me-2"></i>Admin Login
+                            </button>
+                        </li>
+                    </ul>
+                    
+                    <div class="tab-content" id="loginTabContent">
+                        <!-- User Login Form -->
+                        <div class="tab-pane fade show active" id="user-login" role="tabpanel" aria-labelledby="user-tab">
+                            <form method="POST" action="{{ url_for('auth.login') }}" id="userLoginForm">
+                                <input type="hidden" name="login_type" value="user">
+                                
+                                <div class="mb-3">
+                                    <label for="user-email" class="form-label">
+                                        <i class="fas fa-envelope text-primary"></i> Email Address
+                                    </label>
+                                    <input type="email" class="form-control" id="user-email" name="email" 
+                                           placeholder="your.email@company.com" required autofocus>
+                                    <div class="form-text">Use your work email to sign in</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="user-password" class="form-label">
+                                        <i class="fas fa-lock text-primary"></i> Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="user-password" name="password" 
+                                               placeholder="Enter your password" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleUserPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="user-remember" name="remember">
+                                    <label class="form-check-label" for="user-remember">
+                                        Keep me signed in
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-primary w-100 mb-3">
+                                    <i class="fas fa-sign-in-alt me-2"></i>Sign In as User
+                                </button>
+                                
+                                <div class="text-center">
+                                    <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none">
+                                        <i class="fas fa-question-circle"></i> Forgot password?
+                                    </a>
+                                </div>
+                            </form>
                         </div>
                         
-                        <div class="mb-3">
-                            <label for="password" class="form-label">Password</label>
-                            <input type="password" class="form-control" id="password" name="password" required>
+                        <!-- Admin Login Form -->
+                        <div class="tab-pane fade" id="admin-login" role="tabpanel" aria-labelledby="admin-tab">
+                            <div class="alert alert-info border-0 mb-3">
+                                <i class="fas fa-info-circle me-2"></i>
+                                <strong>Admin Access:</strong> For organization administrators only
+                            </div>
+                            
+                            <form method="POST" action="{{ url_for('auth.login') }}" id="adminLoginForm">
+                                <input type="hidden" name="login_type" value="admin">
+                                
+                                <div class="mb-3">
+                                    <label for="admin-email" class="form-label">
+                                        <i class="fas fa-user-shield text-danger"></i> Admin Email
+                                    </label>
+                                    <input type="email" class="form-control" id="admin-email" name="email" 
+                                           placeholder="admin@company.com" required>
+                                    <div class="form-text">Admin credentials required</div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="admin-password" class="form-label">
+                                        <i class="fas fa-key text-danger"></i> Admin Password
+                                    </label>
+                                    <div class="input-group">
+                                        <input type="password" class="form-control" id="admin-password" name="password" 
+                                               placeholder="Enter admin password" required>
+                                        <button class="btn btn-outline-secondary" type="button" id="toggleAdminPassword">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="admin-org" class="form-label">
+                                        <i class="fas fa-building text-danger"></i> Organization ID (Optional)
+                                    </label>
+                                    <input type="text" class="form-control" id="admin-org" name="org_id" 
+                                           placeholder="Leave blank for default org">
+                                    <div class="form-text">Specify if managing multiple organizations</div>
+                                </div>
+                                
+                                <div class="mb-3 form-check">
+                                    <input type="checkbox" class="form-check-input" id="admin-remember" name="remember">
+                                    <label class="form-check-label" for="admin-remember">
+                                        Keep me signed in (Not recommended on shared devices)
+                                    </label>
+                                </div>
+                                
+                                <button type="submit" class="btn btn-danger w-100 mb-3">
+                                    <i class="fas fa-shield-alt me-2"></i>Sign In as Admin
+                                </button>
+                                
+                                <div class="text-center">
+                                    <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none">
+                                        <i class="fas fa-question-circle"></i> Forgot admin password?
+                                    </a>
+                                </div>
+                            </form>
                         </div>
-                        
-                        <div class="mb-3 form-check">
-                            <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                            <label class="form-check-label" for="remember">Remember me</label>
-                        </div>
-                        
-                        <button type="submit" class="btn btn-primary w-100 mb-3">
-                            <i class="fas fa-sign-in-alt"></i> Sign In
-                        </button>
-                        
-                        <div class="text-center">
-                            <a href="{{ url_for('auth.forgot_password') }}" class="text-decoration-none">Forgot password?</a>
-                        </div>
-                    </form>
+                    </div>
                     
                     <hr class="my-4">
                     
@@ -62,5 +163,88 @@
 body {
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
 }
+
+.nav-pills .nav-link {
+    color: #6c757d;
+    font-weight: 500;
+    padding: 12px 20px;
+}
+
+.nav-pills .nav-link.active {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    box-shadow: 0 4px 6px rgba(102, 126, 234, 0.3);
+}
+
+.nav-pills .nav-link:hover:not(.active) {
+    background-color: #f8f9fa;
+}
+
+.form-control:focus {
+    border-color: #667eea;
+    box-shadow: 0 0 0 0.2rem rgba(102, 126, 234, 0.25);
+}
+
+.btn-danger:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(220, 53, 69, 0.3);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(102, 126, 234, 0.3);
+    transition: all 0.3s ease;
+}
+
+.alert-info {
+    background: linear-gradient(135deg, #17a2b8 0%, #138496 100%);
+    color: white;
+}
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Toggle password visibility for User login
+    const toggleUserPassword = document.getElementById('toggleUserPassword');
+    const userPasswordInput = document.getElementById('user-password');
+    
+    if (toggleUserPassword) {
+        toggleUserPassword.addEventListener('click', function() {
+            const type = userPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            userPasswordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Toggle password visibility for Admin login
+    const toggleAdminPassword = document.getElementById('toggleAdminPassword');
+    const adminPasswordInput = document.getElementById('admin-password');
+    
+    if (toggleAdminPassword) {
+        toggleAdminPassword.addEventListener('click', function() {
+            const type = adminPasswordInput.getAttribute('type') === 'password' ? 'text' : 'password';
+            adminPasswordInput.setAttribute('type', type);
+            this.querySelector('i').classList.toggle('fa-eye');
+            this.querySelector('i').classList.toggle('fa-eye-slash');
+        });
+    }
+    
+    // Auto-focus on email when switching tabs
+    const userTab = document.getElementById('user-tab');
+    const adminTab = document.getElementById('admin-tab');
+    
+    if (userTab) {
+        userTab.addEventListener('shown.bs.tab', function() {
+            document.getElementById('user-email').focus();
+        });
+    }
+    
+    if (adminTab) {
+        adminTab.addEventListener('shown.bs.tab', function() {
+            document.getElementById('admin-email').focus();
+        });
+    }
+});
+</script>
 {% endblock %}

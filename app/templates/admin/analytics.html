@@ -2,6 +2,45 @@
 
 {% block title %}Analytics - FlowDeck{% endblock %}
 
+{% block extra_css %}
+<style>
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+}
+
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.text-primary {
+    color: #6c7cdb !important;
+}
+
+.text-success {
+    color: #34a853 !important;
+}
+
+.text-info {
+    color: #4285f4 !important;
+}
+
+.text-warning {
+    color: #fb8c00 !important;
+}
+</style>
+{% endblock %}
+
 {% block content %}
 {% set stats = stats|default(None) %}
 {% set dept_stats = dept_stats|default([]) %}

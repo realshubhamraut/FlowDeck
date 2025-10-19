@@ -6,8 +6,894 @@
 <link rel="icon" type="image/svg+xml" href="{{ url_for('favicon.favicon_section', section='dashboard') }}">
 {% endblock %}
 
+{% block extra_css %}
+<style>
+/* Google Fonts */
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800;900&display=swap');
+
+* {
+    font-family: 'Poppins', sans-serif;
+}
+
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+}
+
+/* Glass Morphism Container */
+.dashboard-container {
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(10px);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 2rem 0;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+}
+
+/* Welcome Hero Section */
+.welcome-hero {
+    background: linear-gradient(135deg, #6c7cdb 0%, #8791e0 100%);
+    border-radius: 16px;
+    padding: 2.5rem 2rem;
+    margin-bottom: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.15);
+}
+
+.welcome-hero h1 {
+    color: white;
+    font-weight: 600;
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+}
+
+.welcome-hero p {
+    color: rgba(255, 255, 255, 0.95);
+    font-size: 1rem;
+    margin: 0;
+    position: relative;
+    z-index: 1;
+    font-weight: 400;
+}
+
+.welcome-hero .time-badge {
+    position: absolute;
+    top: 1.5rem;
+    right: 1.5rem;
+    background: rgba(255, 255, 255, 0.2);
+    backdrop-filter: blur(10px);
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    color: white;
+    font-weight: 500;
+    font-size: 0.9rem;
+    z-index: 1;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Stunning Stat Tiles */
+.stat-tile {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    height: 100%;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.stat-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.1);
+}
+
+.stat-tile.purple:hover {
+    box-shadow: 0 8px 24px rgba(108, 124, 219, 0.2);
+}
+
+.stat-tile.green:hover {
+    box-shadow: 0 8px 24px rgba(52, 168, 83, 0.2);
+}
+
+.stat-tile.blue:hover {
+    box-shadow: 0 8px 24px rgba(66, 133, 244, 0.2);
+}
+
+.stat-tile.orange:hover {
+    box-shadow: 0 8px 24px rgba(251, 140, 0, 0.2);
+}
+
+.stat-tile::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+    background: linear-gradient(90deg, var(--tile-color-1), var(--tile-color-2));
+    border-radius: 12px 12px 0 0;
+}
+
+.stat-tile.purple {
+    --tile-color-1: #6c7cdb;
+    --tile-color-2: #8791e0;
+}
+
+.stat-tile.green {
+    --tile-color-1: #34a853;
+    --tile-color-2: #5bb974;
+}
+
+.stat-tile.blue {
+    --tile-color-1: #4285f4;
+    --tile-color-2: #669df6;
+}
+
+.stat-tile.orange {
+    --tile-color-1: #fb8c00;
+    --tile-color-2: #ffa726;
+}
+
+.stat-tile.pink {
+    --tile-color-1: #e91e63;
+    --tile-color-2: #ec407a;
+}
+
+.stat-tile.teal {
+    --tile-color-1: #0097a7;
+    --tile-color-2: #26c6da;
+}
+
+.stat-icon {
+    width: 56px;
+    height: 56px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    background: linear-gradient(135deg, var(--tile-color-1), var(--tile-color-2));
+    color: white;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    position: relative;
+}
+
+.stat-icon::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 20px;
+    padding: 2px;
+    background: linear-gradient(135deg, var(--tile-color-1), var(--tile-color-2));
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0.3;
+}
+
+.stat-tile h6 {
+    color: #6c757d;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+}
+
+.stat-tile h2 {
+    color: #2d3748;
+    font-weight: 700;
+    font-size: 2.25rem;
+    margin-bottom: 0.75rem;
+    background: linear-gradient(135deg, var(--tile-color-1), var(--tile-color-2));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-tile .tile-link {
+    color: #6c757d;
+    text-decoration: none;
+    font-size: 0.8125rem;
+    font-weight: 500;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    transition: all 0.2s ease;
+}
+
+.stat-tile .tile-link:hover {
+    color: var(--tile-color-1);
+    transform: translateX(3px);
+}
+
+.stat-tile .tile-badge {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: linear-gradient(135deg, var(--tile-color-1), var(--tile-color-2));
+    color: white;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Action Cards */
+.action-card {
+    border-radius: 16px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    height: 100%;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+}
+
+.action-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.action-card.messages {
+    --action-color: #4285f4;
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+
+.action-card.messages:hover {
+    box-shadow: 0 8px 24px rgba(66, 133, 244, 0.25);
+    background: linear-gradient(135deg, #bbdefb 0%, #90caf9 100%);
+}
+
+.action-card.notifications {
+    --action-color: #fb8c00;
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+
+.action-card.notifications:hover {
+    box-shadow: 0 8px 24px rgba(251, 140, 0, 0.25);
+    background: linear-gradient(135deg, #ffe0b2 0%, #ffcc80 100%);
+}
+
+.action-card.create {
+    --action-color: #6c7cdb;
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+}
+
+.action-card.create:hover {
+    box-shadow: 0 8px 24px rgba(108, 124, 219, 0.25);
+    background: linear-gradient(135deg, #e1bee7 0%, #ce93d8 100%);
+}
+
+.action-card i {
+    font-size: 2.5rem;
+    margin-bottom: 0.75rem;
+    position: relative;
+    z-index: 1;
+    color: var(--action-color);
+}
+
+.action-card h3 {
+    font-weight: 700;
+    font-size: 2rem;
+    margin-bottom: 0.25rem;
+    position: relative;
+    z-index: 1;
+    color: #2d3748;
+}
+
+.action-card p {
+    margin: 0;
+    font-size: 0.8125rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    font-weight: 500;
+    position: relative;
+    z-index: 1;
+    opacity: 0.7;
+    color: #6c757d;
+}
+
+.action-card .badge-counter {
+    position: absolute;
+    top: 1rem;
+    right: 1rem;
+    background: var(--action-color);
+    color: white;
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    z-index: 1;
+}
+
+/* Modern Table Section */
+.modern-section {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    margin-bottom: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.section-header h4 {
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 1.25rem;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.section-header h4 i {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    background: linear-gradient(135deg, #6c7cdb 0%, #8791e0 100%);
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+}
+
+.section-header .btn {
+    background: linear-gradient(135deg, #6c7cdb 0%, #8791e0 100%);
+    border: none;
+    color: white;
+    padding: 0.5rem 1rem;
+    border-radius: 8px;
+    font-weight: 500;
+    font-size: 0.875rem;
+    transition: all 0.2s ease;
+    box-shadow: 0 2px 8px rgba(108, 124, 219, 0.2);
+}
+
+.section-header .btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.3);
+}
+
+/* Enhanced Table */
+.modern-table {
+    overflow: hidden;
+}
+
+.modern-table table {
+    width: 100%;
+}
+
+.modern-table thead th {
+    background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);
+    color: #2d3748;
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 1.2px;
+    padding: 1.25rem 1rem;
+    border: none;
+}
+
+.task-row {
+    transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    cursor: pointer;
+    border-bottom: 1px solid #f7fafc;
+}
+
+.task-row:hover {
+    background: linear-gradient(90deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%);
+    transform: scale(1.015) translateX(5px);
+    box-shadow: 0 4px 20px rgba(102, 126, 234, 0.1);
+}
+
+.task-row td {
+    padding: 1.5rem 1rem;
+    vertical-align: middle;
+}
+
+.task-title {
+    font-weight: 700;
+    color: #2d3748;
+    font-size: 1rem;
+    margin-bottom: 0.25rem;
+}
+
+.task-description {
+    color: #718096;
+    font-size: 0.8rem;
+    margin: 0;
+}
+
+/* Gradient Badges */
+.badge-gradient {
+    padding: 0.5rem 1.25rem;
+    border-radius: 12px;
+    font-weight: 700;
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    color: white;
+}
+
+.priority-urgent {
+    background: linear-gradient(135deg, #eb3349 0%, #f45c43 100%);
+}
+
+.priority-high {
+    background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+}
+
+.priority-medium {
+    background: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+}
+
+.priority-low {
+    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
+}
+
+.status-todo {
+    background: linear-gradient(135deg, #868f96 0%, #596164 100%);
+}
+
+.status-in_progress {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+}
+
+.status-done {
+    background: linear-gradient(135deg, #11998e 0%, #38ef7d 100%);
+}
+
+.status-archived {
+    background: linear-gradient(135deg, #bdc3c7 0%, #95a5a6 100%);
+}
+
+/* Notification Sidebar */
+.notification-sidebar {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.notification-item {
+    background: linear-gradient(135deg, #f3e5f5 0%, #f8f9fa 100%);
+    padding: 1rem;
+    border-radius: 12px;
+    margin-bottom: 0.75rem;
+    border-left: 4px solid #6c7cdb;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    position: relative;
+}
+
+.notification-item::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 3px;
+    background: #6c7cdb;
+}
+
+.notification-item:hover {
+    transform: translateX(4px);
+    box-shadow: 0 8px 24px rgba(108, 124, 219, 0.2);
+    background: linear-gradient(135deg, #e1bee7 0%, #f3e5f5 100%);
+}
+
+.notification-item.unread {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    border-left-color: #4285f4;
+}
+
+.notification-item.unread::before {
+    background: #4285f4;
+}
+
+.notification-item h6 {
+    color: #2d3748;
+    font-weight: 600;
+    font-size: 0.875rem;
+    margin-bottom: 0.375rem;
+}
+
+.notification-item p {
+    color: #6c757d;
+    font-size: 0.8125rem;
+    margin-bottom: 0.375rem;
+}
+
+.notification-item small {
+    color: #adb5bd;
+    font-size: 0.75rem;
+    font-weight: 500;
+}
+
+/* Date Badge */
+.date-badge {
+    background: #f8f9fa;
+    color: #495057;
+    padding: 0.375rem 0.75rem;
+    border-radius: 10px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    white-space: nowrap;
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+/* Mini Tiles Row */
+.mini-tile {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 1px solid rgba(255, 255, 255, 0.8);
+}
+
+.mini-tile:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.mini-icon {
+    width: 48px;
+    height: 48px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.25rem;
+    color: white;
+    flex-shrink: 0;
+    position: relative;
+    transition: all 0.2s ease;
+}
+
+.mini-tile:hover .mini-icon {
+    transform: scale(1.05);
+}
+
+.mini-icon.purple-glow {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    box-shadow: 0 2px 8px rgba(108, 124, 219, 0.2);
+}
+
+.mini-icon.blue-glow {
+    background: linear-gradient(135deg, #4285f4, #669df6);
+    box-shadow: 0 2px 8px rgba(66, 133, 244, 0.2);
+}
+
+.mini-icon.orange-glow {
+    background: linear-gradient(135deg, #fb8c00, #ffa726);
+    box-shadow: 0 2px 8px rgba(251, 140, 0, 0.2);
+}
+
+.mini-icon.green-glow {
+    background: linear-gradient(135deg, #34a853, #5bb974);
+    box-shadow: 0 2px 8px rgba(52, 168, 83, 0.2);
+}
+
+.mini-content {
+    flex: 1;
+}
+
+.mini-content h5 {
+    color: #2d3748;
+    font-weight: 700;
+    font-size: 1.5rem;
+    margin: 0 0 0.25rem 0;
+    line-height: 1;
+}
+
+.mini-content span {
+    color: #6c757d;
+    font-size: 0.75rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Avatar */
+.task-avatar {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #6c7cdb 0%, #8791e0 100%);
+    box-shadow: 0 2px 8px rgba(108, 124, 219, 0.2);
+}
+
+/* Empty State */
+.empty-state {
+    text-align: center;
+    padding: 4rem 2rem;
+}
+
+.empty-state i {
+    font-size: 5rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 1.5rem;
+    opacity: 0.6;
+}
+
+.empty-state h5 {
+    color: #2d3748;
+    font-weight: 700;
+    margin-bottom: 0.75rem;
+    font-size: 1.25rem;
+}
+
+.empty-state p {
+    color: #718096;
+    font-size: 0.9rem;
+}
+
+/* Progress Ring */
+.progress-ring {
+    position: absolute;
+    bottom: 1rem;
+    right: 1rem;
+    width: 48px;
+    height: 48px;
+}
+
+.progress-ring circle {
+    fill: none;
+    stroke: rgba(255, 255, 255, 0.25);
+    stroke-width: 3;
+}
+
+.progress-ring .progress {
+    stroke: white;
+    stroke-linecap: round;
+    transition: stroke-dashoffset 0.5s ease;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .welcome-hero h1 {
+        font-size: 1.75rem;
+    }
+    
+    .stat-tile h2 {
+        font-size: 1.75rem;
+    }
+    
+    .action-card h3 {
+        font-size: 1.5rem;
+    }
+    
+    .welcome-hero .time-badge {
+        position: relative;
+        top: auto;
+        right: auto;
+        margin-top: 1rem;
+        display: inline-flex;
+    }
+}
+
+/* Kanban Board Styles */
+.kanban-column-card {
+    background: white;
+    border-radius: 12px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+}
+
+.kanban-header {
+    padding: 1rem 1.25rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.kanban-body {
+    padding: 1rem;
+    flex: 1;
+    overflow-y: auto;
+    max-height: 600px;
+    min-height: 400px;
+}
+
+.kanban-task-card {
+    background: white;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 1rem;
+    margin-bottom: 0.75rem;
+    cursor: move;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+}
+
+.kanban-task-card:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+    border-color: #cbd5e0;
+}
+
+.kanban-task-card.dragging {
+    opacity: 0.5;
+    transform: rotate(2deg);
+}
+
+.kanban-column.drag-over {
+    background-color: #f7fafc;
+    border: 2px dashed #4299e1;
+    border-radius: 8px;
+}
+
+.task-link {
+    display: block;
+    color: inherit;
+}
+
+.task-title {
+    font-weight: 600;
+    color: #2d3748;
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+    line-height: 1.4;
+}
+
+.task-description {
+    font-size: 0.8125rem;
+    color: #718096;
+    margin-bottom: 0.75rem;
+    line-height: 1.5;
+}
+
+.task-footer {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 0.5rem;
+}
+
+.task-priority-urgent {
+    background: linear-gradient(135deg, #dc3545, #c82333);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.task-priority-high {
+    background: linear-gradient(135deg, #fd7e14, #e8590c);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.task-priority-medium {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.task-priority-low {
+    background: linear-gradient(135deg, #198754, #146c43);
+    color: white;
+    font-size: 0.7rem;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 500;
+}
+
+.task-assignees {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+}
+
+.task-avatar-small {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.65rem;
+    font-weight: 600;
+    color: white;
+    background: linear-gradient(135deg, #6c7cdb 0%, #8791e0 100%);
+    border: 2px solid white;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+    margin-left: -4px;
+}
+
+.task-avatar-small:first-child {
+    margin-left: 0;
+}
+
+.more-assignees {
+    font-size: 0.7rem;
+    color: #718096;
+    margin-left: 0.25rem;
+    font-weight: 500;
+}
+
+.empty-kanban-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    color: #a0aec0;
+}
+
+@media (max-width: 991px) {
+    .kanban-body {
+        max-height: 400px;
+        min-height: 300px;
+    }
+}
+</style>
+{% endblock %}
+
 {% block content %}
-{# Normalize context defaults to prevent UndefinedError #}
+{# Normalize context defaults #}
 {% set total_tasks = total_tasks|default(0) %}
 {% set completed_tasks = completed_tasks|default(0) %}
 {% set in_progress_tasks = in_progress_tasks|default(0) %}
@@ -16,305 +902,700 @@
 {% set unread_messages = unread_messages|default(0) %}
 {% set upcoming_tasks = upcoming_tasks|default([]) %}
 {% set recent_notifications = recent_notifications|default([]) %}
+{% set birthday_wishes = birthday_wishes|default([]) %}
+{% set daily_quote = daily_quote|default(None) %}
+
 <div class="container-fluid py-4">
-    <!-- Welcome Section -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-5 mb-1">Welcome back, {{ current_user.username }}! 👋</h1>
-            <p class="text-muted">Here's what's happening with your tasks today.</p>
+    <!-- Daily Quote -->
+    {% if daily_quote %}
+    <div class="mb-4">
+        <div class="card border-0 shadow-sm" style="background: linear-gradient(135deg, #6c7cdb 0%, #8791e0 100%); color: white; border-radius: 12px;">
+            <div class="card-body p-4">
+                <div class="d-flex align-items-start gap-3">
+                    <div class="flex-shrink-0">
+                        <i class="fas fa-quote-left fa-2x" style="opacity: 0.3;"></i>
+                    </div>
+                    <div class="flex-grow-1">
+                        <p class="mb-2" style="font-size: 1rem; font-style: italic; font-weight: 400; line-height: 1.6;">
+                            "{{ daily_quote.text }}"
+                        </p>
+                        <p class="mb-0 text-end" style="opacity: 0.9; font-size: 0.875rem;">
+                            <strong>— {{ daily_quote.author }}</strong>
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Birthday Wishes -->
+    {% if birthday_wishes %}
+    <div class="mb-4">
+        <div class="alert alert-dismissible fade show" style="background: linear-gradient(135deg, #e91e63 0%, #ec407a 100%); border: none; border-radius: 12px; color: white; box-shadow: 0 4px 12px rgba(233, 30, 99, 0.2);">
+            <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            <h5 class="alert-heading mb-3" style="font-weight: 600; font-size: 1.125rem;">
+                <i class="fas fa-birthday-cake me-2"></i>
+                🎉 Birthday Celebrations Today!
+            </h5>
+            {% for wish in birthday_wishes %}
+            <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(255, 255, 255, 0.15); border-radius: 10px; backdrop-filter: blur(10px);">
+                {% if wish.user.profile_picture %}
+                <img src="{{ wish.user.profile_picture }}" alt="{{ wish.user.name }}" 
+                     class="rounded-circle" style="width: 50px; height: 50px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                {% else %}
+                <div class="avatar avatar-lg rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" 
+                     style="width: 50px; height: 50px; font-size: 1.25rem; font-weight: 600; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
+                    {{ wish.user.name[0]|upper }}
+                </div>
+                {% endif %}
+                <div class="flex-grow-1">
+                    <p class="mb-1" style="font-weight: 500; font-size: 1rem;">{{ wish.message }}</p>
+                    {% if wish.user.designation %}
+                    <p class="mb-0" style="opacity: 0.9; font-size: 0.875rem;">{{ wish.user.designation }}</p>
+                    {% endif %}
+                </div>
+                <div class="text-end">
+                    {% if wish.age %}
+                    <div class="badge" style="background: white; color: #f5576c; font-size: 1.2rem; padding: 0.5rem 1rem; border-radius: 50px;">
+                        {{ wish.age }} years
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            <hr class="my-3" style="border-color: rgba(255, 255, 255, 0.3);">
+            <p class="mb-0 text-center">
+                <i class="fas fa-heart me-2"></i>
+                Let's make their day special! Send them a message 💝
+            </p>
+        </div>
+    </div>
+    {% endif %}
+
+    <!-- Welcome Hero -->
+    <div class="welcome-hero">
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <div class="sparkle"></div>
+        <h1>👋 Welcome back, {{ current_user.name }}!</h1>
+        <p>Here's your workflow overview for today</p>
+        <div class="time-badge">
+            <i class="far fa-clock"></i>
+            <span id="currentTime"></span>
         </div>
     </div>
 
-    <!-- Statistics Cards -->
-    <div class="row mb-4">
-        <!-- Total Tasks Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Total Tasks</h6>
-                            <h2 class="mb-0">{{ total_tasks }}</h2>
-                        </div>
-                        <div class="avatar-icon bg-primary-subtle text-primary">
-                            <i class="fas fa-tasks fa-2x"></i>
-                        </div>
+    <!-- Stunning Stat Tiles -->
+    <div class="row g-4 mb-4">
+        <!-- Total Tasks -->
+        <div class="col-xl-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks') }}" class="text-decoration-none">
+                <div class="stat-tile purple">
+                    <div class="stat-icon">
+                        <i class="fas fa-tasks"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('tasks.list_tasks') }}" class="text-decoration-none small">
-                            View all tasks <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
+                    <h6>Total Tasks</h6>
+                    <h2><span class="count-up" data-target="{{ total_tasks }}">0</span></h2>
+                    <a href="{{ url_for('tasks.list_tasks') }}" class="tile-link">
+                        View all tasks <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% if total_tasks > 0 %}
+                    <span class="tile-badge">Active</span>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+
+        <!-- Completed Tasks -->
+        <div class="col-xl-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks', status='done') }}" class="text-decoration-none">
+                <div class="stat-tile green" data-percentage="{{ (completed_tasks * 100 / total_tasks)|round|int if total_tasks > 0 else 0 }}">
+                    <div class="stat-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <h6>Completed</h6>
+                    <h2><span class="count-up" data-target="{{ completed_tasks }}">0</span></h2>
+                    <a href="{{ url_for('tasks.list_tasks', status='done') }}" class="tile-link">
+                        View completed <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% if total_tasks > 0 %}
+                    <span class="tile-badge">{{ (completed_tasks * 100 / total_tasks)|round|int }}%</span>
+                    {% endif %}
+                    <!-- Progress Ring -->
+                    <div class="progress-ring" aria-hidden="true">
+                        <svg width="60" height="60" viewBox="0 0 60 60">
+                            <circle cx="30" cy="30" r="28"></circle>
+                            <circle class="progress" cx="30" cy="30" r="28"></circle>
+                        </svg>
                     </div>
                 </div>
+            </a>
+        </div>
+
+        <!-- In Progress Tasks -->
+        <div class="col-xl-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks', status='in_progress') }}" class="text-decoration-none">
+                <div class="stat-tile blue">
+                    <div class="stat-icon">
+                        <i class="fas fa-spinner fa-pulse"></i>
+                    </div>
+                    <h6>In Progress</h6>
+                    <h2><span class="count-up" data-target="{{ in_progress_tasks }}">0</span></h2>
+                    <a href="{{ url_for('tasks.list_tasks', status='in_progress') }}" class="tile-link">
+                        View active <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% if in_progress_tasks > 0 %}
+                    <span class="tile-badge">Working</span>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+
+        <!-- Overdue Tasks -->
+        <div class="col-xl-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks', sort='due_date') }}" class="text-decoration-none">
+                <div class="stat-tile orange">
+                    <div class="stat-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <h6>Overdue</h6>
+                    <h2><span class="count-up" data-target="{{ overdue_tasks }}">0</span></h2>
+                    <a href="{{ url_for('tasks.list_tasks', sort='due_date') }}" class="tile-link">
+                        View overdue <i class="fas fa-arrow-right"></i>
+                    </a>
+                    {% if overdue_tasks > 0 %}
+                    <span class="tile-badge">Alert!</span>
+                    {% endif %}
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Mini Stats Row -->
+    <div class="row g-3 mb-4">
+        {% set open_tasks = total_tasks - completed_tasks %}
+        {% set due_this_week = upcoming_tasks|length %}
+        {% set overdue_soon = overdue_tasks %}
+        
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks', status='todo') }}" class="text-decoration-none">
+                <div class="mini-tile">
+                    <div class="mini-icon purple-glow">
+                        <i class="fas fa-folder-open"></i>
+                    </div>
+                    <div class="mini-content">
+                        <h5><span class="count-up" data-target="{{ open_tasks }}">0</span></h5>
+                        <span>Open Tasks</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks') }}" class="text-decoration-none">
+                <div class="mini-tile">
+                    <div class="mini-icon blue-glow">
+                        <i class="fas fa-calendar-week"></i>
+                    </div>
+                    <div class="mini-content">
+                        <h5><span class="count-up" data-target="{{ due_this_week }}">0</span></h5>
+                        <span>Due This Week</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('tasks.list_tasks', sort='due_date') }}" class="text-decoration-none">
+                <div class="mini-tile">
+                    <div class="mini-icon orange-glow">
+                        <i class="fas fa-clock"></i>
+                    </div>
+                    <div class="mini-content">
+                        <h5><span class="count-up" data-target="{{ overdue_soon }}">0</span></h5>
+                        <span>Needs Attention</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-lg-3 col-md-6">
+            <a href="{{ url_for('dashboard.analytics') }}" class="text-decoration-none">
+                <div class="mini-tile">
+                    <div class="mini-icon green-glow">
+                        <i class="fas fa-chart-line"></i>
+                    </div>
+                    <div class="mini-content">
+                        <h5>{{ (completed_tasks * 100 / total_tasks)|round|int if total_tasks > 0 else 0 }}%</h5>
+                        <span>Completion Rate</span>
+                    </div>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Action Cards Row -->
+    <div class="row g-3 mb-4">
+        <div class="col-md-4">
+            <a href="{{ url_for('chat.index') }}" class="text-decoration-none">
+                <div class="action-card messages">
+                    {% if unread_messages > 0 %}
+                    <span class="badge-counter">{{ unread_messages }}</span>
+                    {% endif %}
+                    <i class="fas fa-envelope"></i>
+                    <h3><span class="count-up" data-target="{{ unread_messages }}">0</span></h3>
+                    <p>Unread Messages</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{{ url_for('dashboard.notifications') }}" class="text-decoration-none">
+                <div class="action-card notifications">
+                    {% if unread_notifications > 0 %}
+                    <span class="badge-counter">{{ unread_notifications }}</span>
+                    {% endif %}
+                    <i class="fas fa-bell"></i>
+                    <h3><span class="count-up" data-target="{{ unread_notifications }}">0</span></h3>
+                    <p>Notifications</p>
+                </div>
+            </a>
+        </div>
+
+        <div class="col-md-4">
+            <a href="{{ url_for('tasks.create_task') }}" class="text-decoration-none">
+                <div class="action-card create">
+                    <i class="fas fa-plus-circle"></i>
+                    <h3><i class="fas fa-plus"></i></h3>
+                    <p>Create New Task</p>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- Kanban Board Section -->
+    <div class="mb-4">
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h4 class="mb-0" style="font-weight: 700; color: #2d3748;">
+                <i class="fas fa-columns me-2" style="background: linear-gradient(135deg, #6c7cdb, #8791e0); -webkit-background-clip: text; -webkit-text-fill-color: transparent;"></i>
+                My Kanban Board
+            </h4>
+            <div>
+                <a href="{{ url_for('tasks.list_tasks', view='kanban') }}" class="btn btn-sm btn-outline-primary">
+                    <i class="fas fa-expand me-1"></i> Full View
+                </a>
+                <a href="{{ url_for('tasks.create_task') }}" class="btn btn-sm btn-primary">
+                    <i class="fas fa-plus me-1"></i> New Task
+                </a>
             </div>
         </div>
 
-        <!-- Completed Tasks Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Completed</h6>
-                            <h2 class="mb-0 text-success">{{ completed_tasks }}</h2>
+        <div class="row g-3">
+            {% set cols = {
+                'todo': {'title': 'To Do', 'icon': 'circle', 'color': '#6c757d', 'bg': 'rgba(108, 117, 125, 0.1)'},
+                'in_progress': {'title': 'In Progress', 'icon': 'spinner', 'color': '#0dcaf0', 'bg': 'rgba(13, 202, 240, 0.1)'},
+                'done': {'title': 'Done', 'icon': 'check-circle', 'color': '#198754', 'bg': 'rgba(25, 135, 84, 0.1)'}
+            } %}
+
+            {% for key, meta in cols.items() %}
+            <div class="col-lg-4">
+                <div class="kanban-column-card">
+                    <div class="kanban-header" style="background: {{ meta.bg }}; border-left: 4px solid {{ meta.color }};">
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-{{ meta.icon }}" style="color: {{ meta.color }};"></i>
+                            <h5 class="mb-0" style="font-weight: 600; color: {{ meta.color }};">{{ meta.title }}</h5>
                         </div>
-                        <div class="avatar-icon bg-success-subtle text-success">
-                            <i class="fas fa-check-circle fa-2x"></i>
-                        </div>
+                        <span class="badge" style="background: {{ meta.color }};">
+                            {{ (tasks_by_status[key] | length) if tasks_by_status and (key in tasks_by_status) else 0 }}
+                        </span>
                     </div>
-                    <div class="mt-3">
-                        <small class="text-muted">
-                            {% if (total_tasks) > 0 %}
-                                {{ ((completed_tasks / total_tasks) * 100)|round|int }}% completion rate
-                            {% else %}
-                                No tasks yet
+                    <div class="kanban-body kanban-column" data-status="{{ key }}">
+                        {% set bucket = tasks_by_status[key] if tasks_by_status and (key in tasks_by_status) else [] %}
+                        {% if bucket %}
+                            {% for task in bucket[:8] %}
+                            <div class="kanban-task-card" draggable="true" data-task-id="{{ task.id }}">
+                                <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="task-link text-decoration-none">
+                                    <h6 class="task-title">{{ task.title }}</h6>
+                                </a>
+                                {% if task.description %}
+                                <p class="task-description">{{ task.description[:80] }}{% if task.description|length > 80 %}...{% endif %}</p>
+                                {% endif %}
+                                <div class="task-footer">
+                                    <span class="badge task-priority-{{ task.priority }}">
+                                        {{ task.priority|capitalize }}
+                                    </span>
+                                    {% if task.due_date %}
+                                    <small class="text-muted">
+                                        <i class="fas fa-calendar-alt me-1"></i>
+                                        {{ task.due_date.strftime('%b %d') }}
+                                    </small>
+                                    {% endif %}
+                                </div>
+                                {% if task.assignees %}
+                                <div class="task-assignees mt-2">
+                                    {% for assignee in task.assignees[:3] %}
+                                    <div class="task-avatar-small" title="{{ assignee.name }}">
+                                        {{ assignee.name[0]|upper }}
+                                    </div>
+                                    {% endfor %}
+                                    {% if task.assignees|length > 3 %}
+                                    <span class="more-assignees">+{{ task.assignees|length - 3 }}</span>
+                                    {% endif %}
+                                </div>
+                                {% endif %}
+                            </div>
+                            {% endfor %}
+                            {% if bucket|length > 8 %}
+                            <div class="text-center mt-2">
+                                <a href="{{ url_for('tasks.list_tasks', view='kanban', status=key) }}" class="btn btn-sm btn-outline-secondary">
+                                    View {{ bucket|length - 8 }} more
+                                </a>
+                            </div>
                             {% endif %}
-                        </small>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- In Progress Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">In Progress</h6>
-                            <h2 class="mb-0 text-info">{{ in_progress_tasks }}</h2>
-                        </div>
-                        <div class="avatar-icon bg-info-subtle text-info">
-                            <i class="fas fa-spinner fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('tasks.list_tasks', status='in_progress') }}" class="text-decoration-none small">
-                            View active tasks <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Overdue Tasks Card -->
-        <div class="col-xl-3 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Overdue</h6>
-                            <h2 class="mb-0 text-danger">{{ overdue_tasks }}</h2>
-                        </div>
-                        <div class="avatar-icon bg-danger-subtle text-danger">
-                            <i class="fas fa-exclamation-triangle fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        {% if (overdue_tasks) > 0 %}
-                            <span class="badge bg-danger">Action Required</span>
                         {% else %}
-                            <span class="badge bg-success">All up to date!</span>
+                        <div class="empty-kanban-state">
+                            <i class="fas fa-inbox" style="font-size: 2rem; opacity: 0.3; color: {{ meta.color }};"></i>
+                            <p class="mb-0 mt-2" style="opacity: 0.6; font-size: 0.875rem;">No tasks</p>
+                        </div>
                         {% endif %}
                     </div>
                 </div>
             </div>
+            {% endfor %}
         </div>
     </div>
 
-    <!-- Quick Stats Row -->
-    <div class="row mb-4">
-        <!-- Messages Card -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Unread Messages</h6>
-                            <h3 class="mb-0">{{ unread_messages }}</h3>
-                        </div>
-                        <div class="avatar-icon bg-warning-subtle text-warning">
-                            <i class="fas fa-envelope fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-outline-warning">
-                            <i class="fas fa-comment-dots me-1"></i> Go to Chat
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Notifications Card -->
-        <div class="col-xl-4 col-md-6 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted mb-1">Notifications</h6>
-                            <h3 class="mb-0">{{ unread_notifications }}</h3>
-                        </div>
-                        <div class="avatar-icon bg-info-subtle text-info">
-                            <i class="fas fa-bell fa-2x"></i>
-                        </div>
-                    </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('dashboard.notifications') }}" class="btn btn-sm btn-outline-info">
-                            <i class="fas fa-list me-1"></i> View All
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Quick Actions Card -->
-        <div class="col-xl-4 col-md-12 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <h6 class="text-muted mb-3">Quick Actions</h6>
-                    <div class="d-grid gap-2">
-                        <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary btn-sm">
-                            <i class="fas fa-plus me-2"></i> Create Task
-                        </a>
-                        <a href="{{ url_for('dashboard.calendar') }}" class="btn btn-outline-primary btn-sm">
-                            <i class="fas fa-calendar me-2"></i> View Calendar
-                        </a>
-                        <a href="{{ url_for('dashboard.analytics') }}" class="btn btn-outline-secondary btn-sm">
-                            <i class="fas fa-chart-line me-2"></i> Analytics
-                        </a>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- Upcoming Tasks & Recent Notifications -->
-    <div class="row">
+    <!-- Main Content -->
+    <div class="row g-4">
         <!-- Upcoming Tasks -->
-        <div class="col-lg-8 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-list-check me-2"></i> Upcoming Tasks</h5>
-                        <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-sm btn-outline-primary">View All</a>
-                    </div>
+        <div class="col-lg-8">
+            <div class="modern-section">
+                <div class="section-header">
+                    <h4>
+                        <i class="fas fa-clock"></i>
+                        Upcoming Tasks
+                    </h4>
+                    <a href="{{ url_for('tasks.list_tasks') }}" class="btn">
+                        <i class="fas fa-list me-2"></i>View All
+                    </a>
                 </div>
-                <div class="card-body">
-                    {% if upcoming_tasks %}
-                        <div class="table-responsive">
-                            <table class="table table-hover">
-                                <thead class="table-light">
-                                    <tr>
-                                        <th>Task</th>
-                                        <th>Priority</th>
-                                        <th>Due Date</th>
-                                        <th>Status</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {% for task in upcoming_tasks %}
-                                    <tr>
-                                        <td>
-                                            <a href="{{ url_for('tasks.view_task', task_id=task.id) }}" class="text-decoration-none">
-                                                {{ task.title }}
-                                            </a>
-                                        </td>
-                                        <td>
-                                            <span class="badge task-priority-{{ task.priority }}">
-                                                {{ task.priority|capitalize }}
-                                            </span>
-                                        </td>
-                                        <td>
-                                            <small class="text-muted">
-                                                <i class="fas fa-calendar-alt me-1"></i>
-                                                {{ task.due_date.strftime('%b %d, %Y') if task.due_date else 'No due date' }}
-                                            </small>
-                                        </td>
-                                        <td>
-                                            <span class="badge task-status-{{ task.status }}">
-                                                {{ task.status|replace('_', ' ')|title }}
-                                            </span>
-                                        </td>
-                                    </tr>
-                                    {% endfor %}
-                                </tbody>
-                            </table>
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-tasks fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">No upcoming tasks</p>
-                            <a href="{{ url_for('tasks.create_task') }}" class="btn btn-primary">
-                                <i class="fas fa-plus me-2"></i> Create Your First Task
-                            </a>
-                        </div>
-                    {% endif %}
+
+                {% if upcoming_tasks %}
+                <div class="modern-table">
+                    <table class="table mb-0">
+                        <thead>
+                            <tr>
+                                <th>Task</th>
+                                <th>Priority</th>
+                                <th>Status</th>
+                                <th>Due Date</th>
+                                <th>Assignee</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for task in upcoming_tasks[:5] %}
+                            <tr class="task-row" data-href="{{ url_for('tasks.view_task', task_id=task.id) }}">
+                                <td>
+                                    <div class="task-title">{{ task.title }}</div>
+                                    {% if task.description %}
+                                    <div class="task-description">{{ task.description[:60] }}{% if task.description|length > 60 %}...{% endif %}</div>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <span class="badge-gradient priority-{{ task.priority }}">
+                                        {{ task.priority|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="badge-gradient status-{{ task.status }}">
+                                        {{ task.status|replace('_', ' ')|title }}
+                                    </span>
+                                </td>
+                                <td>
+                                    {% if task.due_date %}
+                                    <span class="date-badge">
+                                        <i class="far fa-calendar"></i>
+                                        {{ task.due_date.strftime('%b %d, %Y') }}
+                                    </span>
+                                    {% else %}
+                                    <span class="text-muted">No due date</span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    {% if task.assignees %}
+                                    <div class="task-avatar" title="{{ task.assignees[0].name }}">
+                                        {{ task.assignees[0].name[0]|upper }}
+                                    </div>
+                                    {% if task.assignees|length > 1 %}
+                                    <small class="text-muted ms-2">+{{ task.assignees|length - 1 }}</small>
+                                    {% endif %}
+                                    {% else %}
+                                    <span class="text-muted">Unassigned</span>
+                                    {% endif %}
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
                 </div>
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-clipboard-check"></i>
+                    <h5>No upcoming tasks</h5>
+                    <p>You're all caught up! Time to create something amazing.</p>
+                </div>
+                {% endif %}
             </div>
         </div>
 
-        <!-- Recent Notifications -->
-        <div class="col-lg-4 mb-4">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-header bg-white border-0 py-3">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="mb-0"><i class="fas fa-bell me-2"></i> Recent Activity</h5>
-                        <a href="{{ url_for('dashboard.notifications') }}" class="btn btn-sm btn-outline-secondary">View All</a>
+        <!-- Notifications Sidebar -->
+        <div class="col-lg-4">
+            <div class="notification-sidebar">
+                <div class="section-header" style="padding: 0; margin-bottom: 1.5rem; border: none;">
+                    <h4>
+                        <i class="fas fa-bell"></i>
+                        Recent Activity
+                    </h4>
+                </div>
+
+                {% if recent_notifications %}
+                    {% for notification in recent_notifications[:6] %}
+                <div class="notification-item {% if not notification.is_read %}unread{% endif %}"
+                    data-href="{{ notification.action_url if notification.action_url else url_for('dashboard.notifications') }}">
+                        <h6>{{ notification.title }}</h6>
+                        <p>{{ notification.message }}</p>
+                        <small>
+                            <i class="far fa-clock me-1"></i>
+                            {{ notification.created_at.strftime('%b %d, %I:%M %p') }}
+                        </small>
                     </div>
+                    {% endfor %}
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-inbox"></i>
+                    <h5>No notifications</h5>
+                    <p>You're all up to date!</p>
                 </div>
-                <div class="card-body p-0">
-                    {% if recent_notifications %}
-                        <div class="list-group list-group-flush">
-                            {% for notification in recent_notifications %}
-                            <a href="{{ notification.action_url or '#' }}" 
-                               class="list-group-item list-group-item-action border-0 {% if not notification.is_read %}bg-light{% endif %}">
-                                <div class="d-flex w-100 justify-content-between">
-                                    <h6 class="mb-1">{{ notification.title }}</h6>
-                                    <small class="text-muted">
-                                        {{ notification.created_at.strftime('%I:%M %p') }}
-                                    </small>
-                                </div>
-                                <p class="mb-1 small text-muted">{{ notification.message }}</p>
-                                {% if not notification.is_read %}
-                                    <span class="badge bg-primary">New</span>
-                                {% endif %}
-                            </a>
-                            {% endfor %}
-                        </div>
-                    {% else %}
-                        <div class="text-center py-5">
-                            <i class="fas fa-bell-slash fa-3x text-muted mb-3"></i>
-                            <p class="text-muted">No notifications yet</p>
-                        </div>
-                    {% endif %}
-                </div>
+                {% endif %}
             </div>
         </div>
     </div>
 </div>
 
-<style>
-.avatar-icon {
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
+<script>
+// Update time
+function updateTime() {
+    const now = new Date();
+    const options = { 
+        weekday: 'short', 
+        year: 'numeric', 
+        month: 'short', 
+        day: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    };
+    document.getElementById('currentTime').textContent = now.toLocaleDateString('en-US', options);
+}
+updateTime();
+setInterval(updateTime, 60000);
+
+// Count-up animation for KPI numbers and action cards
+function animateCountUp(el, duration = 1000) {
+    const target = Number(el.getAttribute('data-target')) || 0;
+    const start = 0;
+    if (target === 0) {
+        el.textContent = '0';
+        return;
+    }
+    const startTime = performance.now();
+    function tick(now) {
+        const progress = Math.min((now - startTime) / duration, 1);
+        const value = Math.floor(start + (target - start) * progress);
+        el.textContent = value.toLocaleString();
+        if (progress < 1) requestAnimationFrame(tick);
+    }
+    requestAnimationFrame(tick);
 }
 
-.card {
-    transition: transform 0.2s;
-}
+document.addEventListener('DOMContentLoaded', () => {
+    // Animate all count-up elements
+    document.querySelectorAll('.count-up').forEach(el => animateCountUp(el));
 
-.card:hover {
-    transform: translateY(-5px);
-}
+    // Initialize progress ring on the Completed tile
+    const completedTile = document.querySelector('.stat-tile.green');
+    if (completedTile) {
+        const percent = Number(completedTile.getAttribute('data-percentage')) || 0;
+        const progressCircle = completedTile.querySelector('.progress-ring .progress');
+        if (progressCircle) {
+            const radius = progressCircle.getAttribute('r');
+            const circumference = 2 * Math.PI * radius;
+            progressCircle.style.strokeDasharray = `${circumference} ${circumference}`;
+            progressCircle.style.transform = 'rotate(-90deg)';
+            progressCircle.style.transformOrigin = '50% 50%';
 
-.table-responsive {
-    max-height: 400px;
-    overflow-y: auto;
-}
-</style>
+            function setProgress(p) {
+                const offset = circumference - (p / 100) * circumference;
+                progressCircle.style.strokeDashoffset = offset;
+            }
+
+            // Animate ring from 0 to percent
+            let current = 0;
+            const step = () => {
+                current += Math.max(1, Math.ceil(percent / 30));
+                if (current >= percent) {
+                    current = percent;
+                } else {
+                    requestAnimationFrame(step);
+                }
+                setProgress(current);
+            };
+            // Initialize to full offset then animate
+            progressCircle.style.strokeDashoffset = circumference;
+            requestAnimationFrame(step);
+        }
+    }
+    
+    // Delegated click navigation for data-href elements
+    document.body.addEventListener('click', (e) => {
+        const row = e.target.closest('[data-href]');
+        if (row) {
+            const href = row.getAttribute('data-href');
+            if (href) window.location.href = href;
+        }
+    });
+    // Keyboard accessibility
+    document.querySelectorAll('[data-href]').forEach(el => {
+        el.setAttribute('tabindex', '0');
+        el.addEventListener('keydown', (ev) => {
+            if (ev.key === 'Enter' || ev.key === ' ') {
+                const href = el.getAttribute('data-href');
+                if (href) window.location.href = href;
+            }
+        });
+    });
+
+    // Kanban Board Drag and Drop
+    let draggedCard = null;
+    
+    const kanbanCards = document.querySelectorAll('.kanban-task-card');
+    const kanbanColumns = document.querySelectorAll('.kanban-column');
+    
+    kanbanCards.forEach(card => {
+        card.addEventListener('dragstart', function(e) {
+            draggedCard = this;
+            this.classList.add('dragging');
+            e.dataTransfer.effectAllowed = 'move';
+            e.dataTransfer.setData('text/html', this.innerHTML);
+        });
+        
+        card.addEventListener('dragend', function(e) {
+            this.classList.remove('dragging');
+            kanbanColumns.forEach(col => col.classList.remove('drag-over'));
+        });
+    });
+    
+    kanbanColumns.forEach(column => {
+        column.addEventListener('dragover', function(e) {
+            e.preventDefault();
+            e.dataTransfer.dropEffect = 'move';
+            this.classList.add('drag-over');
+        });
+        
+        column.addEventListener('dragleave', function(e) {
+            if (!this.contains(e.relatedTarget)) {
+                this.classList.remove('drag-over');
+            }
+        });
+        
+        column.addEventListener('drop', function(e) {
+            e.preventDefault();
+            this.classList.remove('drag-over');
+            
+            if (draggedCard) {
+                const taskId = draggedCard.dataset.taskId;
+                const newStatus = this.dataset.status;
+                const oldColumn = draggedCard.closest('.kanban-column');
+                const oldStatus = oldColumn.dataset.status;
+                
+                if (newStatus !== oldStatus) {
+                    // Remove empty state if exists
+                    const emptyState = this.querySelector('.empty-kanban-state');
+                    if (emptyState) {
+                        emptyState.remove();
+                    }
+                    
+                    // Move card to new column (before "View more" button if exists)
+                    const viewMoreBtn = this.querySelector('.text-center');
+                    if (viewMoreBtn) {
+                        this.insertBefore(draggedCard, viewMoreBtn);
+                    } else {
+                        this.appendChild(draggedCard);
+                    }
+                    
+                    updateKanbanTaskStatus(taskId, newStatus, oldStatus, draggedCard, oldColumn);
+                }
+            }
+        });
+    });
+    
+    function updateKanbanTaskStatus(taskId, newStatus, oldStatus, card, oldColumn) {
+        fetch(`/tasks/${taskId}/update-status`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ status: newStatus })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                updateKanbanBadgeCounts(oldStatus, newStatus);
+                showKanbanNotification('Task status updated successfully!', 'success');
+            } else {
+                // Revert on error
+                oldColumn.appendChild(card);
+                showKanbanNotification('Failed to update task: ' + (data.error || 'Unknown error'), 'error');
+            }
+        })
+        .catch(error => {
+            // Revert on error
+            oldColumn.appendChild(card);
+            showKanbanNotification('Network error: ' + error.message, 'error');
+        });
+    }
+    
+    function updateKanbanBadgeCounts(oldStatus, newStatus) {
+        const columns = ['todo', 'in_progress', 'done'];
+        columns.forEach(status => {
+            const badge = document.querySelector(`[data-status="${status}"]`)?.closest('.kanban-column-card')?.querySelector('.badge');
+            if (badge) {
+                const currentCount = parseInt(badge.textContent);
+                if (status === oldStatus) {
+                    badge.textContent = Math.max(0, currentCount - 1);
+                } else if (status === newStatus) {
+                    badge.textContent = currentCount + 1;
+                }
+            }
+        });
+    }
+    
+    function showKanbanNotification(message, type) {
+        const toast = document.createElement('div');
+        toast.className = `alert alert-${type === 'success' ? 'success' : 'danger'} alert-dismissible fade show position-fixed`;
+        toast.style.cssText = 'top: 20px; right: 20px; z-index: 9999; min-width: 300px; box-shadow: 0 4px 12px rgba(0,0,0,0.15);';
+        toast.innerHTML = `
+            ${message}
+            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+        `;
+        
+        document.body.appendChild(toast);
+        
+        setTimeout(() => {
+            toast.remove();
+        }, 3000);
+    }
+});
+</script>
 {% endblock %}

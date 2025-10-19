@@ -2,6 +2,41 @@
 
 {% block title %}Create User - FlowDeck{% endblock %}
 
+{% block extra_css %}
+<style>
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+}
+
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+}
+
+.form-control, .form-select {
+    background: rgba(255, 255, 255, 0.8);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+}
+
+.form-control:focus, .form-select:focus {
+    background: white;
+    border-color: #6c7cdb;
+    box-shadow: 0 0 0 3px rgba(108, 124, 219, 0.1);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    border: none;
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+}
+</style>
+{% endblock %}
+
 {% block content %}
 <!-- Safe defaults to prevent UndefinedError -->
 {% set departments = departments|default([]) %}
@@ -64,13 +99,23 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="profile_picture" class="form-label">Profile Picture</label>
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
-                            <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="date_of_birth" class="form-label">
+                                    <i class="fas fa-birthday-cake text-warning"></i>
+                                    Date of Birth
+                                </label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" max="{{ today }}">
+                                <small class="form-text text-muted">We'll celebrate with you on your special day! 🎉</small>
+                            </div>
+                            <div class="col-md-6">
+                                <label for="profile_picture" class="form-label">Profile Picture</label>
+                                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                                <small class="form-text text-muted">Supported formats: JPG, PNG, GIF (Max: 5MB)</small>
+                            </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4"
 
                         <!-- Organisation Details -->
                         <h5 class="mb-3">
@@ -241,6 +286,28 @@
 
 <script>
 document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 on department, roles, and tags selects
+    $('#department_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select a department',
+        allowClear: true,
+        width: '100%'
+    });
+    
+    $('#roles').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select roles',
+        allowClear: true,
+        width: '100%'
+    });
+    
+    $('#tags').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select tags',
+        allowClear: true,
+        width: '100%'
+    });
+    
     // Form validation
     const form = document.querySelector('form');
     

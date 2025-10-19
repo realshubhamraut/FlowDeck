@@ -1,35 +1,126 @@
-/* FlowDeck Main CSS */
+/* FlowDeck Main CSS - Professional Theme */
 
 :root {
-    --primary-color: #3498db;
-    --secondary-color: #2c3e50;
-    --success-color: #27ae60;
-    --danger-color: #e74c3c;
-    --warning-color: #f39c12;
-    --info-color: #16a085;
-    --light-color: #ecf0f1;
-    --dark-color: #2c3e50;
+    --primary-color: #6c7cdb;
+    --primary-light: #8791e0;
+    --secondary-color: #2d3748;
+    --success-color: #34a853;
+    --success-light: #5bb974;
+    --danger-color: #e91e63;
+    --danger-light: #ec407a;
+    --warning-color: #fb8c00;
+    --warning-light: #ffa726;
+    --info-color: #4285f4;
+    --info-light: #669df6;
+    --light-color: #f8f9fa;
+    --dark-color: #2d3748;
+    --border-color: rgba(255, 255, 255, 0.8);
+}
+
+/* Global Professional Theme */
+body {
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    min-height: 100vh;
+    font-family: 'Poppins', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+/* Card Styles - Glass Morphism */
+.card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(255, 255, 255, 0.8);
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
+    border-radius: 16px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.card-header {
+    background: linear-gradient(135deg, #f3e5f5, #e1bee7) !important;
+    border-radius: 16px 16px 0 0 !important;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+}
+
+/* Button Styles */
+.btn-primary {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    border: none;
+    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #5a6bc9, #7580ce);
+    box-shadow: 0 6px 16px rgba(108, 124, 219, 0.3);
+    transform: translateY(-2px);
+}
+
+.btn-outline-primary {
+    border: 2px solid #6c7cdb;
+    color: #6c7cdb;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.btn-outline-primary:hover {
+    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+    color: white;
+}
+
+.btn-outline-secondary {
+    border: 2px solid #e9ecef;
+    background: rgba(255, 255, 255, 0.9);
+}
+
+.btn-outline-secondary:hover {
+    background: linear-gradient(135deg, #f8f9fa, #e9ecef);
+    border-color: #6c7cdb;
+    color: #6c7cdb;
+}
+
+/* Badge Styles */
+.badge {
+    border-radius: 8px;
+    padding: 0.35rem 0.75rem;
+    font-weight: 600;
+}
+
+/* Form Controls */
+.form-control, .form-select {
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 8px;
+    background: rgba(255, 255, 255, 0.8);
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #6c7cdb;
+    box-shadow: 0 0 0 3px rgba(108, 124, 219, 0.1);
+    background: white;
 }
 
 /* Dark Theme */
 .dark-theme {
-    background-color: #1a1a1a;
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
     color: #e0e0e0;
 }
 
 .dark-theme .card {
-    background-color: #2d2d2d;
+    background: linear-gradient(135deg, rgba(45, 45, 45, 0.9), rgba(30, 30, 30, 0.7));
     color: #e0e0e0;
 }
 
 .dark-theme .navbar {
-    background-color: #2d2d2d !important;
+    background: rgba(30, 30, 30, 0.95) !important;
+    backdrop-filter: blur(10px);
 }
 
-/* Light Theme */
+/* Light Theme Enhancement */
 .light-theme {
-    background-color: #f8f9fa;
-    color: #333;
+    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    color: #2d3748;
 }
 
 /* Kanban Board */

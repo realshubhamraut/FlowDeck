@@ -26,6 +26,55 @@
             <div class="card border-0 shadow-sm">
                 <div class="card-body">
                     <form method="POST">
+                        {{ csrf_token() }}
+                        
+                        <div class="mb-3">
+                            <label for="department_template" class="form-label">
+                                <i class="fas fa-list me-1"></i> Quick Select (Optional)
+                            </label>
+                            <select class="form-select" id="department_template">
+                                <option value="">-- Or choose from common departments --</option>
+                                <optgroup label="Technology">
+                                    <option value="Engineering">Engineering</option>
+                                    <option value="IT & Infrastructure">IT & Infrastructure</option>
+                                    <option value="DevOps">DevOps</option>
+                                    <option value="Quality Assurance">Quality Assurance</option>
+                                    <option value="Product Management">Product Management</option>
+                                    <option value="Data Science">Data Science</option>
+                                    <option value="Information Security">Information Security</option>
+                                    <option value="Technical Support">Technical Support</option>
+                                </optgroup>
+                                <optgroup label="Business">
+                                    <option value="Sales">Sales</option>
+                                    <option value="Marketing">Marketing</option>
+                                    <option value="Business Development">Business Development</option>
+                                    <option value="Customer Success">Customer Success</option>
+                                    <option value="Operations">Operations</option>
+                                    <option value="Strategy">Strategy</option>
+                                </optgroup>
+                                <optgroup label="Support Functions">
+                                    <option value="Human Resources">Human Resources</option>
+                                    <option value="Finance">Finance</option>
+                                    <option value="Accounting">Accounting</option>
+                                    <option value="Legal">Legal</option>
+                                    <option value="Administration">Administration</option>
+                                    <option value="Facilities">Facilities</option>
+                                </optgroup>
+                                <optgroup label="Creative & Design">
+                                    <option value="Design">Design</option>
+                                    <option value="User Experience (UX)">User Experience (UX)</option>
+                                    <option value="Creative Services">Creative Services</option>
+                                    <option value="Content">Content</option>
+                                </optgroup>
+                                <optgroup label="Executive">
+                                    <option value="Executive Team">Executive Team</option>
+                                    <option value="Management">Management</option>
+                                    <option value="Board of Directors">Board of Directors</option>
+                                </optgroup>
+                            </select>
+                            <small class="text-muted">Select a common department name or create your own below</small>
+                        </div>
+
                         <div class="mb-3">
                             <label for="name" class="form-label">
                                 Department Name <span class="text-danger">*</span>

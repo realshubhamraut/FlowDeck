@@ -17,6 +17,10 @@
     <!-- Font Awesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     
+    <!-- Select2 CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+    <link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+    
     <!-- Custom CSS -->
     <link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}">
     
@@ -26,40 +30,41 @@
     
     <!-- Navigation -->
     {% if current_user.is_authenticated %}
-    <nav class="navbar navbar-expand-lg navbar-dark bg-primary sticky-top">
-        <div class="container-fluid">
-            <a class="navbar-brand" href="{{ url_for('dashboard.index') }}">
-                <i class="fas fa-layer-group"></i> FlowDeck
+    <nav class="navbar navbar-expand-lg navbar-light sticky-top" style="background: white; box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06); border-bottom: 1px solid #e9ecef;">
+        <div class="container-fluid px-4">
+            <a class="navbar-brand d-flex align-items-center" href="{{ url_for('dashboard.index') }}" style="font-weight: 700; font-size: 1.25rem; color: #2d3748;">
+                <i class="fas fa-layer-group me-2" style="font-size: 1.5rem; color: #6c7cdb;"></i>
+                <span>FlowDeck</span>
             </a>
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+            <button class="navbar-toggler border-0" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav" style="box-shadow: none;">
                 <span class="navbar-toggler-icon"></span>
             </button>
             <div class="collapse navbar-collapse" id="navbarNav">
-                <ul class="navbar-nav me-auto">
+                <ul class="navbar-nav me-auto ms-4">
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard.index') }}">
-                            <i class="fas fa-home"></i> Dashboard
+                        <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint == 'dashboard.index' %}active{% endif %}" href="{{ url_for('dashboard.index') }}">
+                            <i class="fas fa-home me-2"></i>Dashboard
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('tasks.list_tasks') }}">
-                            <i class="fas fa-tasks"></i> Tasks
+                        <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint and 'tasks' in request.endpoint %}active{% endif %}" href="{{ url_for('tasks.list_tasks') }}">
+                            <i class="fas fa-tasks me-2"></i>Tasks
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('chat.index') }}">
-                            <i class="fas fa-comments"></i> Chat
+                        <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint and 'chat' in request.endpoint %}active{% endif %}" href="{{ url_for('chat.index') }}">
+                            <i class="fas fa-comments me-2"></i>Chat
                         </a>
                     </li>
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('dashboard.calendar') }}">
-                            <i class="fas fa-calendar"></i> Calendar
+                        <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint == 'dashboard.calendar' %}active{% endif %}" href="{{ url_for('dashboard.calendar') }}">
+                            <i class="fas fa-calendar me-2"></i>Calendar
                         </a>
                     </li>
                     {% if current_user.is_admin() %}
                     <li class="nav-item">
-                        <a class="nav-link" href="{{ url_for('admin.index') }}">
-                            <i class="fas fa-cog"></i> Admin
+                        <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint and 'admin' in request.endpoint %}active{% endif %}" href="{{ url_for('admin.index') }}">
+                            <i class="fas fa-shield-alt me-2"></i>Admin
                         </a>
                     </li>
                     {% endif %}
@@ -68,49 +73,161 @@
                 <!-- Notifications -->
                 <ul class="navbar-nav">
                     <li class="nav-item dropdown">
-                        <a class="nav-link position-relative" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown">
-                            <i class="fas fa-bell"></i>
-                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger" id="notif-badge">
+                        <a class="nav-link position-relative px-3 py-2 rounded-3 mx-1 nav-link-modern" href="#" id="notificationsDropdown" role="button" data-bs-toggle="dropdown" style="transition: all 0.2s ease; color: #6c757d;">
+                            <i class="fas fa-bell" style="font-size: 1.125rem;"></i>
+                            <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill" id="notif-badge" style="background: #e91e63; font-size: 0.625rem; padding: 0.25rem 0.4rem; box-shadow: 0 2px 4px rgba(233, 30, 99, 0.3);">
                                 0
                             </span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end notifications-dropdown" style="width: 350px;">
-                            <li class="dropdown-header d-flex justify-content-between align-items-center">
-                                <span>Notifications</span>
-                                <a href="#" onclick="markAllRead()" class="text-sm">Mark all read</a>
+                        <ul class="dropdown-menu dropdown-menu-end notifications-dropdown shadow border" style="width: 360px; border-radius: 12px; overflow: hidden; margin-top: 0.5rem;">
+                            <li class="dropdown-header d-flex justify-content-between align-items-center py-3 px-4" style="background: #f8f9fa; border-bottom: 1px solid #e9ecef; font-weight: 600; color: #2d3748;">
+                                <span><i class="fas fa-bell me-2" style="color: #6c7cdb;"></i>Notifications</span>
+                                <a href="#" onclick="markAllRead()" class="text-muted" style="font-size: 0.75rem; text-decoration: none; font-weight: 500;">Mark all read</a>
                             </li>
-                            <li><hr class="dropdown-divider"></li>
                             <div id="notifications-list" style="max-height: 400px; overflow-y: auto;">
-                                <li><a class="dropdown-item text-center text-muted">No new notifications</a></li>
+                                <li><a class="dropdown-item text-center text-muted py-4" style="font-size: 0.875rem;">No new notifications</a></li>
                             </div>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item text-center" href="{{ url_for('dashboard.notifications') }}">View All</a></li>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <li><a class="dropdown-item text-center py-2 fw-semibold" href="{{ url_for('dashboard.notifications') }}" style="color: #6c7cdb; font-size: 0.875rem;">View All Notifications <i class="fas fa-arrow-right ms-2"></i></a></li>
                         </ul>
                     </li>
                     
                     <!-- User Menu -->
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle d-flex align-items-center" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                        <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-2 rounded-3 mx-1 nav-link-modern" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" style="transition: all 0.2s ease; color: #2d3748;">
                             {% if current_user.profile_picture %}
-                            <img src="{{ current_user.profile_picture }}" alt="{{ current_user.name }}" class="rounded-circle me-2" width="32" height="32">
+                            <img src="{{ current_user.profile_picture }}" alt="{{ current_user.name }}" class="rounded-circle me-2" width="32" height="32" style="border: 2px solid #e9ecef; object-fit: cover;">
                             {% else %}
-                            <div class="bg-secondary rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px;">
+                            <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; background: linear-gradient(135deg, #6c7cdb, #8791e0); border: 2px solid #e9ecef; font-weight: 600; font-size: 0.875rem;">
                                 <span class="text-white">{{ current_user.name[0].upper() }}</span>
                             </div>
                             {% endif %}
-                            {{ current_user.name }}
+                            <span style="font-weight: 500; font-size: 0.9375rem;">{{ current_user.name }}</span>
                         </a>
-                        <ul class="dropdown-menu dropdown-menu-end">
-                            <li><a class="dropdown-item" href="{{ url_for('user.profile') }}"><i class="fas fa-user"></i> Profile</a></li>
-                            <li><a class="dropdown-item" href="{{ url_for('user.settings') }}"><i class="fas fa-cog"></i> Settings</a></li>
-                            <li><hr class="dropdown-divider"></li>
-                            <li><a class="dropdown-item" href="{{ url_for('auth.logout') }}"><i class="fas fa-sign-out-alt"></i> Logout</a></li>
+                        <ul class="dropdown-menu dropdown-menu-end shadow-lg border-0" style="border-radius: 15px; overflow: hidden; margin-top: 0.5rem; min-width: 220px;">
+                            <li class="px-3 py-2" style="background: linear-gradient(135deg, #f7fafc 0%, #edf2f7 100%);">
+                                <div class="fw-bold" style="color: #2d3748;">{{ current_user.name }}</div>
+                                <small class="text-muted">{{ current_user.email }}</small>
+                            </li>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <li><a class="dropdown-item py-2 px-4" href="{{ url_for('user.profile') }}" style="transition: all 0.2s ease;"><i class="fas fa-user me-2" style="width: 20px; color: #667eea;"></i>Profile</a></li>
+                            <li><a class="dropdown-item py-2 px-4" href="{{ url_for('user.settings') }}" style="transition: all 0.2s ease;"><i class="fas fa-cog me-2" style="width: 20px; color: #667eea;"></i>Settings</a></li>
+                            <li><hr class="dropdown-divider m-0"></li>
+                            <li><a class="dropdown-item py-2 px-4 text-danger" href="{{ url_for('auth.logout') }}" style="transition: all 0.2s ease;"><i class="fas fa-sign-out-alt me-2" style="width: 20px;"></i>Logout</a></li>
                         </ul>
                     </li>
                 </ul>
             </div>
         </div>
     </nav>
+    
+    <style>
+    .nav-link-modern {
+        font-weight: 500;
+        font-size: 0.9375rem;
+        transition: all 0.2s ease;
+        position: relative;
+        color: #6c757d !important;
+    }
+    
+    .nav-link-modern::after {
+        content: '';
+        position: absolute;
+        bottom: 0;
+        left: 50%;
+        width: 0;
+        height: 2px;
+        background: #6c7cdb;
+        border-radius: 2px 2px 0 0;
+        transform: translateX(-50%);
+        transition: width 0.2s ease;
+    }
+    
+    .nav-link-modern:hover {
+        background: #f8f9fa;
+        color: #2d3748 !important;
+    }
+    
+    .nav-link-modern:hover::after {
+        width: 80%;
+    }
+    
+    .nav-link-modern.active {
+        background: #f8f9fa;
+        color: #6c7cdb !important;
+        font-weight: 600;
+    }
+    
+    .nav-link-modern.active::after {
+        width: 80%;
+    }
+    
+    .dropdown-menu {
+        animation: slideDown 0.3s ease;
+    }
+    
+    @keyframes slideDown {
+        from {
+            opacity: 0;
+            transform: translateY(-10px);
+        }
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+    
+    .dropdown-item {
+        border-radius: 8px;
+        margin: 0.25rem 0.5rem;
+        font-weight: 500;
+    }
+    
+    .dropdown-item:hover {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%);
+        transform: translateX(5px);
+        color: #667eea !important;
+    }
+    
+    .dropdown-item:active {
+        background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%);
+    }
+    
+    #notif-badge {
+        animation: pulse-badge 2s infinite;
+    }
+    
+    @keyframes pulse-badge {
+        0%, 100% {
+            transform: translate(-50%, -50%) scale(1);
+        }
+        50% {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+    }
+    
+    .navbar-toggler:focus {
+        box-shadow: 0 0 0 0.25rem rgba(255, 255, 255, 0.25);
+    }
+    
+    /* Scrollbar styling for notifications */
+    #notifications-list::-webkit-scrollbar {
+        width: 6px;
+    }
+    
+    #notifications-list::-webkit-scrollbar-track {
+        background: #f7fafc;
+    }
+    
+    #notifications-list::-webkit-scrollbar-thumb {
+        background: linear-gradient(180deg, #667eea 0%, #764ba2 100%);
+        border-radius: 3px;
+    }
+    
+    #notifications-list::-webkit-scrollbar-thumb:hover {
+        background: linear-gradient(180deg, #764ba2 0%, #667eea 100%);
+    }
+    </style>
     {% endif %}
     
     <!-- Flash Messages -->
@@ -139,6 +256,12 @@
     
     <!-- Bootstrap JS -->
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <!-- jQuery (required for Select2) -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    
+    <!-- Select2 JS -->
+    <script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
     
     <!-- Socket.IO -->
     {% if current_user.is_authenticated %}

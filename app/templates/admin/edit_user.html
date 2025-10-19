@@ -60,18 +60,29 @@
                             </div>
                         </div>
 
-                        <div class="mb-3">
-                            <label for="profile_picture" class="form-label">Profile Picture</label>
-                            {% if user.profile_picture %}
-                            <div class="mb-2">
-                                <img src="{{ user.profile_picture }}" alt="{{ user.name }}" 
-                                     class="rounded-circle" width="60" height="60">
+                        <div class="row mb-3">
+                            <div class="col-md-6">
+                                <label for="date_of_birth" class="form-label">
+                                    <i class="fas fa-birthday-cake text-warning"></i>
+                                    Date of Birth
+                                </label>
+                                <input type="date" class="form-control" id="date_of_birth" name="date_of_birth" 
+                                       value="{{ user.date_of_birth.strftime('%Y-%m-%d') if user.date_of_birth else '' }}" max="{{ today }}">
+                                <small class="form-text text-muted">We'll celebrate with you on your special day! 🎉</small>
                             </div>
-                            {% endif %}
-                            <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            <div class="col-md-6">
+                                <label for="profile_picture" class="form-label">Profile Picture</label>
+                                {% if user.profile_picture %}
+                                <div class="mb-2">
+                                    <img src="{{ user.profile_picture }}" alt="{{ user.name }}" 
+                                         class="rounded-circle" width="60" height="60">
+                                </div>
+                                {% endif %}
+                                <input type="file" class="form-control" id="profile_picture" name="profile_picture" accept="image/*">
+                            </div>
                         </div>
 
-                        <hr class="my-4">
+                        <hr class="my-4"
 
                         <h5 class="mb-3">Organisation Details</h5>
 
@@ -197,4 +208,30 @@
     </div>
     {% endif %}
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 on department, roles, and tags selects
+    $('#department_id').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select a department',
+        allowClear: true,
+        width: '100%'
+    });
+    
+    $('#roles').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select roles',
+        allowClear: true,
+        width: '100%'
+    });
+    
+    $('#tags').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select tags',
+        allowClear: true,
+        width: '100%'
+    });
+});
+</script>
 {% endblock %}

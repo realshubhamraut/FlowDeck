@@ -64,28 +64,34 @@
           <!-- Metadata -->
           <div class="row g-3 mt-3">
             <div class="col-md-6">
-              <small class="text-muted d-block">Created By</small>
+              <small class="text-muted d-block"><i class="fas fa-user me-1"></i>Created By</small>
               <strong>{{ task.creator.name if task.creator else 'Unknown' }}</strong>
             </div>
             <div class="col-md-6">
-              <small class="text-muted d-block">Created At</small>
+              <small class="text-muted d-block"><i class="fas fa-clock me-1"></i>Created At</small>
               <strong>{{ task.created_at.strftime('%B %d, %Y %I:%M %p') if task.created_at else 'N/A' }}</strong>
             </div>
+            {% if task.start_date %}
+            <div class="col-md-6">
+              <small class="text-muted d-block"><i class="fas fa-calendar-plus me-1"></i>Start Date</small>
+              <strong>{{ task.start_date.strftime('%B %d, %Y %I:%M %p') }}</strong>
+            </div>
+            {% endif %}
             {% if task.due_date %}
             <div class="col-md-6">
-              <small class="text-muted d-block">Due Date</small>
+              <small class="text-muted d-block"><i class="fas fa-calendar-check me-1"></i>Due Date</small>
               <strong>{{ task.due_date.strftime('%B %d, %Y %I:%M %p') }}</strong>
             </div>
             {% endif %}
             {% if task.department %}
             <div class="col-md-6">
-              <small class="text-muted d-block">Department</small>
+              <small class="text-muted d-block"><i class="fas fa-building me-1"></i>Department</small>
               <strong>{{ task.department.name }}</strong>
             </div>
             {% endif %}
             {% if task.estimated_hours %}
             <div class="col-md-6">
-              <small class="text-muted d-block">Estimated Hours</small>
+              <small class="text-muted d-block"><i class="fas fa-hourglass-half me-1"></i>Estimated Hours</small>
               <strong>{{ task.estimated_hours }} hours</strong>
             </div>
             {% endif %}

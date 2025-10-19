@@ -8,6 +8,7 @@ from flask_login import login_user, logout_user, login_required, current_user
 from app import db
 from app.models import User, Organisation, Role, AuditLog
 from werkzeug.security import generate_password_hash
+from app.utils.validators import validate_password_strength, validate_email
 from functools import wraps
 import secrets
 
@@ -48,6 +49,8 @@ def login():
         email = request.form.get('email', '').strip().lower()
         password = request.form.get('password', '')
         remember = request.form.get('remember', False)
+        login_type = request.form.get('login_type', 'user')  # 'user' or 'admin'
+        org_id = request.form.get('org_id', '').strip()  # Optional for admin
         
         if not email or not password:
             flash('Please provide both email and password.', 'warning')
@@ -60,6 +63,27 @@ def login():
                 flash('Your account has been deactivated. Please contact your administrator.', 'danger')
                 return render_template('auth/login.html')
             
+            # Validate admin login
+            if login_type == 'admin':
+                if not user.is_admin():
+                    flash('⚠️ Admin credentials required. This account does not have administrator privileges.', 'danger')
+                    return render_template('auth/login.html')
+                
+                # If org_id is provided, verify user belongs to that organization
+                if org_id:
+                    try:
+                        org_id_int = int(org_id)
+                        if user.organisation_id != org_id_int:
+                            flash('Invalid organization ID for this admin account.', 'danger')
+                            return render_template('auth/login.html')
+                    except ValueError:
+                        flash('Invalid organization ID format.', 'warning')
+                        return render_template('auth/login.html')
+                
+                flash(f'✅ Welcome back, Admin {user.name}!', 'success')
+            else:
+                flash(f'👋 Welcome back, {user.name}!', 'success')
+            
             # Log the user in
             login_user(user, remember=remember)
             
@@ -68,18 +92,25 @@ def login():
             user.last_login = datetime.utcnow()
             db.session.commit()
             
-            # Log audit
+            # Log audit with login type
             log_audit(user.id, user.organisation_id, 'user_login', 'User', user.id, 
-                     f'User {user.email} logged in')
+                     f'{login_type.capitalize()} login: {user.email}')
             
-            # Redirect to next page or dashboard
+            # Redirect to next page or appropriate dashboard
             next_page = request.args.get('next')
             if next_page:
                 return redirect(next_page)
             
+            # Redirect admin users to admin dashboard if they logged in as admin
+            if login_type == 'admin' and user.is_admin():
+                return redirect(url_for('admin.index'))
+            
             return redirect(url_for('dashboard.index'))
         else:
-            flash('Invalid email or password.', 'danger')
+            if login_type == 'admin':
+                flash('❌ Invalid admin credentials. Please check your email and password.', 'danger')
+            else:
+                flash('Invalid email or password.', 'danger')
     
     return render_template('auth/login.html')
 
@@ -164,8 +195,10 @@ def reset_password(token):
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         
-        if not password or len(password) < 8:
-            flash('Password must be at least 8 characters long.', 'warning')
+        # Validate password strength
+        password_valid, password_error = validate_password_strength(password)
+        if not password_valid:
+            flash(f'Weak password: {password_error}', 'warning')
             return render_template('auth/reset_password.html', token=token)
         
         if password != confirm_password:
@@ -208,8 +241,16 @@ def register():
             flash('Admin name, email, and password are required.', 'warning')
             return render_template('auth/register.html')
         
-        if len(admin_password) < 8:
-            flash('Password must be at least 8 characters long.', 'warning')
+        # Validate email format
+        email_valid, email_error = validate_email(admin_email)
+        if not email_valid:
+            flash(f'Invalid admin email: {email_error}', 'warning')
+            return render_template('auth/register.html')
+        
+        # Validate password strength
+        password_valid, password_error = validate_password_strength(admin_password)
+        if not password_valid:
+            flash(f'Weak password: {password_error}', 'warning')
             return render_template('auth/register.html')
         
         # Check if organization already exists

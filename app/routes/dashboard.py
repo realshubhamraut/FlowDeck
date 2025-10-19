@@ -5,8 +5,9 @@ Dashboard Blueprint - User dashboard
 from flask import Blueprint, render_template, request, jsonify
 from flask_login import login_required, current_user
 from app import db
-from app.models import Task, Notification, Message, Department
-from sqlalchemy import text, or_, and_
+from app.models import Task, Notification, Message, Department, User
+from app.utils.quotes import get_daily_quote, get_birthday_message
+from sqlalchemy import text, or_, and_, extract
 from datetime import datetime, timedelta
 
 bp = Blueprint('dashboard', __name__, url_prefix='/dashboard')
@@ -20,6 +21,14 @@ def index():
     tasks = current_user.assigned_tasks.filter(
         Task.status.in_(['todo', 'in_progress'])
     ).order_by(Task.due_date.asc()).limit(10).all()
+    
+    # Get all tasks for Kanban board (grouped by status)
+    all_tasks = current_user.assigned_tasks.order_by(Task.due_date.asc()).all()
+    tasks_by_status = {
+        'todo': [t for t in all_tasks if t.status == 'todo'],
+        'in_progress': [t for t in all_tasks if t.status == 'in_progress'],
+        'done': [t for t in all_tasks if t.status == 'done']
+    }
     
     # Get unread notifications
     notifications = current_user.notifications.filter_by(
@@ -58,8 +67,31 @@ def index():
         )
     ).order_by(Task.due_date.asc()).all()
     
+    # Get today's birthdays from the organization
+    today = datetime.utcnow().date()
+    birthday_users = User.query.filter(
+        User.organisation_id == current_user.organisation_id,
+        User.is_active == True,
+        extract('month', User.date_of_birth) == today.month,
+        extract('day', User.date_of_birth) == today.day
+    ).all()
+    
+    # Prepare birthday messages
+    birthday_wishes = []
+    for user in birthday_users:
+        age = user.age() if user.date_of_birth else None
+        birthday_wishes.append({
+            'user': user,
+            'message': get_birthday_message(user.name, age),
+            'age': age
+        })
+    
+    # Get daily motivational quote
+    daily_quote = get_daily_quote()
+    
     return render_template('dashboard/index.html',
                          tasks=tasks,
+                         tasks_by_status=tasks_by_status,
                          notifications=notifications,
                          messages=recent_messages,
                          upcoming_tasks=upcoming_tasks,
@@ -69,7 +101,9 @@ def index():
                          in_progress_tasks=stats['in_progress_tasks'],
                          overdue_tasks=stats['overdue_tasks'],
                          unread_notifications=stats['unread_notifications'],
-                         unread_messages=stats['unread_messages'])
+                         unread_messages=stats['unread_messages'],
+                         birthday_wishes=birthday_wishes,
+                         daily_quote=daily_quote)
 
 
 @bp.route('/analytics')
@@ -155,30 +189,54 @@ def calendar_events():
     start = _parse_dt(start_param, default_start)
     end = _parse_dt(end_param, default_end)
 
+    # Get tasks that have either start_date or due_date within the range
     tasks = current_user.assigned_tasks.filter(
-        and_(
-            Task.due_date.isnot(None),
-            Task.due_date >= start,
-            Task.due_date <= end
+        or_(
+            and_(
+                Task.start_date.isnot(None),
+                Task.start_date <= end,
+                or_(Task.due_date.isnot(None), Task.start_date >= start)
+            ),
+            and_(
+                Task.due_date.isnot(None),
+                Task.due_date >= start,
+                Task.due_date <= end
+            )
         )
     ).all()
     
     events = []
     for task in tasks:
+        # Color based on priority
         color = {
-            'urgent': '#e74c3c',
-            'high': '#e67e22',
-            'medium': '#f39c12',
-            'low': '#3498db'
-        }.get(task.priority, '#95a5a6')
+            'urgent': '#dc3545',
+            'high': '#fd7e14',
+            'medium': '#ffc107',
+            'low': '#198754'
+        }.get(task.priority, '#6c757d')
+        
+        # If task has status done, make it green
+        if task.status == 'done':
+            color = '#198754'
+        elif task.status == 'in_progress':
+            color = '#0dcaf0'
+        
+        # Use start_date and due_date for proper date range
+        task_start = task.start_date if task.start_date else task.due_date
+        task_end = task.due_date if task.due_date else task.start_date
         
         events.append({
             'id': task.id,
-            'title': task.title,
-            'start': task.due_date.isoformat() if task.due_date else None,
-            'end': task.due_date.isoformat() if task.due_date else None,
+            'title': f"[{task.status.replace('_', ' ').title()}] {task.title}",
+            'start': task_start.isoformat() if task_start else None,
+            'end': task_end.isoformat() if task_end else None,
             'color': color,
-            'url': f'/tasks/{task.id}'
+            'url': f'/tasks/{task.id}',
+            'extendedProps': {
+                'status': task.status,
+                'priority': task.priority,
+                'description': task.description[:100] if task.description else ''
+            }
         })
     
     # Add holidays
