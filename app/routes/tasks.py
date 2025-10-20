@@ -123,7 +123,8 @@ def list_tasks():
             todo_count=todo_count,
             in_progress_count=in_progress_count,
             done_count=done_count,
-            can_edit_task=can_edit_task
+            can_edit_task=can_edit_task,
+            now=datetime.now
         )
 
 
@@ -225,6 +226,36 @@ def create_task():
         
         # Commit task and relationships first
         db.session.commit()
+        
+        # Handle file attachments
+        uploaded_files = request.files.getlist('attachments')
+        if uploaded_files:
+            upload_folder = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'attachments')
+            os.makedirs(upload_folder, exist_ok=True)
+            
+            for file in uploaded_files:
+                if file and file.filename:
+                    # Secure the filename
+                    original_filename = secure_filename(file.filename)
+                    filename = f"{task.id}_{datetime.utcnow().timestamp()}_{original_filename}"
+                    file_path = os.path.join(upload_folder, filename)
+                    
+                    # Save the file
+                    file.save(file_path)
+                    
+                    # Create attachment record
+                    attachment = TaskAttachment(
+                        filename=filename,
+                        original_filename=original_filename,
+                        file_path=file_path,
+                        file_size=os.path.getsize(file_path),
+                        mime_type=file.content_type,
+                        task_id=task.id,
+                        uploaded_by_id=current_user.id
+                    )
+                    db.session.add(attachment)
+            
+            db.session.commit()
         
         # Now create notifications for assignees (after commit)
         if assignee_ids:
@@ -536,6 +567,55 @@ def upload_attachment(task_id):
         flash('File uploaded successfully!', 'success')
     
     return redirect(url_for('tasks.view_task', task_id=task_id))
+
+
+@bp.route('/<int:task_id>/checklist/update', methods=['POST'])
+@login_required
+def update_checklist_item(task_id):
+    """Update checklist item completion status"""
+    task = Task.query.get_or_404(task_id)
+    
+    if not can_access_task(task):
+        return jsonify({'error': 'Unauthorized', 'success': False}), 403
+    
+    try:
+        data = request.get_json()
+        item_id = data.get('item_id')
+        completed = data.get('completed', False)
+        
+        # Get current deliverables
+        deliverables = task.get_deliverables()
+        
+        # Update the specific item
+        updated = False
+        for item in deliverables:
+            if str(item.get('id')) == str(item_id):
+                item['completed'] = completed
+                updated = True
+                break
+        
+        if not updated:
+            return jsonify({'error': 'Item not found', 'success': False}), 404
+        
+        # Save updated deliverables
+        task.set_deliverables(deliverables)
+        db.session.commit()
+        
+        # Calculate completion stats
+        total_count = len(deliverables)
+        completed_count = sum(1 for item in deliverables if item.get('completed', False))
+        completion_percentage = int((completed_count / total_count) * 100) if total_count > 0 else 0
+        
+        return jsonify({
+            'success': True,
+            'completion_percentage': completion_percentage,
+            'completed_count': completed_count,
+            'total_count': total_count
+        })
+    
+    except Exception as e:
+        db.session.rollback()
+        return jsonify({'error': str(e), 'success': False}), 500
 
 
 @bp.route('/<int:task_id>/time-log', methods=['POST'])

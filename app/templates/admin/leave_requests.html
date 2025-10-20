@@ -1,0 +1,273 @@
+{% extends "base.html" %}
+
+{% block title %}Leave Requests - FlowDeck{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+  <div class="row mb-4">
+    <div class="col-12">
+      <h2>
+        <i class="fas fa-calendar-times text-warning"></i> Leave Requests Management
+      </h2>
+      <p class="text-muted">Review and approve/reject employee leave requests</p>
+    </div>
+  </div>
+
+  <!-- Filter Tabs -->
+  <ul class="nav nav-tabs mb-3">
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'pending' %}active{% endif %}" 
+         href="{{ url_for('admin.leave_requests', status='pending') }}">
+        <i class="fas fa-clock"></i> Pending
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'approved' %}active{% endif %}" 
+         href="{{ url_for('admin.leave_requests', status='approved') }}">
+        <i class="fas fa-check-circle text-success"></i> Approved
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'rejected' %}active{% endif %}" 
+         href="{{ url_for('admin.leave_requests', status='rejected') }}">
+        <i class="fas fa-times-circle text-danger"></i> Rejected
+      </a>
+    </li>
+    <li class="nav-item">
+      <a class="nav-link {% if status_filter == 'all' %}active{% endif %}" 
+         href="{{ url_for('admin.leave_requests', status='all') }}">
+        <i class="fas fa-list"></i> All
+      </a>
+    </li>
+  </ul>
+
+  {% if leave_requests %}
+  <div class="row">
+    {% for leave in leave_requests %}
+    <div class="col-md-6 col-lg-4 mb-3">
+      <div class="card h-100 
+                  {% if leave.status == 'approved' %}border-success{% elif leave.status == 'rejected' %}border-danger{% else %}border-warning{% endif %}">
+        <div class="card-header">
+          <div class="d-flex justify-content-between align-items-center">
+            <h6 class="mb-0">
+              <i class="fas fa-calendar"></i> {{ leave.leave_type|title }} Leave
+            </h6>
+            <span class="badge 
+                         {% if leave.status == 'approved' %}bg-success{% elif leave.status == 'rejected' %}bg-danger{% else %}bg-warning{% endif %}">
+              {{ leave.status|title }}
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <div class="mb-3">
+            <div class="d-flex align-items-center mb-2">
+              {% if leave.user.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/profiles/' + leave.user.profile_picture.split('/')[-1]) }}" 
+                     alt="{{ leave.user.name }}" 
+                     class="rounded-circle me-2" 
+                     style="width: 40px; height: 40px; object-fit: cover;">
+              {% else %}
+                <div class="avatar-circle me-2" style="background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][leave.user.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][leave.user.id % 8] }} 100%);">
+                  <span>{{ leave.user.name[0].upper() }}</span>
+                </div>
+              {% endif %}
+              <div>
+                <strong>{{ leave.user.name }}</strong>
+                <br>
+                <small class="text-muted">{{ leave.user.email }}</small>
+              </div>
+            </div>
+          </div>
+
+          <div class="mb-2">
+            <i class="fas fa-calendar-day text-primary"></i>
+            <strong>Duration:</strong> {{ leave.total_days }} day(s)
+          </div>
+
+          <div class="mb-2">
+            <i class="fas fa-arrow-right text-success"></i>
+            <strong>From:</strong> {{ leave.start_date.strftime('%b %d, %Y') }}
+          </div>
+
+          <div class="mb-2">
+            <i class="fas fa-arrow-left text-danger"></i>
+            <strong>To:</strong> {{ leave.end_date.strftime('%b %d, %Y') }}
+          </div>
+
+          <div class="mb-3">
+            <i class="fas fa-comment text-info"></i>
+            <strong>Reason:</strong>
+            <p class="text-muted mb-0">{{ leave.reason }}</p>
+          </div>
+
+          <div class="mb-2">
+            <small class="text-muted">
+              <i class="fas fa-clock"></i> 
+              Requested: {{ leave.requested_at.strftime('%b %d, %Y %I:%M %p') }}
+            </small>
+          </div>
+
+          {% if leave.approved_by %}
+          <div class="mb-2">
+            <small class="text-muted">
+              <i class="fas fa-user-check"></i>
+              {% if leave.status == 'approved' %}Approved{% else %}Rejected{% endif %} by: {{ leave.approved_by.name }}
+            </small>
+          </div>
+          {% endif %}
+
+          {% if leave.approval_notes %}
+          <div class="alert alert-info py-2 px-2 mb-0">
+            <small><strong>Notes:</strong> {{ leave.approval_notes }}</small>
+          </div>
+          {% endif %}
+        </div>
+
+        {% if leave.status == 'pending' %}
+        <div class="card-footer bg-white">
+          <div class="d-flex gap-2">
+            <button type="button" class="btn btn-success btn-sm flex-fill" 
+                    onclick="openApproveModal({{ leave.id }})">
+              <i class="fas fa-check"></i> Approve
+            </button>
+            <button type="button" class="btn btn-danger btn-sm flex-fill" 
+                    onclick="openRejectModal({{ leave.id }})">
+              <i class="fas fa-times"></i> Reject
+            </button>
+          </div>
+        </div>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info">
+    <i class="fas fa-info-circle"></i>
+    No {{ status_filter }} leave requests found.
+  </div>
+  {% endif %}
+</div>
+
+<!-- Approve Modals (moved outside cards for proper rendering) -->
+{% for leave in leave_requests %}
+{% if leave.status == 'pending' %}
+<div class="modal fade" id="approveModal{{ leave.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-success text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-check-circle"></i> Approve Leave Request
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin.approve_leave_request', request_id=leave.id) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+          <p>Are you sure you want to approve this leave request?</p>
+          <ul>
+            <li><strong>Employee:</strong> {{ leave.user.name }}</li>
+            <li><strong>Type:</strong> {{ leave.leave_type|title }}</li>
+            <li><strong>Duration:</strong> {{ leave.total_days }} day(s)</li>
+            <li><strong>Dates:</strong> {{ leave.start_date.strftime('%b %d') }} - {{ leave.end_date.strftime('%b %d, %Y') }}</li>
+          </ul>
+          <div class="mb-3">
+            <label for="notes{{ leave.id }}" class="form-label">Notes (Optional)</label>
+            <textarea class="form-control" id="notes{{ leave.id }}" name="notes" rows="2" placeholder="Add any notes or conditions..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-success">
+            <i class="fas fa-check"></i> Approve
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<!-- Reject Modal -->
+<div class="modal fade" id="rejectModal{{ leave.id }}" tabindex="-1" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header bg-danger text-white">
+        <h5 class="modal-title">
+          <i class="fas fa-times-circle"></i> Reject Leave Request
+        </h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form action="{{ url_for('admin.reject_leave_request', request_id=leave.id) }}" method="POST">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+        <div class="modal-body">
+          <p>Are you sure you want to reject this leave request?</p>
+          <ul>
+            <li><strong>Employee:</strong> {{ leave.user.name }}</li>
+            <li><strong>Type:</strong> {{ leave.leave_type|title }}</li>
+            <li><strong>Duration:</strong> {{ leave.total_days }} day(s)</li>
+            <li><strong>Dates:</strong> {{ leave.start_date.strftime('%b %d') }} - {{ leave.end_date.strftime('%b %d, %Y') }}</li>
+          </ul>
+          <div class="mb-3">
+            <label for="reject_notes{{ leave.id }}" class="form-label">Reason for Rejection <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="reject_notes{{ leave.id }}" name="notes" rows="3" required placeholder="Please provide a reason for rejection..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-danger">
+            <i class="fas fa-times"></i> Reject
+          </button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+{% endif %}
+{% endfor %}
+
+<style>
+.avatar-circle {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 16px;
+}
+</style>
+
+<script>
+function openApproveModal(leaveId) {
+  const modalId = 'approveModal' + leaveId;
+  const modalElement = document.getElementById(modalId);
+  
+  if (modalElement) {
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+  } else {
+    console.error('Approve modal not found:', modalId);
+  }
+}
+
+function openRejectModal(leaveId) {
+  const modalId = 'rejectModal' + leaveId;
+  const modalElement = document.getElementById(modalId);
+  
+  if (modalElement) {
+    const modal = new bootstrap.Modal(modalElement);
+    modal.show();
+  } else {
+    console.error('Reject modal not found:', modalId);
+  }
+}
+
+// Log page load
+document.addEventListener('DOMContentLoaded', function() {
+  console.log('Leave requests page loaded');
+  console.log('Bootstrap version:', typeof bootstrap !== 'undefined' ? 'loaded' : 'not loaded');
+});
+</script>
+{% endblock %}

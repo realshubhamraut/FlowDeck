@@ -61,3 +61,5 @@ htmlcov/
 # Flask
 instance/
 .webassets-cache
+
+pneumaticworkflow

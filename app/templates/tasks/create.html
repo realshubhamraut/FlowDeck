@@ -2,41 +2,197 @@
 
 {% block title %}Create Task - FlowDeck{% endblock %}
 
+{% block extra_css %}
+<!-- Select2 CSS for searchable dropdowns -->
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet" />
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet" />
+<!-- Quill Rich Text Editor CSS -->
+<link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+<style>
+    .select2-container--bootstrap-5 .select2-selection {
+        min-height: 38px;
+        border-color: #dee2e6;
+    }
+    .select2-container--bootstrap-5 .select2-selection--multiple .select2-selection__choice {
+        background-color: #667eea;
+        border-color: #667eea;
+        color: white;
+    }
+    
+    /* Rich text editor styling */
+    .ql-container {
+        min-height: 200px;
+        max-height: 400px;
+        overflow-y: auto;
+        font-size: 15px;
+    }
+    .ql-editor {
+        min-height: 200px;
+        max-height: 400px;
+    }
+    
+    /* Checklist items styling */
+    .checklist-item {
+        background: #f8f9fa;
+        border: 1px solid #dee2e6;
+        border-radius: 8px;
+        padding: 12px;
+        margin-bottom: 8px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        transition: all 0.2s;
+    }
+    .checklist-item:hover {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    .checklist-item input[type="text"] {
+        flex: 1;
+        border: none;
+        background: transparent;
+        outline: none;
+        font-size: 14px;
+    }
+    .checklist-item .btn-remove {
+        color: #dc3545;
+        cursor: pointer;
+        opacity: 0.6;
+        transition: opacity 0.2s;
+    }
+    .checklist-item .btn-remove:hover {
+        opacity: 1;
+    }
+    
+    /* File upload area styling */
+    .file-upload-area {
+        border: 2px dashed #dee2e6;
+        border-radius: 8px;
+        padding: 20px;
+        text-align: center;
+        background: #f8f9fa;
+        transition: all 0.3s;
+        cursor: pointer;
+    }
+    .file-upload-area:hover {
+        border-color: #667eea;
+        background: #f0f4ff;
+    }
+    .file-upload-area.dragover {
+        border-color: #667eea;
+        background: #e7f0ff;
+    }
+    .file-list {
+        margin-top: 10px;
+    }
+    .file-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 8px 12px;
+        background: white;
+        border: 1px solid #dee2e6;
+        border-radius: 6px;
+        margin-bottom: 6px;
+    }
+    .file-item-info {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    .file-item-name {
+        font-size: 14px;
+        font-weight: 500;
+    }
+    .file-item-size {
+        font-size: 12px;
+        color: #6c757d;
+    }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
   <h1 class="h4 mb-3"><i class="fas fa-plus me-2"></i>Create Task</h1>
-  <form method="POST">
+  <form method="POST" enctype="multipart/form-data" id="taskForm">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
+    <input type="hidden" name="description" id="descriptionInput">
+    <input type="hidden" name="deliverables" id="deliverablesInput">
+    
     <div class="card border-0 shadow-sm">
       <div class="card-body">
         <div class="row g-3">
+          <!-- Title -->
           <div class="col-md-8">
-            <label class="form-label">Title</label>
-            <input type="text" class="form-control" name="title" required>
+            <label class="form-label fw-semibold">
+              <i class="fas fa-heading me-1"></i>Task Title
+            </label>
+            <input type="text" class="form-control" name="title" required placeholder="Enter task title...">
           </div>
+          
+          <!-- Priority -->
           <div class="col-md-4">
-            <label class="form-label">Priority</label>
+            <label class="form-label fw-semibold">
+              <i class="fas fa-exclamation-circle me-1"></i>Priority
+            </label>
             <select class="form-select" name="priority">
-              <option value="urgent">Urgent</option>
-              <option value="high">High</option>
-              <option value="medium" selected>Medium</option>
-              <option value="low">Low</option>
+              <option value="urgent">🔴 Urgent</option>
+              <option value="high">🟠 High</option>
+              <option value="medium" selected>🟡 Medium</option>
+              <option value="low">🟢 Low</option>
             </select>
           </div>
+          
+          <!-- Rich Text Description Section -->
           <div class="col-12">
-            <label class="form-label">Description</label>
-            <textarea class="form-control" name="description" rows="4"></textarea>
+            <label class="form-label fw-semibold">
+              <i class="fas fa-align-left me-1"></i>Description
+              <small class="text-muted">(Free-hand text with formatting)</small>
+            </label>
+            <div id="quillEditor" style="background: white;"></div>
           </div>
+          
+          <!-- Checklist / To-Do Items Section -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">
+              <i class="fas fa-tasks me-1"></i>Checklist Items
+              <small class="text-muted">(Optional - Add sub-tasks or deliverables)</small>
+            </label>
+            <div id="checklistContainer" style="min-height: 50px; margin-bottom: 10px;">
+              <!-- Checklist items will be added here dynamically -->
+            </div>
+            <button type="button" class="btn btn-sm btn-outline-primary" id="addChecklistItem" style="position: relative; z-index: 10;">
+              <i class="fas fa-plus me-1"></i>Add Checklist Item
+            </button>
+          </div>
+          
+          <!-- Document Upload Section -->
+          <div class="col-12">
+            <label class="form-label fw-semibold">
+              <i class="fas fa-paperclip me-1"></i>Attachments
+              <small class="text-muted">(Upload documents, PDFs, images, etc.)</small>
+            </label>
+            <div class="file-upload-area" id="fileUploadArea">
+              <i class="fas fa-cloud-upload-alt fa-2x text-muted mb-2"></i>
+              <p class="mb-1">Drag & drop files here or click to browse</p>
+              <small class="text-muted">Supports PDF, DOC, DOCX, XLS, XLSX, images, and more</small>
+              <input type="file" id="fileInput" name="attachments" multiple style="display: none;" 
+                     accept=".pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.txt,.jpg,.jpeg,.png,.gif,.zip,.rar">
+            </div>
+            <div class="file-list" id="fileList"></div>
+          </div>
+          
+          <!-- Status and Department -->
           <div class="col-md-4">
-            <label class="form-label">Status</label>
+            <label class="form-label fw-semibold">Status</label>
             <select class="form-select" name="status">
-              <option value="todo" selected>To Do</option>
-              <option value="in_progress">In Progress</option>
-              <option value="done">Done</option>
-              <option value="archived">Archived</option>
+              <option value="todo" selected>📋 To Do</option>
+              <option value="in_progress">⚙️ In Progress</option>
+              <option value="done">✅ Done</option>
+              <option value="archived">📦 Archived</option>
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label">Department</label>
+            <label class="form-label fw-semibold">Department</label>
             <select class="form-select" name="department_id">
               {% for d in departments %}
                 <option value="{{ d.id }}" {% if d.id == current_user.department_id %}selected{% endif %}>{{ d.name }}</option>
@@ -44,30 +200,45 @@
             </select>
           </div>
           <div class="col-md-4">
-            <label class="form-label"><i class="fas fa-calendar-plus me-2"></i>Start Date</label>
+            <label class="form-label fw-semibold">Estimated Hours</label>
+            <input type="number" step="0.1" class="form-control" name="estimated_hours" placeholder="e.g., 8.5">
+          </div>
+          
+          <!-- Dates -->
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">
+              <i class="fas fa-calendar-plus me-1"></i>Start Date
+            </label>
             <input type="datetime-local" class="form-control" name="start_date" id="start_date">
             <small class="text-muted">When the task should begin</small>
           </div>
-          <div class="col-md-4">
-            <label class="form-label"><i class="fas fa-calendar-check me-2"></i>Due Date</label>
+          <div class="col-md-6">
+            <label class="form-label fw-semibold">
+              <i class="fas fa-calendar-check me-1"></i>Due Date
+            </label>
             <input type="datetime-local" class="form-control" name="due_date" id="due_date">
             <small class="text-muted">Deadline for task completion</small>
           </div>
-          <div class="col-md-4">
-            <label class="form-label">Estimated Hours</label>
-            <input type="number" step="0.1" class="form-control" name="estimated_hours">
-          </div>
-          <div class="col-md-8">
-            <label class="form-label">Assignees</label>
-            <select class="form-select" name="assignees" multiple>
+          
+          <!-- Assignees and Tags -->
+          <div class="col-md-12">
+            <label class="form-label fw-semibold">
+              <i class="fas fa-users me-1"></i>Assign To
+            </label>
+            <select class="form-select" name="assignees" id="assigneesSelect" multiple>
               {% for u in users %}
-                <option value="{{ u.id }}">{{ u.name }}</option>
+                <option value="{{ u.id }}" data-email="{{ u.email }}" data-department="{{ u.department.name if u.department else '' }}">
+                  {{ u.name }}
+                </option>
               {% endfor %}
             </select>
+            <small class="text-muted">Search by name, email, or department</small>
           </div>
           <div class="col-12">
-            <label class="form-label">Tags</label>
-            <select class="form-select" name="tags" multiple>
+            <label class="form-label fw-semibold">
+              <i class="fas fa-tags me-1"></i>Tags
+            </label>
+            <select class="form-select" name="tags" id="tagsSelect" multiple>
               {% for t in tags %}
                 <option value="{{ t.id }}">{{ t.name }}</option>
               {% endfor %}
@@ -76,16 +247,331 @@
         </div>
       </div>
       <div class="card-footer bg-white border-0 d-flex justify-content-end gap-2">
-        <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-outline-secondary">Cancel</a>
-        <button class="btn btn-primary" type="submit">Create Task</button>
+        <a href="{{ url_for('tasks.list_tasks') }}" class="btn btn-outline-secondary">
+          <i class="fas fa-times me-1"></i>Cancel
+        </a>
+        <button class="btn btn-primary" type="submit">
+          <i class="fas fa-check me-1"></i>Create Task
+        </button>
       </div>
     </div>
   </form>
 </div>
 
+<!-- Select2 JS -->
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+<!-- Quill Rich Text Editor JS -->
+<script src="https://cdn.quilljs.com/1.3.6/quill.min.js"></script>
+
 <script>
-// Validate that start date is before due date
+// Initialize everything when DOM is ready
 document.addEventListener('DOMContentLoaded', function() {
+    
+    // ============================================
+    // RICH TEXT EDITOR INITIALIZATION
+    // ============================================
+    const quill = new Quill('#quillEditor', {
+        theme: 'snow',
+        modules: {
+            toolbar: [
+                [{ 'header': [1, 2, 3, false] }],
+                ['bold', 'italic', 'underline', 'strike'],
+                [{ 'list': 'ordered'}, { 'list': 'bullet' }],
+                [{ 'indent': '-1'}, { 'indent': '+1' }],
+                ['blockquote', 'code-block'],
+                [{ 'color': [] }, { 'background': [] }],
+                ['link'],
+                ['clean']
+            ]
+        },
+        placeholder: 'Write a detailed description of the task...'
+    });
+    
+    // ============================================
+    // CHECKLIST ITEMS MANAGEMENT
+    // ============================================
+    let checklistItems = [];
+    const checklistContainer = document.getElementById('checklistContainer');
+    const addChecklistBtn = document.getElementById('addChecklistItem');
+    
+    function createChecklistItem(text = '', completed = false) {
+        const id = Date.now() + Math.random();
+        const item = {
+            id: id,
+            text: text,
+            completed: completed
+        };
+        checklistItems.push(item);
+        renderChecklistItems();
+        return item;
+    }
+    
+    function removeChecklistItem(id) {
+        checklistItems = checklistItems.filter(item => item.id !== id);
+        renderChecklistItems();
+    }
+    
+    function updateChecklistItem(id, text) {
+        const item = checklistItems.find(item => item.id === id);
+        if (item) {
+            item.text = text;
+        }
+    }
+    
+    function renderChecklistItems() {
+        checklistContainer.innerHTML = '';
+        checklistItems.forEach((item, index) => {
+            const itemDiv = document.createElement('div');
+            itemDiv.className = 'checklist-item';
+            itemDiv.innerHTML = `
+                <span class="text-muted" style="min-width: 30px;">${index + 1}.</span>
+                <input type="text" placeholder="Enter checklist item..." 
+                       value="${item.text}" 
+                       data-id="${item.id}"
+                       class="checklist-input">
+                <i class="fas fa-times btn-remove" data-id="${item.id}"></i>
+            `;
+            checklistContainer.appendChild(itemDiv);
+        });
+        
+        // Add event listeners
+        document.querySelectorAll('.checklist-input').forEach(input => {
+            input.addEventListener('input', function() {
+                updateChecklistItem(parseFloat(this.dataset.id), this.value);
+            });
+        });
+        
+        document.querySelectorAll('.btn-remove').forEach(btn => {
+            btn.addEventListener('click', function() {
+                removeChecklistItem(parseFloat(this.dataset.id));
+            });
+        });
+    }
+    
+    addChecklistBtn.addEventListener('click', function() {
+        createChecklistItem();
+    });
+    
+    // ============================================
+    // FILE UPLOAD MANAGEMENT
+    // ============================================
+    const fileInput = document.getElementById('fileInput');
+    const fileUploadArea = document.getElementById('fileUploadArea');
+    const fileList = document.getElementById('fileList');
+    let selectedFiles = [];
+    
+    // Click to browse
+    fileUploadArea.addEventListener('click', function() {
+        fileInput.click();
+    });
+    
+    // Drag and drop events
+    fileUploadArea.addEventListener('dragover', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.add('dragover');
+    });
+    
+    fileUploadArea.addEventListener('dragleave', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+    });
+    
+    fileUploadArea.addEventListener('drop', function(e) {
+        e.preventDefault();
+        e.stopPropagation();
+        this.classList.remove('dragover');
+        
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+    });
+    
+    fileInput.addEventListener('change', function() {
+        handleFiles(this.files);
+    });
+    
+    function handleFiles(files) {
+        // Convert FileList to Array and add to selectedFiles
+        Array.from(files).forEach(file => {
+            if (!selectedFiles.find(f => f.name === file.name && f.size === file.size)) {
+                selectedFiles.push(file);
+            }
+        });
+        renderFileList();
+    }
+    
+    function removeFile(index) {
+        selectedFiles.splice(index, 1);
+        renderFileList();
+        
+        // Update file input
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+    
+    function getFileIcon(filename) {
+        const ext = filename.split('.').pop().toLowerCase();
+        const iconMap = {
+            'pdf': 'fa-file-pdf text-danger',
+            'doc': 'fa-file-word text-primary',
+            'docx': 'fa-file-word text-primary',
+            'xls': 'fa-file-excel text-success',
+            'xlsx': 'fa-file-excel text-success',
+            'ppt': 'fa-file-powerpoint text-warning',
+            'pptx': 'fa-file-powerpoint text-warning',
+            'jpg': 'fa-file-image text-info',
+            'jpeg': 'fa-file-image text-info',
+            'png': 'fa-file-image text-info',
+            'gif': 'fa-file-image text-info',
+            'zip': 'fa-file-archive text-secondary',
+            'rar': 'fa-file-archive text-secondary',
+            'txt': 'fa-file-alt text-muted'
+        };
+        return iconMap[ext] || 'fa-file text-muted';
+    }
+    
+    function renderFileList() {
+        if (selectedFiles.length === 0) {
+            fileList.innerHTML = '';
+            return;
+        }
+        
+        fileList.innerHTML = selectedFiles.map((file, index) => `
+            <div class="file-item">
+                <div class="file-item-info">
+                    <i class="fas ${getFileIcon(file.name)} fa-lg"></i>
+                    <div>
+                        <div class="file-item-name">${file.name}</div>
+                        <div class="file-item-size">${formatFileSize(file.size)}</div>
+                    </div>
+                </div>
+                <button type="button" class="btn btn-sm btn-outline-danger" onclick="removeFileByIndex(${index})">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+        `).join('');
+    }
+    
+    // Make removeFile accessible globally
+    window.removeFileByIndex = removeFile;
+    
+    // ============================================
+    // FORM SUBMISSION
+    // ============================================
+    const taskForm = document.getElementById('taskForm');
+    taskForm.addEventListener('submit', function(e) {
+        // Get rich text content (HTML format)
+        const descriptionHTML = quill.root.innerHTML;
+        document.getElementById('descriptionInput').value = descriptionHTML;
+        
+        // Get checklist items as JSON
+        const checklistData = checklistItems.filter(item => item.text.trim() !== '');
+        document.getElementById('deliverablesInput').value = JSON.stringify(checklistData);
+        
+        // Update file input with selected files
+        const dt = new DataTransfer();
+        selectedFiles.forEach(file => dt.items.add(file));
+        fileInput.files = dt.files;
+        
+        // Validate title
+        const title = document.querySelector('input[name="title"]').value.trim();
+        if (!title) {
+            e.preventDefault();
+            alert('Please enter a task title');
+            return false;
+        }
+    });
+    
+    // ============================================
+    // SELECT2 INITIALIZATION
+    // ============================================
+    // Initialize Select2 for assignees with custom formatting
+    $('#assigneesSelect').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select assignees...',
+        allowClear: true,
+        templateResult: formatAssignee,
+        templateSelection: formatAssigneeSelection,
+        matcher: customMatcher
+    });
+    
+    // Initialize Select2 for tags
+    $('#tagsSelect').select2({
+        theme: 'bootstrap-5',
+        placeholder: 'Select tags...',
+        allowClear: true
+    });
+    
+    // Custom formatting for assignee dropdown
+    function formatAssignee(user) {
+        if (!user.id) {
+            return user.text;
+        }
+        
+        const email = $(user.element).data('email') || '';
+        const department = $(user.element).data('department') || '';
+        
+        const $user = $(
+            '<div class="d-flex align-items-center">' +
+                '<div class="me-2">' +
+                    '<div class="avatar-circle-sm" style="width: 32px; height: 32px; font-size: 14px;">' +
+                        user.text.charAt(0).toUpperCase() +
+                    '</div>' +
+                '</div>' +
+                '<div>' +
+                    '<div class="fw-semibold">' + user.text + '</div>' +
+                    '<small class="text-muted">' + email + (department ? ' • ' + department : '') + '</small>' +
+                '</div>' +
+            '</div>'
+        );
+        
+        return $user;
+    }
+    
+    // Simpler formatting for selected items
+    function formatAssigneeSelection(user) {
+        return user.text;
+    }
+    
+    // Custom matcher to search by name, email, or department
+    function customMatcher(params, data) {
+        // If there are no search terms, return all data
+        if ($.trim(params.term) === '') {
+            return data;
+        }
+        
+        // Do not display the item if there is no 'text' property
+        if (typeof data.text === 'undefined') {
+            return null;
+        }
+        
+        const searchTerm = params.term.toLowerCase();
+        const text = data.text.toLowerCase();
+        const email = $(data.element).data('email') ? $(data.element).data('email').toLowerCase() : '';
+        const department = $(data.element).data('department') ? $(data.element).data('department').toLowerCase() : '';
+        
+        // Check if the search term matches name, email, or department
+        if (text.indexOf(searchTerm) > -1 || 
+            email.indexOf(searchTerm) > -1 || 
+            department.indexOf(searchTerm) > -1) {
+            return data;
+        }
+        
+        // Return `null` if the term should not be displayed
+        return null;
+    }
+    
+    // Date validation
     const startDateInput = document.getElementById('start_date');
     const dueDateInput = document.getElementById('due_date');
     

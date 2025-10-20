@@ -8,23 +8,53 @@
 
 {% block extra_css %}
 <style>
+/* Modern Background with Gradient */
 body {
-    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    position: relative;
 }
 
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.container-fluid {
+    position: relative;
+    z-index: 1;
+}
+
+/* Glass Morphism Cards */
 .card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
 }
 
 .card-header {
-    background: linear-gradient(135deg, #fff3e0, #ffe0b2) !important;
-    border-radius: 16px 16px 0 0 !important;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
+    background: linear-gradient(135deg, #667eea, #764ba2) !important;
+    border-radius: 20px 20px 0 0 !important;
+    border: none !important;
+    color: white !important;
+    padding: 1.5rem !important;
 }
 
 /* Google Calendar-like styling */
@@ -236,6 +266,147 @@ body {
     border-color: #1a73e8;
 }
 
+/* Stats Cards */
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 28px;
+    margin-bottom: 1rem;
+    transition: all 0.3s ease;
+}
+
+.stat-card:hover .stat-icon {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Gradient Classes */
+.gradient-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+.gradient-success { background: linear-gradient(135deg, #10b981, #059669); }
+.gradient-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.gradient-info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.gradient-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+/* Filter Dots */
+.filter-dot {
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 8px;
+}
+
+.filter-item {
+    padding: 0.5rem;
+    border-radius: 8px;
+    transition: background 0.2s;
+}
+
+.filter-item:hover {
+    background: rgba(102, 126, 234, 0.05);
+}
+
+.form-check-input {
+    border-color: #667eea;
+    cursor: pointer;
+}
+
+.form-check-input:checked {
+    background-color: #667eea;
+    border-color: #667eea;
+}
+
+/* Upcoming Events List */
+.upcoming-list {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+.upcoming-item {
+    padding: 0.75rem;
+    border-radius: 8px;
+    margin-bottom: 0.5rem;
+    background: linear-gradient(135deg, #f8f9fa, #ffffff);
+    border: 1px solid #e9ecef;
+    transition: all 0.2s;
+}
+
+.upcoming-item:hover {
+    background: linear-gradient(135deg, #e9ecef, #f8f9fa);
+    border-color: #667eea;
+    transform: translateX(3px);
+}
+
+.upcoming-date {
+    font-size: 0.75rem;
+    color: #6b7280;
+    font-weight: 500;
+}
+
+.upcoming-title {
+    font-size: 0.875rem;
+    font-weight: 600;
+    color: #1f2937;
+    margin-bottom: 0.25rem;
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-20px, -20px); }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
     .fc-toolbar {
@@ -246,78 +417,144 @@ body {
     .fc-toolbar-chunk {
         margin-bottom: 10px;
     }
+    
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .stat-icon {
+        width: 50px;
+        height: 50px;
+        font-size: 24px;
+    }
 }
 </style>
 {% endblock %}
 
 {% block content %}
 <div class="container-fluid py-4">
-    <!-- Header -->
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="display-6 mb-1"><i class="fas fa-calendar me-2"></i> Calendar</h1>
-            <p class="text-muted">View your tasks, meetings, and holidays in calendar view</p>
+    <!-- Modern Header with Stats -->
+    <div class="card mb-4 animate-slide-up" style="animation-delay: 0.1s;">
+        <div class="card-header text-white text-center position-relative overflow-hidden">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 70%); animation: float 6s ease-in-out infinite;"></div>
+            <div class="position-relative">
+                <h2 class="mb-1 fw-bold"><i class="fas fa-calendar-alt me-2"></i>Calendar</h2>
+                <p class="mb-0 opacity-90">Manage your tasks, meetings, and holidays</p>
+            </div>
         </div>
     </div>
 
-    <!-- Calendar -->
+    <!-- Quick Stats -->
+    <div class="row mb-4">
+        <div class="col-md-3 col-6 mb-3 animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="stat-card">
+                <div class="stat-icon gradient-primary text-white">
+                    <i class="fas fa-tasks"></i>
+                </div>
+                <div class="stat-value" id="totalTasks">0</div>
+                <div class="stat-label">Total Tasks</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="stat-card">
+                <div class="stat-icon gradient-success text-white">
+                    <i class="fas fa-calendar-check"></i>
+                </div>
+                <div class="stat-value" id="totalHolidays">0</div>
+                <div class="stat-label">Holidays</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 animate-slide-up" style="animation-delay: 0.4s;">
+            <div class="stat-card">
+                <div class="stat-icon gradient-warning text-white">
+                    <i class="fas fa-umbrella-beach"></i>
+                </div>
+                <div class="stat-value" id="totalLeaves">0</div>
+                <div class="stat-label">Leave Requests</div>
+            </div>
+        </div>
+        <div class="col-md-3 col-6 mb-3 animate-slide-up" style="animation-delay: 0.5s;">
+            <div class="stat-card">
+                <div class="stat-icon gradient-info text-white">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-value" id="upcomingCount">0</div>
+                <div class="stat-label">Upcoming</div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Calendar & Sidebar -->
     <div class="row">
-        <div class="col-lg-9 mb-4">
+        <div class="col-lg-9 mb-4 animate-slide-up" style="animation-delay: 0.6s;">
             <div class="card border-0 shadow-sm">
-                <div class="card-body">
+                <div class="card-body p-4">
                     <div id="calendar"></div>
                 </div>
             </div>
         </div>
 
-        <!-- Sidebar -->
+        <!-- Modern Sidebar -->
         <div class="col-lg-3">
-            <!-- Filters -->
-            <div class="card border-0 shadow-sm mb-3">
-                <div class="card-header bg-white border-0">
-                    <h6 class="mb-0">Filters</h6>
-                </div>
+            <!-- Filters Card -->
+            <div class="card border-0 shadow-sm mb-3 animate-slide-up" style="animation-delay: 0.7s;">
                 <div class="card-body">
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="showTasks" checked>
-                        <label class="form-check-label" for="showTasks">
-                            Tasks
-                        </label>
+                    <h6 class="mb-3 d-flex align-items-center">
+                        <i class="fas fa-filter gradient-primary text-white me-2" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px;"></i>
+                        <span>Filters</span>
+                    </h6>
+                    <div class="filter-item mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showTasks" checked>
+                            <label class="form-check-label d-flex align-items-center" for="showTasks">
+                                <span class="filter-dot" style="background: linear-gradient(135deg, #667eea, #764ba2);"></span>
+                                Tasks
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="showHolidays" checked>
-                        <label class="form-check-label" for="showHolidays">
-                            Holidays
-                        </label>
+                    <div class="filter-item mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showHolidays" checked>
+                            <label class="form-check-label d-flex align-items-center" for="showHolidays">
+                                <span class="filter-dot" style="background: linear-gradient(135deg, #10b981, #059669);"></span>
+                                Holidays
+                            </label>
+                        </div>
                     </div>
-                    <div class="form-check mb-2">
-                        <input class="form-check-input" type="checkbox" id="showLeaves" checked>
-                        <label class="form-check-label" for="showLeaves">
-                            Leave Requests
-                        </label>
+                    <div class="filter-item mb-2">
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="showLeaves" checked>
+                            <label class="form-check-label d-flex align-items-center" for="showLeaves">
+                                <span class="filter-dot" style="background: linear-gradient(135deg, #f59e0b, #d97706);"></span>
+                                Leave Requests
+                            </label>
+                        </div>
                     </div>
                 </div>
             </div>
 
             <!-- Upcoming Events -->
-            <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-0">
-                    <h6 class="mb-0">Upcoming Events</h6>
-                </div>
-                <div class="card-body p-0">
-                    <div class="list-group list-group-flush" id="upcomingEvents">
-                        <div class="list-group-item">
-                            <div class="text-center py-3 text-muted">
-                                <i class="fas fa-spinner fa-spin"></i> Loading...
-                            </div>
+            <div class="card border-0 shadow-sm mb-3 animate-slide-up" style="animation-delay: 0.8s;">
+                <div class="card-body">
+                    <h6 class="mb-3 d-flex align-items-center">
+                        <i class="fas fa-bell gradient-warning text-white me-2" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px;"></i>
+                        <span>Upcoming</span>
+                    </h6>
+                    <div id="upcomingEvents" class="upcoming-list">
+                        <div class="text-center py-3 text-muted">
+                            <i class="fas fa-spinner fa-spin"></i> Loading...
                         </div>
                     </div>
                 </div>
             </div>
 
             <!-- Legend -->
-            <div class="card border-0 shadow-sm mt-3">
-                <div class="card-header bg-white border-0">
+            <div class="card border-0 shadow-sm animate-slide-up" style="animation-delay: 0.9s;">
+                <div class="card-body">
+                    <h6 class="mb-3 d-flex align-items-center">
+                        <i class="fas fa-info-circle gradient-info text-white me-2" style="width: 32px; height: 32px; display: inline-flex; align-items: center; justify-content: center; border-radius: 8px; font-size: 14px;"></i>
+                        <span>Legend</span>
+                    </h6>
                     <h6 class="mb-0">Legend</h6>
                 </div>
                 <div class="card-body">
@@ -434,6 +671,17 @@ document.addEventListener('DOMContentLoaded', function() {
                 .then(response => response.json())
                 .then(data => {
                     const events = [];
+                    
+                    // Update stats
+                    document.getElementById('totalTasks').textContent = data.tasks ? data.tasks.length : 0;
+                    document.getElementById('totalHolidays').textContent = data.holidays ? data.holidays.length : 0;
+                    document.getElementById('totalLeaves').textContent = data.leaves ? data.leaves.length : 0;
+                    
+                    // Calculate upcoming events (next 7 days)
+                    const today = new Date();
+                    const nextWeek = new Date(today.getTime() + 7 * 24 * 60 * 60 * 1000);
+                    let upcomingCount = 0;
+                    let upcomingEvents = [];
                     
                     // Add tasks
                     if (document.getElementById('showTasks').checked) {
@@ -597,8 +845,11 @@ document.addEventListener('DOMContentLoaded', function() {
             .sort((a, b) => new Date(a.start) - new Date(b.start))
             .slice(0, 5);
         
+        // Update upcoming count
+        document.getElementById('upcomingCount').textContent = upcoming.length;
+        
         if (upcoming.length === 0) {
-            upcomingList.innerHTML = '<div class="list-group-item text-center text-muted">No upcoming events</div>';
+            upcomingList.innerHTML = '<div class="text-center py-3 text-muted"><i class="fas fa-calendar-check fa-2x mb-2 d-block opacity-25"></i>No upcoming events</div>';
             return;
         }
         
@@ -606,10 +857,15 @@ document.addEventListener('DOMContentLoaded', function() {
         upcoming.forEach(event => {
             const date = new Date(event.start);
             const dateStr = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+            const timeStr = date.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' });
+            
+            // Remove emoji from title for cleaner display
+            const cleanTitle = event.title.replace(/[📋🎉🏖️]/g, '').trim();
             
             html += `
-                <div class="list-group-item">
-                    <div class="d-flex justify-content-between align-items-start">
+                <div class="upcoming-item">
+                    <div class="upcoming-date text-muted">${dateStr} ${!event.allDay ? '• ' + timeStr : ''}</div>
+                    <div class="upcoming-title">${cleanTitle}</div>
                         <div>
                             <h6 class="mb-1">${event.title}</h6>
                             <small class="text-muted">

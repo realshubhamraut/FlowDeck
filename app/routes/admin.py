@@ -467,3 +467,168 @@ def get_roles():
 def get_tags():
     """Get all tags"""
     return Tag.query.all()
+
+
+@bp.route('/leave-quotas')
+@login_required
+@admin_required
+def leave_quotas():
+    """Manage employee leave quotas"""
+    org = current_user.organisation
+    
+    # Get all active users in organization
+    users = User.query.filter_by(
+        organisation_id=org.id,
+        is_active=True
+    ).order_by(User.name).all()
+    
+    # Calculate used leave days for each user
+    from app.models import LeaveRequest
+    user_leave_data = []
+    
+    for user in users:
+        leave_data = {
+            'user': user,
+            'quotas': {
+                'annual': user.annual_leave_quota or 0,
+                'sick': user.sick_leave_quota or 0,
+                'personal': user.personal_leave_quota or 0
+            },
+            'used': {
+                'annual': user.get_used_leave_days('annual'),
+                'sick': user.get_used_leave_days('sick'),
+                'personal': user.get_used_leave_days('personal')
+            },
+            'remaining': {
+                'annual': user.get_remaining_leave_days('annual'),
+                'sick': user.get_remaining_leave_days('sick'),
+                'personal': user.get_remaining_leave_days('personal')
+            }
+        }
+        user_leave_data.append(leave_data)
+    
+    return render_template('admin/leave_quotas.html', user_leave_data=user_leave_data)
+
+
+@bp.route('/leave-quotas/<int:user_id>/edit', methods=['POST'])
+@login_required
+@admin_required
+def edit_leave_quota(user_id):
+    """Update leave quota for a user"""
+    user = User.query.get_or_404(user_id)
+    
+    # Verify user belongs to same organization
+    if user.organisation_id != current_user.organisation_id:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('admin.leave_quotas'))
+    
+    # Update quotas
+    user.annual_leave_quota = int(request.form.get('annual_leave_quota', 0))
+    user.sick_leave_quota = int(request.form.get('sick_leave_quota', 0))
+    user.personal_leave_quota = int(request.form.get('personal_leave_quota', 0))
+    user.leave_quota_set_by_id = current_user.id
+    
+    db.session.commit()
+    
+    flash(f'Leave quotas updated for {user.name}', 'success')
+    return redirect(url_for('admin.leave_quotas'))
+
+
+@bp.route('/leave-requests')
+@login_required
+@admin_required
+def leave_requests():
+    """View and manage all leave requests"""
+    from app.models import LeaveRequest
+    
+    org = current_user.organisation
+    
+    # Get all leave requests for organization users
+    status_filter = request.args.get('status', 'pending')
+    
+    query = LeaveRequest.query.join(User).filter(
+        User.organisation_id == org.id
+    )
+    
+    if status_filter != 'all':
+        query = query.filter(LeaveRequest.status == status_filter)
+    
+    leave_requests = query.order_by(LeaveRequest.requested_at.desc()).all()
+    
+    return render_template('admin/leave_requests.html',
+                         leave_requests=leave_requests,
+                         status_filter=status_filter)
+
+
+@bp.route('/leave-requests/<int:request_id>/approve', methods=['POST'])
+@login_required
+@admin_required
+def approve_leave_request(request_id):
+    """Approve a leave request"""
+    from app.models import LeaveRequest, Notification
+    
+    leave_request = LeaveRequest.query.get_or_404(request_id)
+    
+    # Verify user belongs to same organization
+    if leave_request.user.organisation_id != current_user.organisation_id:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('admin.leave_requests'))
+    
+    # Update status
+    leave_request.status = 'approved'
+    leave_request.approved_by_id = current_user.id
+    leave_request.approved_at = datetime.utcnow()
+    leave_request.approval_notes = request.form.get('notes', '')
+    
+    # Create notification for employee
+    notification = Notification(
+        user_id=leave_request.user_id,
+        title='Leave Request Approved',
+        message=f'Your {leave_request.leave_type} leave request from {leave_request.start_date} to {leave_request.end_date} has been approved by {current_user.name}',
+        notification_type='leave_approved',
+        link=f'/user/leave-requests',
+        is_read=False
+    )
+    db.session.add(notification)
+    
+    db.session.commit()
+    
+    flash(f'Leave request approved for {leave_request.user.name}', 'success')
+    return redirect(url_for('admin.leave_requests'))
+
+
+@bp.route('/leave-requests/<int:request_id>/reject', methods=['POST'])
+@login_required
+@admin_required
+def reject_leave_request(request_id):
+    """Reject a leave request"""
+    from app.models import LeaveRequest, Notification
+    
+    leave_request = LeaveRequest.query.get_or_404(request_id)
+    
+    # Verify user belongs to same organization
+    if leave_request.user.organisation_id != current_user.organisation_id:
+        flash('Unauthorized access', 'danger')
+        return redirect(url_for('admin.leave_requests'))
+    
+    # Update status
+    leave_request.status = 'rejected'
+    leave_request.approved_by_id = current_user.id
+    leave_request.approved_at = datetime.utcnow()
+    leave_request.approval_notes = request.form.get('notes', '')
+    
+    # Create notification for employee
+    notification = Notification(
+        user_id=leave_request.user_id,
+        title='Leave Request Rejected',
+        message=f'Your {leave_request.leave_type} leave request from {leave_request.start_date} to {leave_request.end_date} has been rejected by {current_user.name}',
+        notification_type='leave_rejected',
+        link=f'/user/leave-requests',
+        is_read=False
+    )
+    db.session.add(notification)
+    
+    db.session.commit()
+    
+    flash(f'Leave request rejected for {leave_request.user.name}', 'success')
+    return redirect(url_for('admin.leave_requests'))

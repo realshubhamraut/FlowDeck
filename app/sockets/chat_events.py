@@ -115,7 +115,9 @@ def handle_send_message(data):
         sender_id=current_user.id,
         recipient_id=recipient_id,
         channel_id=channel_id,
-        message_type=message_type
+        message_type=message_type,
+        is_delivered=False,
+        is_read=False
     )
     
     db.session.add(message)
@@ -128,60 +130,46 @@ def handle_send_message(data):
         'sender_name': current_user.name,
         'sender_picture': current_user.profile_picture,
         'created_at': message.created_at.isoformat(),
-        'message_type': message_type
+        'message_type': message_type,
+        'is_delivered': False,
+        'is_read': False
     }
     
     # Emit to appropriate room
     if channel_id:
         emit('new_message', message_data, room=f'channel_{channel_id}')
     elif recipient_id:
-        # Send to recipient and sender
+        # Send to recipient
         emit('new_direct_message', message_data, room=f'user_{recipient_id}')
-        emit('new_direct_message', message_data, room=f'user_{current_user.id}')
+        # Send to sender (for confirmation)
+        emit('message_sent', message_data, room=f'user_{current_user.id}')
 
 
-@socketio.on('typing')
-def handle_typing(data):
-    """Handle typing indicator"""
+@socketio.on('message_delivered')
+def handle_message_delivered(data):
+    """Mark message as delivered (single tick)"""
     if not current_user.is_authenticated:
         return
     
-    recipient_id = data.get('recipient_id')
-    channel_id = data.get('channel_id')
-    is_typing = data.get('is_typing', True)
-    
-    typing_data = {
-        'user_id': current_user.id,
-        'user_name': current_user.name,
-        'is_typing': is_typing
-    }
-    
-    if channel_id:
-        emit('user_typing', typing_data, room=f'channel_{channel_id}', include_self=False)
-    elif recipient_id:
-        emit('user_typing', typing_data, room=f'user_{recipient_id}')
-
-
-@socketio.on('request_online_users')
-def handle_request_online_users():
-    """Get list of online users"""
-    if not current_user.is_authenticated:
+    message_id = data.get('message_id')
+    if not message_id:
         return
     
-    online_users = OnlineStatus.query.filter_by(is_online=True).all()
-    
-    emit('online_users_list', {
-        'users': [{
-            'user_id': status.user_id,
-            'user_name': status.user.name if status.user else 'Unknown',
-            'last_seen': status.last_seen.isoformat()
-        } for status in online_users]
-    })
+    message = Message.query.get(message_id)
+    if message and message.recipient_id == current_user.id:
+        message.mark_as_delivered()
+        db.session.commit()
+        
+        # Notify sender that message was delivered (single tick)
+        emit('message_delivered_ack', {
+            'message_id': message_id,
+            'delivered_at': message.delivered_at.isoformat() if message.delivered_at else None
+        }, room=f'user_{message.sender_id}')
 
 
 @socketio.on('mark_message_read')
 def handle_mark_message_read(data):
-    """Mark message as read"""
+    """Mark message as read (double tick)"""
     if not current_user.is_authenticated:
         return
     
@@ -194,8 +182,30 @@ def handle_mark_message_read(data):
         message.mark_as_read()
         db.session.commit()
         
-        # Notify sender that message was read
-        emit('message_read', {
+        # Notify sender that message was read (double tick)
+        emit('message_read_ack', {
             'message_id': message_id,
-            'read_by': current_user.id
+            'read_by': current_user.id,
+            'read_at': message.read_at.isoformat() if message.read_at else None
         }, room=f'user_{message.sender_id}')
+
+
+@socketio.on('leave_request_sent')
+def handle_leave_request_sent(data):
+    """Notify manager about new leave request"""
+    if not current_user.is_authenticated:
+        return
+    
+    manager_id = data.get('manager_id')
+    if not manager_id:
+        return
+    
+    # Emit notification to manager
+    emit('leave_request_notification', {
+        'requester_id': current_user.id,
+        'requester_name': current_user.name,
+        'leave_type': data.get('leave_type'),
+        'start_date': data.get('start_date'),
+        'end_date': data.get('end_date'),
+        'message': f'{current_user.name} has requested {data.get("leave_type")} leave'
+    }, room=f'user_{manager_id}')

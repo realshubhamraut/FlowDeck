@@ -9,6 +9,7 @@ from app.models import User, LeaveRequest
 from werkzeug.utils import secure_filename
 from datetime import datetime
 import os
+import secrets
 
 bp = Blueprint('user', __name__, url_prefix='/user')
 
@@ -16,8 +17,26 @@ bp = Blueprint('user', __name__, url_prefix='/user')
 @bp.route('/profile')
 @login_required
 def profile():
-    """View user profile"""
-    return render_template('user/profile.html', user=current_user)
+    """View user profile with optimized queries"""
+    # Eager load relationships to avoid N+1 queries
+    from sqlalchemy.orm import joinedload
+    from app.models.task import Task
+    
+    user = db.session.query(User).options(
+        joinedload(User.department),
+        joinedload(User.organisation),
+        joinedload(User.roles),
+        joinedload(User.tags)
+    ).filter_by(id=current_user.id).first()
+    
+    # Get recent tasks separately (sorted by updated_at)
+    recent_tasks = db.session.query(Task).join(
+        Task.assignees
+    ).filter(
+        User.id == current_user.id
+    ).order_by(Task.updated_at.desc()).limit(5).all()
+    
+    return render_template('user/profile.html', user=user, recent_tasks=recent_tasks)
 
 
 @bp.route('/profile/edit', methods=['GET', 'POST'])
@@ -170,3 +189,30 @@ def view_user(user_id):
         return redirect(url_for('dashboard.index'))
     
     return render_template('user/view_user.html', user=user)
+
+
+@bp.route('/resend-verification', methods=['POST'])
+@login_required
+def resend_verification():
+    """Resend email verification link"""
+    if current_user.is_email_verified:
+        flash('Your email is already verified.', 'info')
+        return redirect(url_for('user.profile'))
+    
+    # Generate new verification token
+    token = secrets.token_urlsafe(32)
+    current_user.email_verification_token = token
+    db.session.commit()
+    
+    # Send verification email
+    try:
+        from app.utils.email import send_verification_email
+        verification_url = url_for('auth.verify_email', token=token, _external=True)
+        send_verification_email(current_user.email, current_user.name, verification_url)
+        flash('Verification email sent! Please check your inbox.', 'success')
+    except Exception as e:
+        current_app.logger.error(f"Failed to send verification email: {e}")
+        flash('Failed to send verification email. Please try again later.', 'danger')
+    
+    return redirect(url_for('user.profile'))
+

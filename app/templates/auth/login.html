@@ -37,6 +37,7 @@
                         <!-- User Login Form -->
                         <div class="tab-pane fade show active" id="user-login" role="tabpanel" aria-labelledby="user-tab">
                             <form method="POST" action="{{ url_for('auth.login') }}" id="userLoginForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="login_type" value="user">
                                 
                                 <div class="mb-3">
@@ -88,6 +89,7 @@
                             </div>
                             
                             <form method="POST" action="{{ url_for('auth.login') }}" id="adminLoginForm">
+                                <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                                 <input type="hidden" name="login_type" value="admin">
                                 
                                 <div class="mb-3">

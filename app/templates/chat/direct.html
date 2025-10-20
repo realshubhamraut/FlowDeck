@@ -16,26 +16,45 @@
             <a href="{{ url_for('chat.index') }}" class="btn btn-sm btn-outline-secondary me-3">
               <i class="fas fa-arrow-left"></i> Back
             </a>
-            {% if recipient.profile_picture %}
-              <img src="{{ url_for('static', filename='uploads/profiles/' + recipient.profile_picture.split('/')[-1]) }}" 
-                   alt="{{ recipient.name }}" 
-                   class="rounded-circle me-2" 
-                   style="width: 40px; height: 40px; object-fit: cover;">
-            {% else %}
-              <div class="avatar-circle me-2" style="background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][recipient.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][recipient.id % 8] }} 100%);">
-                <span>{{ recipient.name[0].upper() }}</span>
+            <div class="position-relative">
+              {% if recipient.profile_picture %}
+                <img src="{{ url_for('static', filename='uploads/profiles/' + recipient.profile_picture.split('/')[-1]) }}" 
+                     alt="{{ recipient.name }}" 
+                     class="rounded-circle me-2" 
+                     style="width: 40px; height: 40px; object-fit: cover;">
+              {% else %}
+                <div class="avatar-circle me-2" style="background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][recipient.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][recipient.id % 8] }} 100%);">
+                  <span>{{ recipient.name[0].upper() }}</span>
+                </div>
+              {% endif %}
+              <!-- Online status indicator -->
+              <span id="onlineIndicator" class="position-absolute bottom-0 end-0 translate-middle p-1 bg-secondary border border-white rounded-circle" style="display: none; width: 12px; height: 12px;">
+                <span class="visually-hidden">Online</span>
+              </span>
+            </div>
+            <div>
+              <a href="#" class="text-decoration-none text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#userProfileModal">
+                {{ recipient.name }}
+              </a>
+              <!-- Typing indicator -->
+              <div id="typingIndicator" style="display: none;">
+                <small class="text-muted">
+                  <span class="typing-dots">
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                    <span class="dot"></span>
+                  </span>
+                  typing...
+                </small>
               </div>
-            {% endif %}
-            <a href="#" class="text-decoration-none text-dark fw-semibold" data-bs-toggle="modal" data-bs-target="#userProfileModal">
-              {{ recipient.name }}
-            </a>
+            </div>
           </div>
           <small class="text-muted">{{ recipient.email }}</small>
         </div>
         <div class="card-body" style="height: 500px; overflow-y: auto;" id="messageContainer">
           {% if messages %}
             {% for msg in messages %}
-              <div class="mb-3 {% if msg.sender_id == current_user.id %}text-end{% endif %}">
+              <div class="mb-3 {% if msg.sender_id == current_user.id %}text-end{% endif %}" data-message-id="{{ msg.id }}">
                 <div class="d-inline-block" style="max-width: 70%;">
                   <div class="{% if msg.sender_id == current_user.id %}bg-primary text-white{% else %}bg-light{% endif %} {% if msg.message_type == 'image' %}p-2{% else %}p-3{% endif %} rounded">
                     {% if msg.message_type == 'image' and msg.attachment_path %}
@@ -46,9 +65,25 @@
                     {% else %}
                       <div class="mb-1">{{ msg.content }}</div>
                     {% endif %}
-                    <small class="text-muted" style="{% if msg.sender_id == current_user.id %}color: rgba(255,255,255,0.7) !important;{% endif %}">
-                      {{ msg.created_at.strftime('%b %d, %I:%M %p') }}
-                    </small>
+                    <div class="d-flex justify-content-between align-items-center mt-1">
+                      <small class="text-muted" style="{% if msg.sender_id == current_user.id %}color: rgba(255,255,255,0.7) !important;{% endif %}">
+                        {{ msg.created_at.strftime('%b %d, %I:%M %p') }}
+                      </small>
+                      {% if msg.sender_id == current_user.id %}
+                        <span class="read-receipt ms-2">
+                          {% if msg.is_read %}
+                            <!-- Double tick (read) - blue -->
+                            <i class="fas fa-check-double text-info" title="Read"></i>
+                          {% elif msg.is_delivered %}
+                            <!-- Single tick (delivered) - white/gray -->
+                            <i class="fas fa-check" style="color: rgba(255,255,255,0.7);" title="Delivered"></i>
+                          {% else %}
+                            <!-- Clock icon (sending) -->
+                            <i class="fas fa-clock" style="color: rgba(255,255,255,0.5);" title="Sending"></i>
+                          {% endif %}
+                        </span>
+                      {% endif %}
+                    </div>
                   </div>
                 </div>
               </div>
@@ -81,6 +116,9 @@
             </div>
             <button type="button" class="btn btn-outline-secondary" id="attachImageBtn">
               <i class="fas fa-image"></i>
+            </button>
+            <button type="button" class="btn btn-outline-warning" data-bs-toggle="modal" data-bs-target="#leaveRequestModal" title="Request Leave">
+              <i class="fas fa-calendar-times"></i>
             </button>
             <button type="submit" class="btn btn-primary">
               <i class="fas fa-paper-plane"></i> Send
@@ -142,6 +180,71 @@
           </div>
         </div>
       </div>
+    </div>
+  </div>
+</div>
+
+<!-- Leave Request Modal -->
+<div class="modal fade" id="leaveRequestModal" tabindex="-1" aria-labelledby="leaveRequestModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="leaveRequestModalLabel">
+          <i class="fas fa-calendar-times text-warning"></i> Request Leave
+        </h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <form id="leaveRequestForm">
+        <div class="modal-body">
+          <div class="mb-3">
+            <label for="leaveType" class="form-label">Leave Type <span class="text-danger">*</span></label>
+            <select class="form-select" id="leaveType" name="leave_type" required>
+              <option value="">Select leave type...</option>
+              <option value="annual">Annual Leave</option>
+              <option value="sick">Sick Leave</option>
+              <option value="personal">Personal Leave</option>
+              <option value="emergency">Emergency Leave</option>
+            </select>
+          </div>
+          
+          <div class="row">
+            <div class="col-md-6 mb-3">
+              <label for="startDate" class="form-label">Start Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="startDate" name="start_date" required>
+            </div>
+            <div class="col-md-6 mb-3">
+              <label for="endDate" class="form-label">End Date <span class="text-danger">*</span></label>
+              <input type="date" class="form-control" id="endDate" name="end_date" required>
+            </div>
+          </div>
+          
+          <div class="mb-3">
+            <label for="leaveReason" class="form-label">Reason <span class="text-danger">*</span></label>
+            <textarea class="form-control" id="leaveReason" name="reason" rows="3" required placeholder="Explain the reason for your leave request..."></textarea>
+          </div>
+          
+          <div class="mb-3">
+            <label for="requestTo" class="form-label">Request To <span class="text-danger">*</span></label>
+            <select class="form-select" id="requestTo" name="manager_id" required>
+              <option value="">Select manager...</option>
+              {% if current_user.department and current_user.department.head_id %}
+                <option value="{{ current_user.department.head_id }}" selected>Department Head</option>
+              {% endif %}
+              <option value="{{ recipient.id }}" {% if not current_user.department or not current_user.department.head_id %}selected{% endif %}>{{ recipient.name }}</option>
+            </select>
+          </div>
+          
+          <div class="alert alert-info" id="leaveQuotaInfo" style="display: none;">
+            <i class="fas fa-info-circle"></i> <span id="quotaText"></span>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-warning">
+            <i class="fas fa-paper-plane"></i> Submit Request
+          </button>
+        </div>
+      </form>
     </div>
   </div>
 </div>
@@ -288,12 +391,66 @@ document.addEventListener('DOMContentLoaded', function() {
   // Socket.IO real-time message handling (if available)
   if (typeof io !== 'undefined') {
     const socket = io();
+    const recipientId = {{ recipient.id }};
+    let typingTimeout;
     
+    // Handle online/offline status
+    socket.on('user_online', function(data) {
+      if (data.user_id === recipientId) {
+        const indicator = document.getElementById('onlineIndicator');
+        indicator.classList.add('online');
+        indicator.style.display = 'block';
+      }
+    });
+    
+    socket.on('user_offline', function(data) {
+      if (data.user_id === recipientId) {
+        const indicator = document.getElementById('onlineIndicator');
+        indicator.classList.remove('online');
+        indicator.style.backgroundColor = '#6c757d';
+      }
+    });
+    
+    // Handle typing indicator
+    socket.on('user_typing', function(data) {
+      if (data.user_id === recipientId) {
+        const typingIndicator = document.getElementById('typingIndicator');
+        if (data.is_typing) {
+          typingIndicator.style.display = 'block';
+          // Auto-hide after 3 seconds
+          setTimeout(() => {
+            typingIndicator.style.display = 'none';
+          }, 3000);
+        } else {
+          typingIndicator.style.display = 'none';
+        }
+      }
+    });
+    
+    // Send typing indicator
+    messageInput.addEventListener('input', function() {
+      clearTimeout(typingTimeout);
+      socket.emit('typing', {
+        recipient_id: recipientId,
+        is_typing: true
+      });
+      
+      // Stop typing after 1 second of no input
+      typingTimeout = setTimeout(() => {
+        socket.emit('typing', {
+          recipient_id: recipientId,
+          is_typing: false
+        });
+      }, 1000);
+    });
+    
+    // Handle received messages
     socket.on('new_direct_message', function(data) {
       // Only show messages from the current conversation partner
-      if (data.sender_id === {{ recipient.id }}) {
+      if (data.sender_id === recipientId) {
         const messageDiv = document.createElement('div');
         messageDiv.className = 'mb-3';
+        messageDiv.setAttribute('data-message-id', data.id);
         
         let messageContent = '';
         if (data.message_type === 'image' && data.attachment_url) {
@@ -320,10 +477,212 @@ document.addEventListener('DOMContentLoaded', function() {
         messageDiv.innerHTML = messageContent;
         messageContainer.appendChild(messageDiv);
         messageContainer.scrollTop = messageContainer.scrollHeight;
+        
+        // Send delivery receipt
+        socket.emit('message_delivered', { message_id: data.id });
+        
+        // Mark as read after a short delay
+        setTimeout(() => {
+          socket.emit('mark_message_read', { message_id: data.id });
+        }, 1000);
+      }
+    });
+    
+    // Handle sent message confirmation
+    socket.on('message_sent', function(data) {
+      // Update UI with message ID for status tracking
+      console.log('Message sent:', data);
+    });
+    
+    // Handle delivery receipts (single tick)
+    socket.on('message_delivered_ack', function(data) {
+      const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+      if (messageDiv) {
+        const receipt = messageDiv.querySelector('.read-receipt i');
+        if (receipt) {
+          receipt.className = 'fas fa-check';
+          receipt.style.color = 'rgba(255,255,255,0.7)';
+          receipt.title = 'Delivered';
+        }
+      }
+    });
+    
+    // Handle read receipts (double tick)
+    socket.on('message_read_ack', function(data) {
+      const messageDiv = document.querySelector(`[data-message-id="${data.message_id}"]`);
+      if (messageDiv) {
+        const receipt = messageDiv.querySelector('.read-receipt i');
+        if (receipt) {
+          receipt.className = 'fas fa-check-double text-info';
+          receipt.title = 'Read';
+        }
+      }
+    });
+    
+    // Request online users on load
+    socket.emit('request_online_users');
+    
+    socket.on('online_users_list', function(data) {
+      const onlineUserIds = data.users.map(u => u.user_id);
+      if (onlineUserIds.includes(recipientId)) {
+        const indicator = document.getElementById('onlineIndicator');
+        indicator.classList.add('online');
+        indicator.style.display = 'block';
       }
     });
   }
+  
+  // Leave Request Form Handler
+  const leaveRequestForm = document.getElementById('leaveRequestForm');
+  const leaveTypeSelect = document.getElementById('leaveType');
+  const startDateInput = document.getElementById('startDate');
+  const endDateInput = document.getElementById('endDate');
+  const leaveQuotaInfo = document.getElementById('leaveQuotaInfo');
+  const quotaText = document.getElementById('quotaText');
+  
+  // Set minimum date to today
+  const today = new Date().toISOString().split('T')[0];
+  startDateInput.min = today;
+  endDateInput.min = today;
+  
+  // Update end date minimum when start date changes
+  startDateInput.addEventListener('change', function() {
+    endDateInput.min = this.value;
+    if (endDateInput.value && endDateInput.value < this.value) {
+      endDateInput.value = this.value;
+    }
+    calculateLeaveDays();
+  });
+  
+  endDateInput.addEventListener('change', calculateLeaveDays);
+  leaveTypeSelect.addEventListener('change', calculateLeaveDays);
+  
+  function calculateLeaveDays() {
+    if (startDateInput.value && endDateInput.value && leaveTypeSelect.value) {
+      const start = new Date(startDateInput.value);
+      const end = new Date(endDateInput.value);
+      const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
+      
+      // Show quota info (this would require an API call to get actual quota)
+      quotaText.textContent = `You are requesting ${days} day(s) of ${leaveTypeSelect.options[leaveTypeSelect.selectedIndex].text}.`;
+      leaveQuotaInfo.style.display = 'block';
+    } else {
+      leaveQuotaInfo.style.display = 'none';
+    }
+  }
+  
+  leaveRequestForm.addEventListener('submit', async function(e) {
+    e.preventDefault();
+    
+    const formData = new FormData(leaveRequestForm);
+    const data = {};
+    formData.forEach((value, key) => {
+      data[key] = value;
+    });
+    
+    try {
+      const response = await fetch('/chat/leave-request', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('meta[name="csrf-token"]').content
+        },
+        body: JSON.stringify(data)
+      });
+      
+      const result = await response.json();
+      
+      if (response.ok) {
+        // Close modal
+        const modal = bootstrap.Modal.getInstance(document.getElementById('leaveRequestModal'));
+        modal.hide();
+        
+        // Show success message
+        alert('Leave request submitted successfully!');
+        
+        // Reset form
+        leaveRequestForm.reset();
+        leaveQuotaInfo.style.display = 'none';
+        
+        // Emit socket event to notify manager
+        socket.emit('leave_request_sent', {
+          manager_id: parseInt(data.manager_id),
+          leave_type: data.leave_type,
+          start_date: data.start_date,
+          end_date: data.end_date
+        });
+      } else {
+        alert('Error: ' + (result.error || 'Failed to submit leave request'));
+      }
+    } catch (error) {
+      console.error('Error submitting leave request:', error);
+      alert('Failed to submit leave request. Please try again.');
+    }
+  });
 });
 </script>
+
+<style>
+/* Typing indicator animation */
+.typing-dots {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+}
+
+.typing-dots .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background-color: #ffc107; /* Yellow color */
+  animation: typing 1.4s infinite;
+  display: inline-block;
+}
+
+.typing-dots .dot:nth-child(2) {
+  animation-delay: 0.2s;
+}
+
+.typing-dots .dot:nth-child(3) {
+  animation-delay: 0.4s;
+}
+
+@keyframes typing {
+  0%, 60%, 100% {
+    transform: translateY(0);
+    opacity: 0.7;
+  }
+  30% {
+    transform: translateY(-10px);
+    opacity: 1;
+  }
+}
+
+/* Online indicator pulse animation */
+#onlineIndicator.online {
+  background-color: #28a745 !important;
+  animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0.7);
+  }
+  70% {
+    box-shadow: 0 0 0 6px rgba(40, 167, 69, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(40, 167, 69, 0);
+  }
+}
+
+/* Footer fix - keep at bottom */
+.card-footer {
+  position: sticky;
+  bottom: 0;
+  z-index: 10;
+  background-color: white !important;
+}
+</style>
 
 {% endblock %}

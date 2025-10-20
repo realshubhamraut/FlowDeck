@@ -326,10 +326,13 @@ body {
 <script>
 // Mark single notification as read
 function markAsRead(notificationId) {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
     fetch(`{{ url_for('dashboard.mark_notification_read', notif_id=0) }}`.replace('0', notificationId), {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         }
     })
     .then(response => response.json())
@@ -359,10 +362,13 @@ function markAsRead(notificationId) {
 
 // Mark all as read
 document.getElementById('markAllRead').addEventListener('click', function() {
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
     fetch('{{ url_for("dashboard.mark_all_notifications_read") }}', {
         method: 'POST',
         headers: {
             'Content-Type': 'application/json',
+            'X-CSRFToken': csrfToken
         }
     })
     .then(response => response.json())

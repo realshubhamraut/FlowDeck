@@ -329,9 +329,14 @@
         }
         
         function markAllRead() {
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+            
             fetch('/dashboard/notifications/mark-all-read', {
                 method: 'POST',
-                headers: {'Content-Type': 'application/json'}
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': csrfToken
+                }
             }).then(() => {
                 updateNotificationBadge();
                 location.reload();

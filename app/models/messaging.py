@@ -27,7 +27,9 @@ class Message(db.Model):
     task_card_id = db.Column(db.Integer, db.ForeignKey('tasks.id', ondelete='SET NULL'))
     
     # Status
-    is_read = db.Column(db.Boolean, default=False)
+    is_delivered = db.Column(db.Boolean, default=False)  # Single tick
+    delivered_at = db.Column(db.DateTime)
+    is_read = db.Column(db.Boolean, default=False)  # Double tick
     read_at = db.Column(db.DateTime)
     is_edited = db.Column(db.Boolean, default=False)
     is_deleted = db.Column(db.Boolean, default=False)
@@ -47,6 +49,15 @@ class Message(db.Model):
         if not self.is_read:
             self.is_read = True
             self.read_at = datetime.utcnow()
+            if not self.is_delivered:
+                self.is_delivered = True
+                self.delivered_at = datetime.utcnow()
+    
+    def mark_as_delivered(self):
+        """Mark message as delivered"""
+        if not self.is_delivered:
+            self.is_delivered = True
+            self.delivered_at = datetime.utcnow()
     
     def __repr__(self):
         return f'<Message {self.id}>'

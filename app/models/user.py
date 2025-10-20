@@ -145,6 +145,12 @@ class User(UserMixin, db.Model):
     notification_enabled = db.Column(db.Boolean, default=True)
     email_notification_enabled = db.Column(db.Boolean, default=True)
     
+    # Leave management
+    annual_leave_quota = db.Column(db.Integer, default=0)
+    sick_leave_quota = db.Column(db.Integer, default=0)
+    personal_leave_quota = db.Column(db.Integer, default=0)
+    leave_quota_set_by_id = db.Column(db.Integer, db.ForeignKey('users.id', ondelete='SET NULL'))
+    
     # Relationships
     organisation = db.relationship('Organisation', back_populates='users')
     department = db.relationship('Department', back_populates='users')
@@ -215,6 +221,25 @@ class User(UserMixin, db.Model):
         if today.month < self.date_of_birth.month or (today.month == self.date_of_birth.month and today.day < self.date_of_birth.day):
             age -= 1
         return age
+    
+    def get_used_leave_days(self, leave_type=None):
+        """Calculate total used leave days for approved requests"""
+        from app.models import LeaveRequest
+        query = self.leave_requests.filter_by(status='approved')
+        if leave_type:
+            query = query.filter_by(leave_type=leave_type)
+        return sum([lr.total_days for lr in query.all()])
+    
+    def get_remaining_leave_days(self, leave_type):
+        """Calculate remaining leave days for a specific type"""
+        used = self.get_used_leave_days(leave_type)
+        quota_map = {
+            'annual': self.annual_leave_quota,
+            'sick': self.sick_leave_quota,
+            'personal': self.personal_leave_quota
+        }
+        quota = quota_map.get(leave_type, 0)
+        return max(0, quota - used)
     
     def __repr__(self):
         return f'<User {self.email}>'

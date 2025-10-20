@@ -287,6 +287,95 @@ def search():
     return render_template('chat/search.html', messages=messages, query=query)
 
 
+@bp.route('/leave-request', methods=['POST'])
+@login_required
+def create_leave_request():
+    """Create a new leave request from chat"""
+    try:
+        from app.models import LeaveRequest
+        from datetime import datetime
+        
+        data = request.get_json()
+        
+        # Validate required fields
+        required_fields = ['leave_type', 'start_date', 'end_date', 'reason', 'manager_id']
+        for field in required_fields:
+            if not data.get(field):
+                return jsonify({'error': f'Missing required field: {field}'}), 400
+        
+        # Parse dates
+        try:
+            start_date = datetime.strptime(data['start_date'], '%Y-%m-%d').date()
+            end_date = datetime.strptime(data['end_date'], '%Y-%m-%d').date()
+        except ValueError:
+            return jsonify({'error': 'Invalid date format'}), 400
+        
+        # Validate date range
+        if end_date < start_date:
+            return jsonify({'error': 'End date must be after start date'}), 400
+        
+        # Calculate total days
+        total_days = (end_date - start_date).days + 1
+        
+        # Check quota if not emergency leave
+        leave_type = data['leave_type']
+        if leave_type in ['annual', 'sick', 'personal']:
+            remaining = current_user.get_remaining_leave_days(leave_type)
+            if total_days > remaining:
+                return jsonify({
+                    'error': f'Insufficient leave quota. You have {remaining} days remaining for {leave_type} leave.'
+                }), 400
+        
+        # Create leave request
+        leave_request = LeaveRequest(
+            user_id=current_user.id,
+            leave_type=leave_type,
+            start_date=start_date,
+            end_date=end_date,
+            total_days=total_days,
+            reason=data['reason'],
+            status='pending'
+        )
+        
+        db.session.add(leave_request)
+        db.session.commit()
+        
+        # Create notification for manager
+        from app.models import Notification
+        manager_id = int(data['manager_id'])
+        manager = User.query.get(manager_id)
+        
+        if manager:
+            notification = Notification(
+                user_id=manager_id,
+                title='New Leave Request',
+                message=f'{current_user.name} has requested {leave_type} leave from {start_date} to {end_date} ({total_days} days)',
+                notification_type='leave_request',
+                link=f'/admin/leave-requests/{leave_request.id}',
+                is_read=False
+            )
+            db.session.add(notification)
+            db.session.commit()
+        
+        return jsonify({
+            'success': True,
+            'message': 'Leave request submitted successfully',
+            'leave_request': {
+                'id': leave_request.id,
+                'leave_type': leave_request.leave_type,
+                'start_date': leave_request.start_date.isoformat(),
+                'end_date': leave_request.end_date.isoformat(),
+                'total_days': leave_request.total_days,
+                'status': leave_request.status
+            }
+        }), 200
+        
+    except Exception as e:
+        db.session.rollback()
+        print(f"Error creating leave request: {str(e)}")
+        return jsonify({'error': 'Failed to create leave request'}), 500
+
+
 def get_organisation_users():
     """Get all users in organisation"""
     return User.query.filter_by(

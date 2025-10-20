@@ -2,6 +2,38 @@
 
 {% block title %}{{ task.title }} - FlowDeck{% endblock %}
 
+{% block extra_css %}
+<style>
+  .task-description {
+    padding: 15px;
+    background: #f8f9fa;
+    border-radius: 8px;
+    border-left: 4px solid #667eea;
+    line-height: 1.6;
+  }
+  .task-description h1, .task-description h2, .task-description h3 {
+    margin-top: 1rem;
+    margin-bottom: 0.5rem;
+  }
+  .task-description ul, .task-description ol {
+    padding-left: 2rem;
+  }
+  .task-description pre {
+    background: #2d2d2d;
+    color: #f8f8f2;
+    padding: 10px;
+    border-radius: 5px;
+    overflow-x: auto;
+  }
+  .task-description blockquote {
+    border-left: 4px solid #ccc;
+    padding-left: 15px;
+    color: #666;
+    margin: 10px 0;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
 <div class="container py-4">
   <!-- Header -->
@@ -58,8 +90,57 @@
           </div>
 
           <!-- Description -->
-          <h5 class="card-title">Description</h5>
-          <p class="card-text">{{ task.description or 'No description provided.' }}</p>
+          <h5 class="card-title"><i class="fas fa-align-left me-2"></i>Description</h5>
+          {% if task.description %}
+            <div class="task-description">{{ task.description|safe }}</div>
+          {% else %}
+            <p class="text-muted">No description provided.</p>
+          {% endif %}
+
+          <!-- Checklist Items -->
+          {% set deliverables = task.get_deliverables() %}
+          {% if deliverables %}
+          <div class="mt-4">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h5 class="card-title mb-0"><i class="fas fa-tasks me-2"></i>Checklist Items</h5>
+              <span class="badge bg-primary">{{ deliverables|length }} items</span>
+            </div>
+            <div class="list-group list-group-flush" id="checklistItems">
+              {% for item in deliverables %}
+              <div class="list-group-item d-flex align-items-center gap-3 px-0 py-3 checklist-view-item" data-item-id="{{ item.id }}">
+                <input type="checkbox" 
+                       class="form-check-input checklist-checkbox" 
+                       {% if item.completed %}checked{% endif %}
+                       data-item-id="{{ item.id }}"
+                       style="font-size: 1.2em; cursor: pointer;">
+                <span class="checklist-text flex-grow-1 {% if item.completed %}text-decoration-line-through text-muted{% endif %}">
+                  {{ loop.index }}. {{ item.text }}
+                </span>
+              </div>
+              {% endfor %}
+            </div>
+            <div class="mt-3">
+              <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted">
+                  <i class="fas fa-check-circle me-1"></i>
+                  {{ (deliverables|selectattr('completed', 'equalto', true)|list|length) }} of {{ deliverables|length }} completed
+                </small>
+                <strong class="text-success">{{ task.get_completion_percentage() }}%</strong>
+              </div>
+              <div class="progress" style="height: 25px;">
+                <div class="progress-bar bg-success progress-bar-striped progress-bar-animated" 
+                     role="progressbar" 
+                     id="completionProgressBar"
+                     style="width: {{ task.get_completion_percentage() }}%;" 
+                     aria-valuenow="{{ task.get_completion_percentage() }}" 
+                     aria-valuemin="0" 
+                     aria-valuemax="100">
+                  <span class="fw-semibold">{{ task.get_completion_percentage() }}% Complete</span>
+                </div>
+              </div>
+            </div>
+          </div>
+          {% endif %}
 
           <!-- Metadata -->
           <div class="row g-3 mt-3">
@@ -142,6 +223,7 @@
 
           <!-- Add Comment Form -->
           <form method="POST" action="{{ url_for('tasks.add_comment', task_id=task.id) }}" class="mt-3">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
             <div class="mb-3">
               <textarea class="form-control" name="comment" rows="3" placeholder="Add a comment..." required></textarea>
             </div>
@@ -153,7 +235,7 @@
       </div>
 
       <!-- Attachments Section -->
-      {% if attachments %}
+      {% if attachments and attachments|length > 0 %}
       <div class="card border-0 shadow-sm mb-4">
         <div class="card-header bg-white">
           <h5 class="mb-0"><i class="fas fa-paperclip me-2"></i>Attachments ({{ attachments|length }})</h5>
@@ -161,18 +243,38 @@
         <div class="card-body">
           <div class="list-group list-group-flush">
             {% for attachment in attachments %}
-            <div class="list-group-item d-flex justify-content-between align-items-center">
-              <div>
-                <i class="fas fa-file me-2"></i>
-                <a href="{{ url_for('static', filename='uploads/attachments/' + attachment.file_name) }}" target="_blank">
-                  {{ attachment.file_name }}
-                </a>
-                <small class="text-muted d-block ms-4">
-                  Uploaded by {{ attachment.uploaded_by.name if attachment.uploaded_by else 'Unknown' }} 
-                  on {{ attachment.uploaded_at.strftime('%b %d, %Y') if attachment.uploaded_at else '' }}
-                </small>
+            <div class="list-group-item d-flex justify-content-between align-items-center px-0">
+              <div class="d-flex align-items-center gap-2 flex-grow-1">
+                {% if attachment.mime_type %}
+                  {% if 'pdf' in attachment.mime_type %}
+                    <i class="fas fa-file-pdf fa-lg text-danger"></i>
+                  {% elif 'word' in attachment.mime_type or 'document' in attachment.mime_type %}
+                    <i class="fas fa-file-word fa-lg text-primary"></i>
+                  {% elif 'excel' in attachment.mime_type or 'spreadsheet' in attachment.mime_type %}
+                    <i class="fas fa-file-excel fa-lg text-success"></i>
+                  {% elif 'image' in attachment.mime_type %}
+                    <i class="fas fa-file-image fa-lg text-info"></i>
+                  {% elif 'zip' in attachment.mime_type or 'compressed' in attachment.mime_type %}
+                    <i class="fas fa-file-archive fa-lg text-secondary"></i>
+                  {% else %}
+                    <i class="fas fa-file fa-lg text-muted"></i>
+                  {% endif %}
+                {% else %}
+                  <i class="fas fa-file fa-lg text-muted"></i>
+                {% endif %}
+                <div>
+                  <a href="{{ url_for('static', filename='uploads/attachments/' + attachment.filename) }}" 
+                     target="_blank" class="text-decoration-none fw-semibold">
+                    {{ attachment.original_filename }}
+                  </a>
+                  <small class="text-muted d-block">
+                    {{ attachment.get_file_size_formatted() if attachment.file_size else 'Unknown size' }} • 
+                    Uploaded by {{ attachment.uploaded_by.name if attachment.uploaded_by else 'Unknown' }} 
+                    on {{ attachment.uploaded_at.strftime('%b %d, %Y') if attachment.uploaded_at else '' }}
+                  </small>
+                </div>
               </div>
-              <a href="{{ url_for('static', filename='uploads/attachments/' + attachment.file_name) }}" 
+              <a href="{{ url_for('static', filename='uploads/attachments/' + attachment.filename) }}" 
                  class="btn btn-sm btn-outline-primary" download>
                 <i class="fas fa-download"></i>
               </a>
@@ -304,6 +406,22 @@
   border-left: none;
 }
 
+.checklist-view-item {
+  transition: background-color 0.2s;
+}
+
+.checklist-view-item:hover {
+  background-color: #f8f9fa !important;
+}
+
+.checklist-checkbox {
+  transition: all 0.2s;
+}
+
+.checklist-checkbox:checked {
+  background-color: #28a745;
+  border-color: #28a745;
+}
 .timeline-item::before {
   content: '';
   position: absolute;
@@ -315,4 +433,86 @@
   background: #667eea;
 }
 </style>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Handle checklist checkbox changes
+    const checklistCheckboxes = document.querySelectorAll('.checklist-checkbox');
+    
+    checklistCheckboxes.forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const itemId = this.dataset.itemId;
+            const isChecked = this.checked;
+            const checklistItem = this.closest('.checklist-view-item');
+            const textElement = checklistItem.querySelector('.checklist-text');
+            
+            // Update UI immediately
+            if (isChecked) {
+                textElement.classList.add('text-decoration-line-through', 'text-muted');
+            } else {
+                textElement.classList.remove('text-decoration-line-through', 'text-muted');
+            }
+            
+            // Send AJAX request to update server
+            fetch('{{ url_for("tasks.update_checklist_item", task_id=task.id) }}', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'X-CSRFToken': '{{ csrf_token() }}'
+                },
+                body: JSON.stringify({
+                    item_id: itemId,
+                    completed: isChecked
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // Update progress bar
+                    const progressBar = document.getElementById('completionProgressBar');
+                    const percentage = data.completion_percentage;
+                    
+                    progressBar.style.width = percentage + '%';
+                    progressBar.setAttribute('aria-valuenow', percentage);
+                    progressBar.querySelector('span').textContent = percentage + '% Complete';
+                    
+                    // Update completion counter
+                    const completedCount = data.completed_count;
+                    const totalCount = data.total_count;
+                    const counterText = document.querySelector('.text-muted');
+                    if (counterText) {
+                        counterText.innerHTML = `<i class="fas fa-check-circle me-1"></i>${completedCount} of ${totalCount} completed`;
+                    }
+                    
+                    // Update percentage display
+                    const percentageDisplay = document.querySelector('.text-success');
+                    if (percentageDisplay) {
+                        percentageDisplay.textContent = percentage + '%';
+                    }
+                } else {
+                    // Revert checkbox if server update failed
+                    checkbox.checked = !isChecked;
+                    if (!isChecked) {
+                        textElement.classList.add('text-decoration-line-through', 'text-muted');
+                    } else {
+                        textElement.classList.remove('text-decoration-line-through', 'text-muted');
+                    }
+                    alert('Failed to update checklist item. Please try again.');
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                // Revert checkbox on error
+                checkbox.checked = !isChecked;
+                if (!isChecked) {
+                    textElement.classList.add('text-decoration-line-through', 'text-muted');
+                } else {
+                    textElement.classList.remove('text-decoration-line-through', 'text-muted');
+                }
+                alert('Error updating checklist item. Please try again.');
+            });
+        });
+    });
+});
+</script>
 {% endblock %}

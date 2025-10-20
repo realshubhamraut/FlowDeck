@@ -12,6 +12,7 @@
                     <p class="text-muted text-center mb-4">Set up your organization and admin account</p>
                     
                     <form method="POST" action="{{ url_for('auth.register') }}">
+                        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
                         <!-- Organization Details -->
                         <h5 class="mb-3">Organization Details</h5>
                         

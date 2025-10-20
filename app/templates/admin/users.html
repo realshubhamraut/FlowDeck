@@ -311,6 +311,7 @@ body {
 
 <!-- Delete Confirmation Form (hidden) -->
 <form id="deleteForm" method="POST" style="display: none;">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token() }}">
 </form>
 
 <style>

@@ -8,47 +8,225 @@
 
 {% block extra_css %}
 <style>
+/* Modern Background with Gradient */
 body {
-    background: linear-gradient(135deg, #f0f4ff 0%, #fff5f7 50%, #f0fff4 100%);
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
+    position: relative;
 }
 
+body::before {
+    content: '';
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: 
+        radial-gradient(circle at 20% 50%, rgba(255, 255, 255, 0.1) 0%, transparent 50%),
+        radial-gradient(circle at 80% 80%, rgba(255, 255, 255, 0.1) 0%, transparent 50%);
+    pointer-events: none;
+    z-index: 0;
+}
+
+.container-fluid {
+    position: relative;
+    z-index: 1;
+}
+
+/* Glass Morphism Cards */
 .card {
-    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
-    backdrop-filter: blur(10px);
-    border: 1px solid rgba(255, 255, 255, 0.8);
-    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.08);
-    border-radius: 16px;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+    border-radius: 20px;
     transition: all 0.3s ease;
 }
 
 .card:hover {
-    transform: translateY(-4px);
+    transform: translateY(-5px);
+    box-shadow: 0 12px 40px rgba(0, 0, 0, 0.15);
+}
+
+/* Stat Cards */
+.stat-card {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    backdrop-filter: blur(10px);
+    border-radius: 16px;
+    padding: 1.5rem;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
     box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
 }
 
 .icon-shape {
-    background: linear-gradient(135deg, #6c7cdb, #8791e0) !important;
-    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+    width: 64px;
+    height: 64px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
 }
 
-.btn-primary, .btn-outline-primary:hover {
-    background: linear-gradient(135deg, #6c7cdb, #8791e0);
+.stat-card:hover .icon-shape {
+    transform: scale(1.1) rotate(5deg);
+}
+
+.stat-value {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.25rem;
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+
+.stat-label {
+    color: #6b7280;
+    font-size: 0.875rem;
+    font-weight: 500;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Gradient Classes */
+.gradient-primary { background: linear-gradient(135deg, #667eea, #764ba2); }
+.gradient-success { background: linear-gradient(135deg, #10b981, #059669); }
+.gradient-warning { background: linear-gradient(135deg, #f59e0b, #d97706); }
+.gradient-info { background: linear-gradient(135deg, #3b82f6, #2563eb); }
+.gradient-danger { background: linear-gradient(135deg, #ef4444, #dc2626); }
+
+/* Buttons */
+.btn-gradient {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     border: none;
-    box-shadow: 0 4px 12px rgba(108, 124, 219, 0.2);
+    color: white;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    font-weight: 600;
+    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    transition: all 0.3s ease;
 }
 
-.btn-outline-primary {
-    border: 2px solid #6c7cdb;
-    color: #6c7cdb;
+.btn-gradient:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.5);
+    color: white;
 }
 
+.btn-outline-modern {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid #667eea;
+    color: #667eea;
+    padding: 0.5rem 1rem;
+    border-radius: 10px;
+    font-weight: 600;
+    transition: all 0.3s ease;
+}
+
+.btn-outline-modern:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+}
+
+/* Table Styling */
 .table {
-    background: rgba(255, 255, 255, 0.6);
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 12px;
 }
 
 .table thead {
-    background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+}
+
+.table thead th {
+    border: none;
+    font-weight: 600;
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.5px;
+}
+
+.table tbody tr {
+    transition: all 0.2s;
+}
+
+.table tbody tr:hover {
+    background: rgba(102, 126, 234, 0.05);
+    transform: scale(1.01);
+}
+
+/* Quick Action Buttons */
+.quick-action-btn {
+    background: linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(255, 255, 255, 0.7));
+    border: 1px solid rgba(102, 126, 234, 0.2);
+    padding: 1rem;
+    border-radius: 12px;
+    text-decoration: none;
+    display: block;
+    transition: all 0.3s ease;
+    color: #1f2937;
+}
+
+.quick-action-btn:hover {
+    background: linear-gradient(135deg, #667eea, #764ba2);
+    color: white;
+    border-color: transparent;
+    transform: translateX(5px);
+}
+
+.quick-action-btn i {
+    width: 40px;
+    height: 40px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 10px;
+    margin-right: 0.75rem;
+    transition: all 0.3s ease;
+}
+
+/* Animations */
+@keyframes slideUp {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes float {
+    0%, 100% { transform: translate(0, 0); }
+    50% { transform: translate(-20px, -20px); }
+}
+
+.animate-slide-up {
+    animation: slideUp 0.6s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .stat-value {
+        font-size: 1.5rem;
+    }
+    
+    .icon-shape {
+        width: 50px;
+        height: 50px;
+    }
 }
 </style>
 {% endblock %}
@@ -62,80 +240,69 @@ body {
 {% set recent_users = recent_users|default([]) %}
 
 <div class="container-fluid py-4">
-    <div class="row mb-4">
-        <div class="col-12">
-            <h1 class="h3 mb-0">
-                <i class="fas fa-shield-alt text-primary"></i>
-                Admin Dashboard
-            </h1>
-            <p class="text-muted">Organisation management and overview</p>
+    <!-- Modern Header -->
+    <div class="card mb-4 animate-slide-up" style="animation-delay: 0.1s;">
+        <div class="card-body text-center p-4" style="background: linear-gradient(135deg, #667eea, #764ba2); color: white; border-radius: 20px; position: relative; overflow: hidden;">
+            <div class="position-absolute top-0 start-0 w-100 h-100" style="background: radial-gradient(circle at 30% 50%, rgba(255,255,255,0.1) 0%, transparent 70%); animation: float 6s ease-in-out infinite;"></div>
+            <div class="position-relative">
+                <h2 class="mb-1 fw-bold"><i class="fas fa-shield-alt me-2"></i>Admin Dashboard</h2>
+                <p class="mb-0 opacity-90">Organisation management and overview</p>
+            </div>
         </div>
     </div>
 
     <!-- Statistics Cards -->
     <div class="row mb-4">
         <!-- Total Users -->
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase mb-2">Total Users</h6>
-                            <h2 class="mb-0">{{ total_users }}</h2>
-                        </div>
-                        <div class="icon-shape bg-primary text-white rounded-circle p-3">
-                            <i class="fas fa-users fa-2x"></i>
-                        </div>
+        <div class="col-md-4 mb-3 animate-slide-up" style="animation-delay: 0.2s;">
+            <div class="stat-card" onclick="window.location.href='{{ url_for('admin.users') }}'">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-shape gradient-primary text-white">
+                        <i class="fas fa-users fa-2x"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-primary">
-                            Manage Users <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
+                </div>
+                <div class="stat-value">{{ total_users }}</div>
+                <div class="stat-label">Total Users</div>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-outline-modern">
+                        Manage Users <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Total Departments -->
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase mb-2">Departments</h6>
-                            <h2 class="mb-0">{{ total_departments }}</h2>
-                        </div>
-                        <div class="icon-shape bg-success text-white rounded-circle p-3">
-                            <i class="fas fa-building fa-2x"></i>
-                        </div>
+        <div class="col-md-4 mb-3 animate-slide-up" style="animation-delay: 0.3s;">
+            <div class="stat-card" onclick="window.location.href='{{ url_for('admin.departments') }}'">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-shape gradient-success text-white">
+                        <i class="fas fa-building fa-2x"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('admin.departments') }}" class="btn btn-sm btn-outline-success">
-                            Manage Departments <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
+                </div>
+                <div class="stat-value">{{ total_departments }}</div>
+                <div class="stat-label">Departments</div>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.departments') }}" class="btn btn-sm btn-outline-modern">
+                        Manage Departments <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
 
         <!-- Total Tasks -->
-        <div class="col-md-4 mb-3">
-            <div class="card border-0 shadow-sm h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h6 class="text-muted text-uppercase mb-2">Total Tasks</h6>
-                            <h2 class="mb-0">{{ total_tasks }}</h2>
-                        </div>
-                        <div class="icon-shape bg-info text-white rounded-circle p-3">
-                            <i class="fas fa-tasks fa-2x"></i>
-                        </div>
+        <div class="col-md-4 mb-3 animate-slide-up" style="animation-delay: 0.4s;">
+            <div class="stat-card" onclick="window.location.href='{{ url_for('admin.analytics') }}'">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <div class="icon-shape gradient-info text-white">
+                        <i class="fas fa-tasks fa-2x"></i>
                     </div>
-                    <div class="mt-3">
-                        <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-info">
-                            View Analytics <i class="fas fa-arrow-right ms-1"></i>
-                        </a>
-                    </div>
+                </div>
+                <div class="stat-value">{{ total_tasks }}</div>
+                <div class="stat-label">Total Tasks</div>
+                <div class="mt-3">
+                    <a href="{{ url_for('admin.analytics') }}" class="btn btn-sm btn-outline-modern">
+                        View Analytics <i class="fas fa-arrow-right ms-1"></i>
+                    </a>
                 </div>
             </div>
         </div>
@@ -224,34 +391,40 @@ body {
         </div>
 
         <!-- Quick Actions -->
-        <div class="col-lg-4 mb-4">
+        <div class="col-lg-4 mb-4 animate-slide-up" style="animation-delay: 0.7s;">
             <div class="card border-0 shadow-sm">
-                <div class="card-header bg-white border-bottom">
-                    <h5 class="mb-0">
-                        <i class="fas fa-bolt text-warning"></i>
-                        Quick Actions
-                    </h5>
-                </div>
                 <div class="card-body">
+                    <h5 class="mb-4 d-flex align-items-center">
+                        <i class="fas fa-bolt gradient-warning text-white me-2" style="width: 40px; height: 40px; display: inline-flex; align-items: center; justify-content: center; border-radius: 10px; font-size: 18px;"></i>
+                        <span>Quick Actions</span>
+                    </h5>
                     <div class="d-grid gap-2">
-                        <a href="{{ url_for('admin.create_user') }}" class="btn btn-outline-primary text-start">
-                            <i class="fas fa-user-plus me-2"></i>
+                        <a href="{{ url_for('admin.create_user') }}" class="quick-action-btn">
+                            <i class="fas fa-user-plus gradient-primary text-white"></i>
                             Add New User
                         </a>
-                        <a href="{{ url_for('admin.create_department') }}" class="btn btn-outline-success text-start">
-                            <i class="fas fa-building me-2"></i>
+                        <a href="{{ url_for('admin.create_department') }}" class="quick-action-btn">
+                            <i class="fas fa-building gradient-success text-white"></i>
                             Create Department
                         </a>
-                        <a href="{{ url_for('admin.organisation') }}" class="btn btn-outline-info text-start">
-                            <i class="fas fa-cog me-2"></i>
+                        <a href="{{ url_for('admin.leave_quotas') }}" class="quick-action-btn">
+                            <i class="fas fa-calendar-check gradient-success text-white"></i>
+                            Manage Leave Quotas
+                        </a>
+                        <a href="{{ url_for('admin.leave_requests') }}" class="quick-action-btn">
+                            <i class="fas fa-calendar-times gradient-warning text-white"></i>
+                            Leave Requests
+                        </a>
+                        <a href="{{ url_for('admin.organisation') }}" class="quick-action-btn">
+                            <i class="fas fa-cog gradient-info text-white"></i>
                             Organisation Settings
                         </a>
-                        <a href="{{ url_for('admin.roles') }}" class="btn btn-outline-secondary text-start">
-                            <i class="fas fa-user-shield me-2"></i>
+                        <a href="{{ url_for('admin.roles') }}" class="quick-action-btn">
+                            <i class="fas fa-user-shield gradient-danger text-white"></i>
                             Manage Roles
                         </a>
-                        <a href="{{ url_for('admin.analytics') }}" class="btn btn-outline-dark text-start">
-                            <i class="fas fa-chart-line me-2"></i>
+                        <a href="{{ url_for('admin.analytics') }}" class="quick-action-btn">
+                            <i class="fas fa-chart-line gradient-warning text-white"></i>
                             View Analytics
                         </a>
                     </div>

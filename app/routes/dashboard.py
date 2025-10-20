@@ -169,6 +169,9 @@ def calendar():
 @login_required
 def calendar_events():
     """Get calendar events (AJAX endpoint)"""
+    import requests
+    from flask import current_app
+    
     start_param = request.args.get('start')
     end_param = request.args.get('end')
 
@@ -206,70 +209,82 @@ def calendar_events():
     ).all()
     
     # Build tasks list for response
-    tasks_list = []
+    events = []
     for task in tasks:
         # Use due_date for display (more important than start_date for tasks)
         task_date = task.due_date if task.due_date else task.start_date
         if task_date:
-            tasks_list.append({
+            events.append({
                 'id': task.id,
                 'title': task.title,
+                'start': task.start_date.isoformat() if task.start_date else task_date.isoformat(),
+                'end': task_date.isoformat(),
                 'due_date': task_date.isoformat(),
-                'start_date': task.start_date.isoformat() if task.start_date else None,
                 'priority': task.priority,
                 'status': task.status,
-                'description': task.description[:100] if task.description else ''
+                'url': f'/tasks/view/{task.id}',
+                'backgroundColor': {
+                    'urgent': '#dc3545',
+                    'high': '#fd7e14',
+                    'medium': '#ffc107',
+                    'low': '#28a745'
+                }.get(task.priority, '#6c757d'),
+                'borderColor': {
+                    'urgent': '#dc3545',
+                    'high': '#fd7e14',
+                    'medium': '#ffc107',
+                    'low': '#28a745'
+                }.get(task.priority, '#6c757d'),
+                'classNames': ['task-event'],
+                'extendedProps': {
+                    'type': 'task'
+                }
             })
     
-    # Get holidays
-    from app.models import Holiday
-    holidays = Holiday.query.filter(
-        and_(
-            Holiday.date >= start.date() if hasattr(start, 'date') else start,
-            Holiday.date <= end.date() if hasattr(end, 'date') else end,
-            Holiday.is_active == True
-        )
-    ).all()
-    
-    holidays_list = []
-    for holiday in holidays:
-        holidays_list.append({
-            'id': holiday.id,
-            'name': holiday.name,
-            'date': holiday.date.isoformat(),
-            'description': holiday.description or ''
-        })
-    
-    # Get leave requests (if LeaveRequest model exists)
-    leaves_list = []
+    # Fetch holidays from Calendarific API (free tier)
     try:
-        from app.models import LeaveRequest
-        leaves = LeaveRequest.query.filter(
-            and_(
-                LeaveRequest.user_id == current_user.id,
-                LeaveRequest.start_date <= end,
-                LeaveRequest.end_date >= start
-            )
-        ).all()
+        # Get API key from environment or config
+        api_key = current_app.config.get('CALENDARIFIC_API_KEY', '6TJzcgLLBWlS4TsrNJ6u0HMiVaF8QPRM')
+        year = start.year
+        country = current_app.config.get('COUNTRY_CODE', 'US')  # Default to US
         
-        for leave in leaves:
-            leaves_list.append({
-                'id': leave.id,
-                'type': leave.leave_type if hasattr(leave, 'leave_type') else 'Leave',
-                'start_date': leave.start_date.isoformat(),
-                'end_date': leave.end_date.isoformat(),
-                'status': leave.status,
-                'reason': leave.reason if hasattr(leave, 'reason') else ''
-            })
-    except ImportError:
-        # LeaveRequest model doesn't exist yet
-        pass
+        # Only fetch if we have an API key
+        if api_key and api_key != 'your_calendarific_api_key_here':
+            holidays_url = f'https://calendarific.com/api/v2/holidays?api_key={api_key}&country={country}&year={year}'
+            response = requests.get(holidays_url, timeout=5)
+            
+            if response.status_code == 200:
+                data = response.json()
+                if data.get('meta', {}).get('code') == 200:
+                    holidays = data.get('response', {}).get('holidays', [])
+                    
+                    for holiday in holidays:
+                        holiday_date = holiday.get('date', {}).get('iso')
+                        if holiday_date:
+                            holiday_dt = datetime.fromisoformat(holiday_date)
+                            # Only include if within the requested date range
+                            if start <= holiday_dt <= end:
+                                events.append({
+                                    'id': f'holiday_{holiday.get("name", "").replace(" ", "_")}',
+                                    'title': f'🎉 {holiday.get("name", "Holiday")}',
+                                    'start': holiday_date,
+                                    'allDay': True,
+                                    'backgroundColor': '#e3f2fd',
+                                    'borderColor': '#2196f3',
+                                    'textColor': '#1976d2',
+                                    'classNames': ['holiday-event'],
+                                    'extendedProps': {
+                                        'type': 'holiday',
+                                        'description': holiday.get('description', ''),
+                                        'country': holiday.get('country', {}).get('name', ''),
+                                        'types': holiday.get('type', [])
+                                    }
+                                })
+    except Exception as e:
+        # Silently fail - don't break calendar if holiday API fails
+        print(f"Failed to fetch holidays: {str(e)}")
     
-    return jsonify({
-        'tasks': tasks_list,
-        'holidays': holidays_list,
-        'leaves': leaves_list
-    })
+    return jsonify(events)
 
 
 @bp.route('/notifications')
