@@ -1,57 +1,71 @@
 # FlowDeck
 
-**A Complete Production-Level Organization Workflow Management System**
+A Complete Production-Level Organization Workflow Management System
 
 FlowDeck is a modern, scalable web application built with Flask and SQLite, designed for comprehensive organization workflow management, real-time communication, and productivity tracking.
 
 ---
 
-## 🚀 Features
+## Features
 
-### 👑 Admin Panel
-- **Organisation Management**: Create and customize organizations with logo, color themes, and settings
-- **User Management**: Create users, assign roles (Admin/Manager/Employee), manage departments
-- **RBAC**: Role-Based Access Control with granular permissions
-- **Department Management**: Create teams with dedicated chat channels and Kanban boards
-- **Analytics Dashboard**: Organization-wide insights, team efficiency, productivity metrics
+### Admin Panel
+- Organisation Management: Create and customize organizations with logo, color themes, and settings
+- User Management: Create users, assign roles (Admin/Manager/Employee), manage departments
+- RBAC: Role-Based Access Control with granular permissions
+- Department Management: Create teams with dedicated chat channels and Kanban boards
+- Analytics Dashboard: Organization-wide insights, team efficiency, productivity metrics
+- Leave Quota Management: Set and manage leave quotas for users
 
-### 👥 User Features
-- **Personalized Dashboard**: Overview of tasks, notifications, messages, and analytics
-- **Task Management**:
-  - Kanban board (Trello-like drag-and-drop)
-  - Calendar view with Google Calendar sync
-  - AI-powered task card generation
-  - Task priorities, deliverables, time tracking
-  - Comments, attachments, and history
-- **Real-time Chat**:
+### User Features
+- Personalized Dashboard: Overview of tasks, notifications, messages, and analytics
+- Task Management:
+  - Kanban board with drag-and-drop functionality
+  - Calendar view with task scheduling
+  - Rich text editor for task descriptions
+  - Task priorities with color-coded urgency indicators (overdue, due today, due this week)
+  - Interactive checklists with progress tracking
+  - File attachments with drag-and-drop upload
+  - Comments, time tracking, and complete history
+  - Task tags and assignee management
+- Meeting Management:
+  - Create and schedule meetings with multiple attendees
+  - Meeting types: General, Standup, Review, Planning, Client, One-on-One
+  - Structured agenda items with duration tracking
+  - RSVP tracking (Accepted, Declined, Tentative, Pending)
+  - Virtual meeting links and physical location support
+  - Meeting notes and file attachments
+  - Recurring meeting support
+  - Priority levels and privacy settings
+  - Integration with tasks and departments
+- Real-time Chat:
   - Direct messaging and group channels
   - Typing indicators and online/offline status
   - File sharing and emoji support
   - Send task cards in chat
-- **Time Tracking**: Built-in timers and productivity reports
-- **Leave Management**: Request and approve leaves
-- **Notifications**: Real-time in-app and email notifications
+- Time Tracking: Built-in timers and productivity reports
+- Leave Management: Request and approve leaves with quota tracking
+- Notifications: Real-time in-app and email notifications
 
-### 🤖 AI Integration
+### AI Integration
 - Smart task card generation from prompts
 - Auto-prioritization based on context
 - Meeting notes to action items extraction
 - Text summarization
 
-### 📊 Analytics & Reports
-- Weekly/monthly productivity reports
+### Analytics and Reports
+- Weekly and monthly productivity reports
 - Department efficiency metrics
 - User performance tracking
-- Export to CSV/PDF
+- Export to CSV and PDF
 
-### 📅 Calendar & Holidays
-- Integrated calendar with task due dates
-- Indian Holidays API integration
+### Calendar and Holidays
+- Integrated calendar with task due dates and meetings
+- Holiday calendar integration
 - Leave request tracking
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Backend**: Flask 3.0
   - Blueprints for modular architecture
@@ -83,7 +97,7 @@ FlowDeck is a modern, scalable web application built with Flask and SQLite, desi
 
 ---
 
-## 📁 Project Structure
+## Project Structure
 
 ```
 FlowDeck/
@@ -94,7 +108,8 @@ FlowDeck/
 │   │   ├── user.py              # User, Organisation, Department, Role, Tag
 │   │   ├── task.py              # Task, Comments, Attachments, TimeLog
 │   │   ├── messaging.py         # Message, ChatChannel, Notification
-│   │   └── analytics.py         # Analytics, Holidays, Leaves, AuditLog
+│   │   ├── analytics.py         # Analytics, Holidays, Leaves, AuditLog
+│   │   └── meeting.py           # Meeting, Agenda, Notes, Attachments
 │   ├── routes/                  # Blueprint routes
 │   │   ├── __init__.py
 │   │   ├── auth.py              # Authentication
@@ -104,6 +119,7 @@ FlowDeck/
 │   │   ├── tasks.py             # Task management
 │   │   ├── chat.py              # Messaging
 │   │   ├── dashboard.py         # User dashboard
+│   │   ├── meetings.py          # Meeting management
 │   │   └── api.py               # REST API
 │   ├── sockets/                 # Socket.IO events
 │   │   ├── __init__.py
@@ -123,12 +139,14 @@ FlowDeck/
 │   │   ├── user/
 │   │   ├── tasks/
 │   │   ├── chat/
+│   │   ├── meetings/
 │   │   └── dashboard/
 │   └── static/                  # Static files
 │       ├── css/
 │       ├── js/
 │       └── uploads/
 ├── run.py                       # Application entry point
+├── init_complete_database.py    # Database initialization script
 ├── requirements.txt             # Python dependencies
 ├── .env.example                 # Environment variables template
 └── README.md                    # This file
@@ -136,7 +154,7 @@ FlowDeck/
 
 ---
 
-## 🚀 Installation & Setup
+## Installation and Setup
 
 ### Prerequisites
 - Python 3.9+
@@ -181,17 +199,18 @@ The application will be available at `http://localhost:5000`
 
 ---
 
-## 🔑 Default Login Credentials
+## Default Login Credentials
 
 After seeding the database:
-- **Email**: admin@flowdeck.org
-- **Password**: admin123
 
-⚠️ **Change this password immediately in production!**
+- Email: admin@flowdeck.org
+- Password: admin123
+
+WARNING: Change this password immediately in production!
 
 ---
 
-## 📝 Environment Variables
+## Environment Variables
 
 Create a `.env` file with the following variables:
 
@@ -220,49 +239,62 @@ APP_URL=http://localhost:5000
 
 ---
 
-## 🗄️ Database Schema
+## Database Schema
 
 The database uses SQLite with a fully normalized schema (3NF):
 
 ### Core Tables
-- `organisations` - Organisation details
-- `departments` - Teams/departments
-- `users` - User accounts
-- `roles` - User roles (Admin, Manager, Employee)
-- `tags` - User and task tags
+
+- organisations - Organisation details
+- departments - Teams and departments
+- users - User accounts
+- roles - User roles (Admin, Manager, Employee)
+- tags - User and task tags
 
 ### Task Management
-- `tasks` - Task details
-- `task_comments` - Task comments
-- `task_attachments` - File attachments
-- `task_assignees` - Task-user assignments (many-to-many)
-- `time_logs` - Time tracking
-- `task_history` - Audit trail
+
+- tasks - Task details
+- task_comments - Task comments
+- task_attachments - File attachments
+- task_assignees - Task-user assignments (many-to-many)
+- time_logs - Time tracking
+- task_history - Audit trail
 
 ### Communication
-- `messages` - Chat messages
-- `chat_channels` - Group chat channels
-- `channel_members` - Channel memberships
-- `notifications` - User notifications
-- `online_status` - Real-time online status
 
-### Analytics & Admin
-- `analytics_reports` - Generated reports
-- `holidays` - Holiday calendar
-- `leave_requests` - Leave management
-- `audit_logs` - System audit trail
-- `system_settings` - Configuration
-- `email_templates` - Email templates
+- messages - Chat messages
+- chat_channels - Group chat channels
+- channel_members - Channel memberships
+- notifications - User notifications
+- online_status - Real-time online status
+
+### Meeting Management
+
+- meetings - Meeting details
+- meeting_attendees - Meeting participants with RSVP status
+- meeting_agenda - Structured agenda items
+- meeting_notes - Meeting notes
+- meeting_attachments - Meeting file attachments
+
+### Analytics and Admin
+
+- analytics_reports - Generated reports
+- holidays - Holiday calendar
+- leave_requests - Leave management
+- audit_logs - System audit trail
+- system_settings - Configuration
+- email_templates - Email templates
 
 ### Database Views
-- `user_productivity_summary` - User performance metrics
-- `department_efficiency` - Department statistics
-- `task_overview` - Comprehensive task view
-- `recent_activity` - Activity feed
+
+- user_productivity_summary - User performance metrics
+- department_efficiency - Department statistics
+- task_overview - Comprehensive task view
+- recent_activity - Activity feed
 
 ---
 
-## 🔧 CLI Commands
+## CLI Commands
 
 ```bash
 # Initialize database
@@ -277,30 +309,35 @@ python run.py create-admin
 
 ---
 
-## 🌐 API Endpoints
+## API Endpoints
 
 ### Public Endpoints
-- `GET /` - Landing page
-- `POST /auth/login` - User login
-- `POST /auth/logout` - User logout
+
+- GET / - Landing page
+- POST /auth/login - User login
+- POST /auth/logout - User logout
 
 ### Protected Endpoints (Require Authentication)
-- `GET /dashboard` - User dashboard
-- `GET /tasks` - List tasks
-- `POST /tasks/create` - Create task
-- `GET /chat` - Chat interface
-- `POST /chat/send` - Send message
-- `GET /api/v1/tasks` - Tasks API
-- `GET /api/v1/notifications` - Notifications API
+
+- GET /dashboard - User dashboard
+- GET /tasks - List tasks
+- POST /tasks/create - Create task
+- GET /meetings - List meetings
+- POST /meetings/create - Create meeting
+- GET /chat - Chat interface
+- POST /chat/send - Send message
+- GET /api/v1/tasks - Tasks API
+- GET /api/v1/notifications - Notifications API
 
 ### Admin Endpoints (Require Admin Role)
-- `GET /admin` - Admin dashboard
-- `POST /admin/users/create` - Create user
-- `GET /admin/analytics` - Organization analytics
+
+- GET /admin - Admin dashboard
+- POST /admin/users/create - Create user
+- GET /admin/analytics - Organization analytics
 
 ---
 
-## 🔐 Security Features
+## Security Features
 
 - Password hashing with Werkzeug
 - CSRF protection
@@ -313,9 +350,10 @@ python run.py create-admin
 
 ---
 
-## 📱 Progressive Web App (PWA) Ready
+## Progressive Web App (PWA) Ready
 
 FlowDeck is designed to be installable as a PWA with:
+
 - Responsive design
 - Offline capability (can be extended)
 - Mobile-friendly interface
@@ -323,11 +361,12 @@ FlowDeck is designed to be installable as a PWA with:
 
 ---
 
-## 🚀 Deployment
+## Deployment
 
 ### Production Checklist
-1. Change `SECRET_KEY` and all default passwords
-2. Set `FLASK_ENV=production`
+
+1. Change SECRET_KEY and all default passwords
+2. Set FLASK_ENV=production
 3. Use production-grade database (PostgreSQL/MySQL)
 4. Enable HTTPS
 5. Configure email service (SendGrid recommended)
@@ -338,8 +377,8 @@ FlowDeck is designed to be installable as a PWA with:
 10. Configure firewall
 
 ### Docker Deployment (Optional)
+
 ```dockerfile
-# Dockerfile example
 FROM python:3.9-slim
 WORKDIR /app
 COPY requirements.txt .
@@ -349,14 +388,15 @@ CMD ["gunicorn", "--bind", "0.0.0.0:5000", "--workers", "4", "run:app"]
 ```
 
 ### Cloud Platforms
-- **AWS**: EC2, RDS, S3
-- **Render**: Easy deployment
-- **Railway**: Simple setup
-- **Heroku**: Quick deployment
+
+- AWS: EC2, RDS, S3
+- Render: Easy deployment
+- Railway: Simple setup
+- Heroku: Quick deployment
 
 ---
 
-## 🧪 Testing
+## Testing
 
 ```bash
 # Run tests (to be implemented)
@@ -368,7 +408,7 @@ pytest --cov=app
 
 ---
 
-## 📊 Performance Optimization
+## Performance Optimization
 
 - Database indexing on frequently queried fields
 - Query optimization with SQLAlchemy
@@ -380,9 +420,10 @@ pytest --cov=app
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 Contributions are welcome! Please follow these steps:
+
 1. Fork the repository
 2. Create a feature branch
 3. Make your changes
@@ -391,42 +432,43 @@ Contributions are welcome! Please follow these steps:
 
 ---
 
-## 📄 License
+## License
 
 This project is licensed under the MIT License.
 
 ---
 
-## 👨‍💻 Author
+## Author
 
 Developed by PROXIM
 
 ---
 
-## 📞 Support
+## Support
 
 For issues, questions, or feature requests:
+
 - Create an issue on GitHub
 - Email: support@flowdeck.org
 
 ---
 
-## 🎯 Roadmap
+## Roadmap
 
-- [ ] Mobile applications (React Native)
-- [ ] Advanced AI features
-- [ ] Video conferencing integration
-- [ ] Advanced reporting with charts
-- [ ] Multi-language support
-- [ ] Third-party integrations (Slack, Jira, etc.)
-- [ ] Advanced file preview
-- [ ] Custom workflows
-- [ ] API rate limiting
-- [ ] Comprehensive test suite
+- Mobile applications (React Native)
+- Advanced AI features
+- Video conferencing integration
+- Advanced reporting with charts
+- Multi-language support
+- Third-party integrations (Slack, Jira, etc.)
+- Advanced file preview
+- Custom workflows
+- API rate limiting
+- Comprehensive test suite
 
 ---
 
-## 🙏 Acknowledgments
+## Acknowledgments
 
 - Flask community
 - Bootstrap team
@@ -437,4 +479,5 @@ For issues, questions, or feature requests:
 
 ---
 
-**FlowDeck** - Streamline Your Workflow 🚀
+FlowDeck - Streamline Your Workflow
+
