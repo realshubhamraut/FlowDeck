@@ -205,61 +205,71 @@ def calendar_events():
         )
     ).all()
     
-    events = []
+    # Build tasks list for response
+    tasks_list = []
     for task in tasks:
-        # Color based on priority
-        color = {
-            'urgent': '#dc3545',
-            'high': '#fd7e14',
-            'medium': '#ffc107',
-            'low': '#198754'
-        }.get(task.priority, '#6c757d')
-        
-        # If task has status done, make it green
-        if task.status == 'done':
-            color = '#198754'
-        elif task.status == 'in_progress':
-            color = '#0dcaf0'
-        
-        # Use start_date and due_date for proper date range
-        task_start = task.start_date if task.start_date else task.due_date
-        task_end = task.due_date if task.due_date else task.start_date
-        
-        events.append({
-            'id': task.id,
-            'title': f"[{task.status.replace('_', ' ').title()}] {task.title}",
-            'start': task_start.isoformat() if task_start else None,
-            'end': task_end.isoformat() if task_end else None,
-            'color': color,
-            'url': f'/tasks/{task.id}',
-            'extendedProps': {
-                'status': task.status,
+        # Use due_date for display (more important than start_date for tasks)
+        task_date = task.due_date if task.due_date else task.start_date
+        if task_date:
+            tasks_list.append({
+                'id': task.id,
+                'title': task.title,
+                'due_date': task_date.isoformat(),
+                'start_date': task.start_date.isoformat() if task.start_date else None,
                 'priority': task.priority,
+                'status': task.status,
                 'description': task.description[:100] if task.description else ''
-            }
-        })
+            })
     
-    # Add holidays
+    # Get holidays
     from app.models import Holiday
     holidays = Holiday.query.filter(
         and_(
-            Holiday.date >= start,
-            Holiday.date <= end,
+            Holiday.date >= start.date() if hasattr(start, 'date') else start,
+            Holiday.date <= end.date() if hasattr(end, 'date') else end,
             Holiday.is_active == True
         )
     ).all()
     
+    holidays_list = []
     for holiday in holidays:
-        events.append({
-            'id': f'holiday-{holiday.id}',
-            'title': f'🎉 {holiday.name}',
-            'start': holiday.date.isoformat(),
-            'end': holiday.date.isoformat(),
-            'color': '#27ae60',
-            'allDay': True
+        holidays_list.append({
+            'id': holiday.id,
+            'name': holiday.name,
+            'date': holiday.date.isoformat(),
+            'description': holiday.description or ''
         })
     
-    return jsonify(events)
+    # Get leave requests (if LeaveRequest model exists)
+    leaves_list = []
+    try:
+        from app.models import LeaveRequest
+        leaves = LeaveRequest.query.filter(
+            and_(
+                LeaveRequest.user_id == current_user.id,
+                LeaveRequest.start_date <= end,
+                LeaveRequest.end_date >= start
+            )
+        ).all()
+        
+        for leave in leaves:
+            leaves_list.append({
+                'id': leave.id,
+                'type': leave.leave_type if hasattr(leave, 'leave_type') else 'Leave',
+                'start_date': leave.start_date.isoformat(),
+                'end_date': leave.end_date.isoformat(),
+                'status': leave.status,
+                'reason': leave.reason if hasattr(leave, 'reason') else ''
+            })
+    except ImportError:
+        # LeaveRequest model doesn't exist yet
+        pass
+    
+    return jsonify({
+        'tasks': tasks_list,
+        'holidays': holidays_list,
+        'leaves': leaves_list
+    })
 
 
 @bp.route('/notifications')

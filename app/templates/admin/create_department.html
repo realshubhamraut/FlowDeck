@@ -123,4 +123,64 @@
         </div>
     </div>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize Select2 for department template dropdown
+    if (typeof $.fn.select2 !== 'undefined') {
+        $('#department_template').select2({
+            placeholder: '-- Or choose from common departments --',
+            allowClear: true,
+            width: '100%',
+            theme: 'bootstrap-5'
+        });
+    }
+    
+    // When a template is selected, populate the name field
+    document.getElementById('department_template').addEventListener('change', function() {
+        const selectedValue = this.value;
+        if (selectedValue) {
+            document.getElementById('name').value = selectedValue;
+            
+            // Auto-fill descriptions based on department type
+            const descriptions = {
+                'Engineering': 'Responsible for software development, architecture, and technical implementation.',
+                'IT & Infrastructure': 'Manages IT systems, network infrastructure, and technical support.',
+                'DevOps': 'Handles deployment, continuous integration, and infrastructure automation.',
+                'Quality Assurance': 'Ensures product quality through testing and quality control processes.',
+                'Product Management': 'Defines product strategy, roadmap, and feature prioritization.',
+                'Data Science': 'Analyzes data, builds models, and provides data-driven insights.',
+                'Information Security': 'Protects organizational data and manages security policies.',
+                'Technical Support': 'Provides technical assistance and troubleshooting to customers.',
+                'Sales': 'Drives revenue through customer acquisition and relationship management.',
+                'Marketing': 'Promotes products and manages brand awareness and campaigns.',
+                'Business Development': 'Identifies growth opportunities and strategic partnerships.',
+                'Customer Success': 'Ensures customer satisfaction and manages ongoing relationships.',
+                'Operations': 'Manages day-to-day business operations and process optimization.',
+                'Strategy': 'Develops organizational strategy and long-term planning.',
+                'Human Resources': 'Manages recruitment, employee relations, and organizational development.',
+                'Finance': 'Handles financial planning, analysis, and reporting.',
+                'Accounting': 'Manages financial records, transactions, and compliance.',
+                'Legal': 'Provides legal counsel and manages contracts and compliance.',
+                'Administration': 'Supports general administrative functions and office management.',
+                'Facilities': 'Manages physical workspace and facilities maintenance.',
+                'Design': 'Creates visual designs and brand identity.',
+                'User Experience (UX)': 'Designs user interfaces and improves user experience.',
+                'Creative Services': 'Produces creative content and marketing materials.',
+                'Content': 'Creates and manages written, video, and multimedia content.',
+                'Executive Team': 'Provides strategic leadership and organizational direction.',
+                'Management': 'Oversees team operations and ensures organizational goals are met.',
+                'Board of Directors': 'Provides governance and strategic oversight.'
+            };
+            
+            if (descriptions[selectedValue]) {
+                document.getElementById('description').value = descriptions[selectedValue];
+            }
+            
+            // Focus on description field for customization
+            document.getElementById('description').focus();
+        }
+    });
+});
+</script>
 {% endblock %}

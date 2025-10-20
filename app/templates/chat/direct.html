@@ -224,8 +224,13 @@ document.addEventListener('DOMContentLoaded', function() {
     }
     
     // Send message via AJAX
+    const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+    
     fetch('{{ url_for("chat.send_message") }}', {
       method: 'POST',
+      headers: {
+        'X-CSRFToken': csrfToken
+      },
       body: formData
     })
     .then(response => response.json())

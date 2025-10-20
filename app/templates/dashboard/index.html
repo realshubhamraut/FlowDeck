@@ -1541,10 +1541,14 @@ document.addEventListener('DOMContentLoaded', () => {
     });
     
     function updateKanbanTaskStatus(taskId, newStatus, oldStatus, card, oldColumn) {
+        // Get CSRF token
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
         fetch(`/tasks/${taskId}/update-status`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ status: newStatus })
         })

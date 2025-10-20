@@ -567,46 +567,6 @@ def add_time_log(task_id):
     return redirect(url_for('tasks.view_task', task_id=task_id))
 
 
-@bp.route('/<int:task_id>/update-status', methods=['POST'])
-@login_required
-def update_task_status(task_id):
-    """Update task status (AJAX endpoint for kanban drag-and-drop)"""
-    task = Task.query.get_or_404(task_id)
-    
-    # Check permission
-    if not can_edit_task(task):
-        return jsonify({'success': False, 'error': 'Permission denied'}), 403
-    
-    data = request.get_json()
-    new_status = data.get('status')
-    
-    if new_status not in ['todo', 'in_progress', 'done']:
-        return jsonify({'success': False, 'error': 'Invalid status'}), 400
-    
-    old_status = task.status
-    task.status = new_status
-    
-    # Log history
-    from app.models import TaskHistory
-    history = TaskHistory(
-        task_id=task.id,
-        user_id=current_user.id,
-        action='status_changed',
-        field_changed='status',
-        old_value=old_status,
-        new_value=new_status
-    )
-    db.session.add(history)
-    db.session.commit()
-    
-    return jsonify({
-        'success': True,
-        'task_id': task.id,
-        'old_status': old_status,
-        'new_status': new_status
-    })
-
-
 # Helper functions
 def can_access_task(task):
     """Check if user can access task"""

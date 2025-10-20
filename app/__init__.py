@@ -9,6 +9,7 @@ from flask_login import LoginManager
 from flask_mail import Mail
 from flask_socketio import SocketIO
 from flask_migrate import Migrate
+from flask_wtf.csrf import CSRFProtect
 from dotenv import load_dotenv
 import os
 from datetime import timedelta
@@ -22,6 +23,7 @@ login_manager = LoginManager()
 mail = Mail()
 socketio = SocketIO(cors_allowed_origins="*", async_mode='threading')
 migrate = Migrate()
+csrf = CSRFProtect()
 
 def create_app(config_name='development'):
     """Application factory pattern"""
@@ -68,6 +70,7 @@ def create_app(config_name='development'):
     mail.init_app(app)
     socketio.init_app(app)
     migrate.init_app(app, db)
+    csrf.init_app(app)
     
     # Login manager configuration
     login_manager.login_view = 'auth.login'

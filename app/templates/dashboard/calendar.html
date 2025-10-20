@@ -27,24 +27,225 @@ body {
     border-bottom: 1px solid rgba(255, 255, 255, 0.5) !important;
 }
 
+/* Google Calendar-like styling */
 #calendar {
-    background: transparent;
+    background: white;
+    border-radius: 12px;
+    padding: 20px;
+    font-family: 'Roboto', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 }
 
-.fc-event {
-    border-radius: 8px;
-    padding: 2px 6px;
-    border: none;
+/* Toolbar styling */
+.fc-toolbar {
+    margin-bottom: 1.5em !important;
 }
 
 .fc-toolbar-title {
-    color: #2d3748;
-    font-weight: 600;
+    color: #3c4043;
+    font-weight: 400;
+    font-size: 1.375rem;
+}
+
+.fc-button {
+    background-color: transparent !important;
+    border: 1px solid #dadce0 !important;
+    color: #3c4043 !important;
+    font-weight: 500 !important;
+    text-transform: capitalize !important;
+    padding: 6px 16px !important;
+    border-radius: 4px !important;
+    transition: all 0.2s !important;
+}
+
+.fc-button:hover {
+    background-color: #f8f9fa !important;
+    border-color: #dadce0 !important;
+}
+
+.fc-button-active {
+    background-color: #1a73e8 !important;
+    color: white !important;
+    border-color: #1a73e8 !important;
+}
+
+.fc-button-primary:not(:disabled):active,
+.fc-button-primary:not(:disabled).fc-button-active {
+    background-color: #1a73e8 !important;
+    border-color: #1a73e8 !important;
+}
+
+/* Day grid styling */
+.fc-daygrid-day {
+    transition: background-color 0.2s;
+}
+
+.fc-daygrid-day:hover {
+    background-color: #f8f9fa;
+}
+
+.fc-daygrid-day-number {
+    color: #3c4043;
+    font-size: 0.875rem;
+    padding: 8px;
+}
+
+.fc-day-today {
+    background-color: #e8f0fe !important;
+}
+
+.fc-day-today .fc-daygrid-day-number {
+    background-color: #1a73e8;
+    color: white;
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* Time grid styling (day/week view) */
+.fc-timegrid-slot {
+    height: 48px !important;
+}
+
+.fc-timegrid-slot-label {
+    color: #70757a;
+    font-size: 0.75rem;
+    border: none !important;
+}
+
+.fc-timegrid-axis {
+    border: none !important;
+}
+
+.fc-timegrid-divider {
+    display: none;
+}
+
+.fc-timegrid-col {
+    border-right: 1px solid #e0e0e0 !important;
+}
+
+.fc-col-header-cell {
+    border: none !important;
+    padding: 16px 0 !important;
+}
+
+.fc-col-header-cell-cushion {
+    color: #70757a;
+    font-weight: 500;
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* Event styling */
+.fc-event {
+    border-radius: 4px !important;
+    border: none !important;
+    padding: 4px 8px !important;
+    font-size: 0.75rem !important;
+    font-weight: 500 !important;
+    cursor: pointer !important;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.12) !important;
+    transition: all 0.2s !important;
+}
+
+.fc-event:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.18) !important;
+    transform: translateY(-1px);
+}
+
+.fc-event-title {
+    font-weight: 500;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.fc-event-time {
+    font-size: 0.6875rem;
+    opacity: 0.9;
+}
+
+/* Day view time events */
+.fc-timegrid-event {
+    border-radius: 4px !important;
+}
+
+.fc-timegrid-event-harness {
+    margin-right: 2px !important;
+}
+
+/* Background events (holidays) */
+.fc-bg-event {
+    opacity: 0.15 !important;
+    border-radius: 0 !important;
+}
+
+.holiday-event {
+    opacity: 0.2 !important;
+}
+
+/* Now indicator (current time line) */
+.fc-timegrid-now-indicator-line {
+    border-color: #ea4335 !important;
+    border-width: 2px !important;
+}
+
+.fc-timegrid-now-indicator-arrow {
+    border-color: #ea4335 !important;
+}
+
+/* List view styling */
+.fc-list-event {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.fc-list-event:hover {
+    background-color: #f8f9fa !important;
+}
+
+.fc-list-event-dot {
+    border-radius: 50% !important;
+}
+
+/* Scrollbar styling */
+.fc-scroller::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+.fc-scroller::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 4px;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 4px;
+}
+
+.fc-scroller::-webkit-scrollbar-thumb:hover {
+    background: #a1a1a1;
 }
 
 .form-check-input:checked {
-    background-color: #6c7cdb;
-    border-color: #6c7cdb;
+    background-color: #1a73e8;
+    border-color: #1a73e8;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .fc-toolbar {
+        flex-direction: column;
+        align-items: flex-start !important;
+    }
+    
+    .fc-toolbar-chunk {
+        margin-bottom: 10px;
+    }
 }
 </style>
 {% endblock %}
@@ -185,6 +386,49 @@ document.addEventListener('DOMContentLoaded', function() {
             center: 'title',
             right: 'dayGridMonth,timeGridWeek,timeGridDay,listWeek'
         },
+        // Time configuration
+        slotMinTime: '06:00:00',
+        slotMaxTime: '22:00:00',
+        slotDuration: '00:30:00',
+        scrollTime: '08:00:00',
+        
+        // Display configuration
+        nowIndicator: true,
+        eventDisplay: 'auto',
+        displayEventTime: true,
+        displayEventEnd: false,
+        
+        // Height configuration
+        height: 'auto',
+        contentHeight: 'auto',
+        aspectRatio: 1.8,
+        
+        // Event styling
+        eventTimeFormat: {
+            hour: '2-digit',
+            minute: '2-digit',
+            meridiem: 'short'
+        },
+        
+        // Day view specific settings
+        views: {
+            timeGridDay: {
+                titleFormat: { year: 'numeric', month: 'long', day: 'numeric', weekday: 'long' },
+                slotLabelFormat: {
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    meridiem: 'short'
+                }
+            },
+            timeGridWeek: {
+                titleFormat: { year: 'numeric', month: 'short', day: 'numeric' },
+                dayHeaderFormat: { weekday: 'short', day: 'numeric' }
+            },
+            dayGridMonth: {
+                titleFormat: { year: 'numeric', month: 'long' }
+            }
+        },
+        
         events: function(info, successCallback, failureCallback) {
             fetch('{{ url_for("dashboard.calendar_events") }}')
                 .then(response => response.json())
@@ -201,19 +445,34 @@ document.addEventListener('DOMContentLoaded', function() {
                                 'low': '#198754'
                             };
                             
-                            events.push({
+                            // Parse the due date
+                            let taskDate = new Date(task.due_date);
+                            
+                            // Create event object
+                            const event = {
                                 id: 'task-' + task.id,
-                                title: task.title,
+                                title: '📋 ' + task.title,
                                 start: task.due_date,
                                 backgroundColor: priorityColors[task.priority] || '#6c757d',
                                 borderColor: priorityColors[task.priority] || '#6c757d',
+                                textColor: '#ffffff',
+                                allDay: false, // Make tasks time-based for better display in day/week view
                                 extendedProps: {
                                     type: 'task',
                                     taskId: task.id,
                                     priority: task.priority,
-                                    status: task.status
+                                    status: task.status,
+                                    description: task.description
                                 }
-                            });
+                            };
+                            
+                            // Add start date if available for better range display
+                            if (task.start_date) {
+                                event.start = task.start_date;
+                                event.end = task.due_date;
+                            }
+                            
+                            events.push(event);
                         });
                     }
                     
@@ -224,8 +483,26 @@ document.addEventListener('DOMContentLoaded', function() {
                                 id: 'holiday-' + holiday.id,
                                 title: '🎉 ' + holiday.name,
                                 start: holiday.date,
-                                backgroundColor: '#6c757d',
-                                borderColor: '#6c757d',
+                                backgroundColor: '#28a745',
+                                borderColor: '#28a745',
+                                textColor: '#ffffff',
+                                allDay: true,
+                                display: 'background', // Show as background for all-day events
+                                classNames: ['holiday-event'],
+                                extendedProps: {
+                                    type: 'holiday',
+                                    description: holiday.description
+                                }
+                            });
+                            
+                            // Add a visible event on top of background
+                            events.push({
+                                id: 'holiday-label-' + holiday.id,
+                                title: '🎉 ' + holiday.name,
+                                start: holiday.date,
+                                backgroundColor: '#28a745',
+                                borderColor: '#28a745',
+                                textColor: '#ffffff',
                                 allDay: true,
                                 extendedProps: {
                                     type: 'holiday',
@@ -246,6 +523,7 @@ document.addEventListener('DOMContentLoaded', function() {
                                     end: leave.end_date,
                                     backgroundColor: '#0d6efd',
                                     borderColor: '#0d6efd',
+                                    textColor: '#ffffff',
                                     allDay: true,
                                     extendedProps: {
                                         type: 'leave',
