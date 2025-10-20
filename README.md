@@ -436,26 +436,12 @@ Contributions are welcome! Please follow these steps:
 
 This project is licensed under the MIT License.
 
----
-
-## Author
-
-Developed by PROXIM
-
----
-
-## Support
-
-For issues, questions, or feature requests:
-
-- Create an issue on GitHub
-- Email: support@flowdeck.org
 
 ---
 
 ## Roadmap
 
-- Mobile applications (React Native)
+
 - Advanced AI features
 - Video conferencing integration
 - Advanced reporting with charts
