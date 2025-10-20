@@ -9,7 +9,7 @@ from app.models.analytics import (
     AnalyticsReport, Holiday, LeaveRequest, AuditLog, 
     SystemSettings, EmailTemplate
 )
-from app.models.meeting import Meeting, MeetingAgenda, MeetingNote, MeetingAttachment
+from app.models.meeting import Meeting, MeetingAgendaItem, MeetingNote, MeetingAttachment
 
 __all__ = [
     'Organisation', 'Department', 'Role', 'Tag', 'User',
@@ -17,5 +17,5 @@ __all__ = [
     'Message', 'ChatChannel', 'Notification', 'OnlineStatus', 'TypingIndicator',
     'AnalyticsReport', 'Holiday', 'LeaveRequest', 'AuditLog',
     'SystemSettings', 'EmailTemplate',
-    'Meeting', 'MeetingAgenda', 'MeetingNote', 'MeetingAttachment'
+    'Meeting', 'MeetingAgendaItem', 'MeetingNote', 'MeetingAttachment'
 ]

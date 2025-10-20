@@ -68,7 +68,7 @@ class Meeting(db.Model):
     department = db.relationship('Department', backref='meetings')
     task = db.relationship('Task', backref='meetings')
     
-    agenda_items = db.relationship('MeetingAgenda', back_populates='meeting', cascade='all, delete-orphan', order_by='MeetingAgenda.order')
+    agenda_items = db.relationship('MeetingAgendaItem', back_populates='meeting', cascade='all, delete-orphan', order_by='MeetingAgendaItem.order')
     notes = db.relationship('MeetingNote', back_populates='meeting', cascade='all, delete-orphan', order_by='MeetingNote.created_at.desc()')
     attachments = db.relationship('MeetingAttachment', back_populates='meeting', cascade='all, delete-orphan')
     
@@ -124,7 +124,7 @@ class Meeting(db.Model):
         return f'<Meeting {self.title}>'
 
 
-class MeetingAgenda(db.Model):
+class MeetingAgendaItem(db.Model):
     """Agenda items for meetings"""
     __tablename__ = 'meeting_agenda'
     
@@ -140,7 +140,7 @@ class MeetingAgenda(db.Model):
     meeting = db.relationship('Meeting', back_populates='agenda_items')
     
     def __repr__(self):
-        return f'<MeetingAgenda {self.title}>'
+        return f'<MeetingAgendaItem {self.title}>'
 
 
 class MeetingNote(db.Model):

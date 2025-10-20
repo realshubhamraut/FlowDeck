@@ -91,7 +91,7 @@ def create_app(config_name='development'):
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'logos'), exist_ok=True)
     
     # Register blueprints
-    from app.routes import auth, main, admin, user, tasks, chat, dashboard, api, favicon
+    from app.routes import auth, main, admin, user, tasks, chat, dashboard, api, favicon, meetings
     
     app.register_blueprint(auth.bp)
     app.register_blueprint(main.bp)
@@ -102,6 +102,7 @@ def create_app(config_name='development'):
     app.register_blueprint(dashboard.bp)
     app.register_blueprint(api.bp)
     app.register_blueprint(favicon.bp)
+    app.register_blueprint(meetings.bp)
     
     # Debug: Print all registered routes
     print(f"\n📍 Total routes registered: {len(list(app.url_map.iter_rules()))}")

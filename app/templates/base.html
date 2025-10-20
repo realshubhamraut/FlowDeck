@@ -53,6 +53,11 @@
                         </a>
                     </li>
                     <li class="nav-item">
+                        <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint and 'meetings' in request.endpoint %}active{% endif %}" href="{{ url_for('meetings.list_meetings') }}">
+                            <i class="fas fa-calendar-alt me-2"></i>Meetings
+                        </a>
+                    </li>
+                    <li class="nav-item">
                         <a class="nav-link px-3 py-2 rounded-3 mx-1 nav-link-modern {% if request.endpoint and 'chat' in request.endpoint %}active{% endif %}" href="{{ url_for('chat.index') }}">
                             <i class="fas fa-comments me-2"></i>Chat
                         </a>

@@ -1,0 +1,352 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ meeting.title }} - {{ config['APP_NAME'] }}{% endblock %}
+
+{% block content %}
+<div class="container-fluid mt-4">
+    <div class="row mb-4">
+        <div class="col-md-8">
+            <h2><i class="bi bi-calendar-event"></i> {{ meeting.title }}</h2>
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Dashboard</a></li>
+                    <li class="breadcrumb-item"><a href="{{ url_for('meetings.list_meetings') }}">Meetings</a></li>
+                    <li class="breadcrumb-item active">{{ meeting.title }}</li>
+                </ol>
+            </nav>
+        </div>
+        <div class="col-md-4 text-end">
+            {% if current_user.id == meeting.organizer_id or current_user.is_admin() %}
+            <a href="{{ url_for('meetings.edit_meeting', meeting_id=meeting.id) }}" class="btn btn-primary">
+                <i class="bi bi-pencil"></i> Edit
+            </a>
+            <form action="{{ url_for('meetings.delete_meeting', meeting_id=meeting.id) }}" 
+                  method="POST" style="display: inline;">
+                <button type="submit" class="btn btn-danger" 
+                        onclick="return confirm('Are you sure you want to delete this meeting?');">
+                    <i class="bi bi-trash"></i> Delete
+                </button>
+            </form>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="row">
+        <!-- Left Column - Main Content -->
+        <div class="col-md-8">
+            <!-- Meeting Details Card -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-info-circle"></i> Meeting Details</h5>
+                </div>
+                <div class="card-body">
+                    <!-- Status Badge -->
+                    <div class="mb-3">
+                        <span class="badge bg-{{ 'success' if meeting.status == 'scheduled' else 'warning' if meeting.status == 'in_progress' else 'secondary' if meeting.status == 'completed' else 'danger' }} fs-6">
+                            {{ meeting.status.replace('_', ' ').title() }}
+                        </span>
+                        <span class="badge bg-info fs-6">{{ meeting.meeting_type.replace('_', ' ').title() }}</span>
+                        <span class="badge bg-{{ 'danger' if meeting.priority == 'urgent' else 'warning' if meeting.priority == 'high' else 'secondary' }} fs-6">
+                            {{ meeting.priority.title() }} Priority
+                        </span>
+                        {% if meeting.is_recurring %}
+                        <span class="badge bg-secondary fs-6"><i class="bi bi-arrow-repeat"></i> Recurring</span>
+                        {% endif %}
+                        {% if meeting.is_private %}
+                        <span class="badge bg-dark fs-6"><i class="bi bi-lock"></i> Private</span>
+                        {% endif %}
+                    </div>
+
+                    <!-- Time Information -->
+                    <div class="mb-3">
+                        <h6><i class="bi bi-clock"></i> Schedule</h6>
+                        <p class="mb-1">
+                            <strong>Start:</strong> {{ meeting.start_time.strftime('%A, %B %d, %Y at %I:%M %p') }}
+                        </p>
+                        <p class="mb-1">
+                            <strong>End:</strong> {{ meeting.end_time.strftime('%A, %B %d, %Y at %I:%M %p') }}
+                        </p>
+                        <p class="mb-0">
+                            <strong>Duration:</strong> {{ meeting.get_duration_minutes() }} minutes
+                        </p>
+                    </div>
+
+                    <!-- Location Information -->
+                    {% if meeting.location or meeting.meeting_link %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-geo-alt"></i> Location</h6>
+                        {% if meeting.location %}
+                        <p class="mb-1"><i class="bi bi-pin-map"></i> {{ meeting.location }}</p>
+                        {% endif %}
+                        {% if meeting.meeting_link %}
+                        <p class="mb-0">
+                            <i class="bi bi-link-45deg"></i> 
+                            <a href="{{ meeting.meeting_link }}" target="_blank" class="btn btn-sm btn-primary">
+                                <i class="bi bi-camera-video"></i> Join Virtual Meeting
+                            </a>
+                        </p>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+
+                    <!-- Description -->
+                    {% if meeting.description %}
+                    <div class="mb-3">
+                        <h6><i class="bi bi-card-text"></i> Description</h6>
+                        <div class="border rounded p-3 bg-light">
+                            {{ meeting.description|safe }}
+                        </div>
+                    </div>
+                    {% endif %}
+
+                    <!-- Organizer -->
+                    <div class="mb-0">
+                        <h6><i class="bi bi-person-badge"></i> Organizer</h6>
+                        <p class="mb-0">
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + (meeting.organizer.profile_picture if meeting.organizer.profile_picture else 'default.png')) }}" 
+                                 alt="{{ meeting.organizer.name }}" class="rounded-circle me-2" 
+                                 style="width: 30px; height: 30px; object-fit: cover;">
+                            {{ meeting.organizer.name }} ({{ meeting.organizer.email }})
+                        </p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agenda -->
+            {% if meeting.agenda_items %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-list-check"></i> Agenda</h5>
+                </div>
+                <div class="card-body">
+                    {% for item in meeting.agenda_items|sort(attribute='order') %}
+                    <div class="agenda-item mb-3 p-3 border-start border-4 border-primary bg-light rounded">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <h6 class="mb-0">{{ loop.index }}. {{ item.title }}</h6>
+                            {% if item.duration_minutes %}
+                            <span class="badge bg-secondary">{{ item.duration_minutes }} min</span>
+                            {% endif %}
+                        </div>
+                        {% if item.description %}
+                        <p class="mb-0 text-muted small">{{ item.description }}</p>
+                        {% endif %}
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Meeting Notes -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-journal-text"></i> Meeting Notes</h5>
+                </div>
+                <div class="card-body">
+                    {% if meeting.notes %}
+                        {% for note in meeting.notes %}
+                        <div class="note-item mb-3 p-3 border rounded">
+                            <div class="d-flex justify-content-between align-items-start mb-2">
+                                <div>
+                                    <strong>{{ note.created_by.name }}</strong>
+                                    <small class="text-muted">{{ note.created_at.strftime('%b %d, %Y at %I:%M %p') }}</small>
+                                </div>
+                            </div>
+                            <div>{{ note.content|safe }}</div>
+                        </div>
+                        {% endfor %}
+                    {% else %}
+                        <p class="text-muted mb-0">No notes have been added yet.</p>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Attachments -->
+            {% if meeting.attachments %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-paperclip"></i> Attachments ({{ meeting.attachments|length }})</h5>
+                </div>
+                <div class="card-body">
+                    <div class="list-group">
+                        {% for attachment in meeting.attachments %}
+                        <a href="{{ url_for('static', filename=attachment.file_path.replace('app/static/', '')) }}" 
+                           class="list-group-item list-group-item-action" target="_blank">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <div>
+                                    <i class="bi bi-file-earmark"></i> 
+                                    <strong>{{ attachment.original_filename }}</strong>
+                                    <small class="text-muted d-block">
+                                        Uploaded by {{ attachment.uploaded_by.name }} on 
+                                        {{ attachment.uploaded_at.strftime('%b %d, %Y') }}
+                                    </small>
+                                </div>
+                                <span class="badge bg-secondary">
+                                    {{ (attachment.file_size / 1024)|round(2) }} KB
+                                </span>
+                            </div>
+                        </a>
+                        {% endfor %}
+                    </div>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Column - Sidebar -->
+        <div class="col-md-4">
+            <!-- Attendees -->
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-people"></i> Attendees ({{ meeting.attendees|length }})</h5>
+                </div>
+                <div class="card-body">
+                    {% set response_stats = meeting.get_response_stats() %}
+                    
+                    <!-- Response Summary -->
+                    <div class="mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <small class="text-muted">Response Status</small>
+                        </div>
+                        <div class="progress mb-2" style="height: 20px;">
+                            {% if response_stats.accepted > 0 %}
+                            <div class="progress-bar bg-success" style="width: {{ (response_stats.accepted / meeting.attendees|length * 100)|round(1) }}%">
+                                {{ response_stats.accepted }}
+                            </div>
+                            {% endif %}
+                            {% if response_stats.tentative > 0 %}
+                            <div class="progress-bar bg-warning" style="width: {{ (response_stats.tentative / meeting.attendees|length * 100)|round(1) }}%">
+                                {{ response_stats.tentative }}
+                            </div>
+                            {% endif %}
+                            {% if response_stats.declined > 0 %}
+                            <div class="progress-bar bg-danger" style="width: {{ (response_stats.declined / meeting.attendees|length * 100)|round(1) }}%">
+                                {{ response_stats.declined }}
+                            </div>
+                            {% endif %}
+                            {% if response_stats.pending > 0 %}
+                            <div class="progress-bar bg-secondary" style="width: {{ (response_stats.pending / meeting.attendees|length * 100)|round(1) }}%">
+                                {{ response_stats.pending }}
+                            </div>
+                            {% endif %}
+                        </div>
+                        <small class="text-muted">
+                            <span class="text-success">● Accepted: {{ response_stats.accepted }}</span> &nbsp;
+                            <span class="text-warning">● Tentative: {{ response_stats.tentative }}</span><br>
+                            <span class="text-danger">● Declined: {{ response_stats.declined }}</span> &nbsp;
+                            <span class="text-secondary">● Pending: {{ response_stats.pending }}</span>
+                        </small>
+                    </div>
+
+                    <!-- Attendee List -->
+                    <div class="list-group">
+                        {% for attendee in meeting.attendees %}
+                        {% set attendee_status = meeting.get_attendee_status(attendee.id) %}
+                        <div class="list-group-item">
+                            <div class="d-flex align-items-center">
+                                <img src="{{ url_for('static', filename='uploads/profiles/' + (attendee.profile_picture if attendee.profile_picture else 'default.png')) }}" 
+                                     alt="{{ attendee.name }}" class="rounded-circle me-2" 
+                                     style="width: 35px; height: 35px; object-fit: cover;">
+                                <div class="flex-grow-1">
+                                    <div class="fw-bold">{{ attendee.name }}</div>
+                                    <small class="text-muted">{{ attendee.email }}</small>
+                                </div>
+                                <span class="badge bg-{{ 'success' if attendee_status == 'accepted' else 'warning' if attendee_status == 'tentative' else 'danger' if attendee_status == 'declined' else 'secondary' }}">
+                                    {{ attendee_status|title if attendee_status else 'Pending' }}
+                                </span>
+                            </div>
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <!-- RSVP Actions (if current user is attendee) -->
+                    {% if current_user in meeting.attendees %}
+                    <div class="mt-3">
+                        <h6 class="mb-2">Your Response</h6>
+                        <div class="btn-group w-100" role="group">
+                            <button type="button" class="btn btn-sm btn-outline-success" onclick="respondToMeeting('accepted')">
+                                <i class="bi bi-check-circle"></i> Accept
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-warning" onclick="respondToMeeting('tentative')">
+                                <i class="bi bi-question-circle"></i> Tentative
+                            </button>
+                            <button type="button" class="btn btn-sm btn-outline-danger" onclick="respondToMeeting('declined')">
+                                <i class="bi bi-x-circle"></i> Decline
+                            </button>
+                        </div>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+
+            <!-- Related Information -->
+            {% if meeting.department or meeting.task %}
+            <div class="card mb-4">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-link-45deg"></i> Related</h5>
+                </div>
+                <div class="card-body">
+                    {% if meeting.department %}
+                    <div class="mb-2">
+                        <strong>Department:</strong><br>
+                        <span class="badge bg-info">{{ meeting.department.name }}</span>
+                    </div>
+                    {% endif %}
+                    {% if meeting.task %}
+                    <div>
+                        <strong>Related Task:</strong><br>
+                        <a href="{{ url_for('tasks.view_task', task_id=meeting.task.id) }}">
+                            {{ meeting.task.title }}
+                        </a>
+                    </div>
+                    {% endif %}
+                </div>
+            </div>
+            {% endif %}
+
+            <!-- Quick Actions -->
+            <div class="card">
+                <div class="card-header">
+                    <h5 class="mb-0"><i class="bi bi-lightning"></i> Quick Actions</h5>
+                </div>
+                <div class="card-body">
+                    {% if meeting.meeting_link %}
+                    <a href="{{ meeting.meeting_link }}" target="_blank" class="btn btn-primary w-100 mb-2">
+                        <i class="bi bi-camera-video"></i> Join Meeting
+                    </a>
+                    {% endif %}
+                    <a href="{{ url_for('meetings.list_meetings') }}" class="btn btn-outline-secondary w-100">
+                        <i class="bi bi-arrow-left"></i> Back to Meetings
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    function respondToMeeting(response) {
+        fetch(`/meetings/{{ meeting.id }}/respond`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ response: response })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                alert('Response updated successfully!');
+                location.reload();
+            } else {
+                alert('Error updating response: ' + data.error);
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+            alert('An error occurred while updating your response.');
+        });
+    }
+</script>
+{% endblock %}

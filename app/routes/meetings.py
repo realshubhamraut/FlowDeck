@@ -202,7 +202,7 @@ def create_meeting():
                 agenda_items = json.loads(agenda_json)
                 for idx, item in enumerate(agenda_items):
                     if item.get('title'):
-                        agenda = MeetingAgenda(
+                        agenda = MeetingAgendaItem(
                             meeting_id=meeting.id,
                             title=item.get('title'),
                             description=item.get('description', ''),
@@ -325,13 +325,13 @@ def edit_meeting(meeting_id):
         if agenda_json:
             try:
                 # Clear existing agenda
-                MeetingAgenda.query.filter_by(meeting_id=meeting.id).delete()
+                MeetingAgendaItem.query.filter_by(meeting_id=meeting.id).delete()
                 
                 # Add new agenda items
                 agenda_items = json.loads(agenda_json)
                 for idx, item in enumerate(agenda_items):
                     if item.get('title'):
-                        agenda = MeetingAgenda(
+                        agenda = MeetingAgendaItem(
                             meeting_id=meeting.id,
                             title=item.get('title'),
                             description=item.get('description', ''),
