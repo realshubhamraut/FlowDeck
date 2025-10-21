@@ -103,7 +103,7 @@
                     <div class="mb-0">
                         <h6><i class="bi bi-person-badge"></i> Organizer</h6>
                         <p class="mb-0">
-                            <img src="{{ url_for('static', filename='uploads/profiles/' + (meeting.organizer.profile_picture if meeting.organizer.profile_picture else 'default.png')) }}" 
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + (meeting.organizer.profile_picture if meeting.organizer.profile_picture else 'default.png')) }}" class="avatar-img" 
                                  alt="{{ meeting.organizer.name }}" class="rounded-circle me-2" 
                                  style="width: 30px; height: 30px; object-fit: cover;">
                             {{ meeting.organizer.name }} ({{ meeting.organizer.email }})
@@ -243,7 +243,7 @@
                         {% set attendee_status = meeting.get_attendee_status(attendee.id) %}
                         <div class="list-group-item">
                             <div class="d-flex align-items-center">
-                                <img src="{{ url_for('static', filename='uploads/profiles/' + (attendee.profile_picture if attendee.profile_picture else 'default.png')) }}" 
+                                <img src="{{ url_for('static', filename='uploads/profiles/' + (attendee.profile_picture if attendee.profile_picture else 'default.png')) }}" class="avatar-img" 
                                      alt="{{ attendee.name }}" class="rounded-circle me-2" 
                                      style="width: 35px; height: 35px; object-fit: cover;">
                                 <div class="flex-grow-1">
@@ -327,10 +327,14 @@
 {% block extra_js %}
 <script>
     function respondToMeeting(response) {
+        // Get CSRF token from meta tag
+        const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content');
+        
         fetch(`/meetings/{{ meeting.id }}/respond`, {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'X-CSRFToken': csrfToken
             },
             body: JSON.stringify({ response: response })
         })

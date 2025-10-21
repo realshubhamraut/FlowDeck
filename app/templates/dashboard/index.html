@@ -940,15 +940,7 @@ body {
             </h5>
             {% for wish in birthday_wishes %}
             <div class="d-flex align-items-center gap-3 mb-3 p-3" style="background: rgba(255, 255, 255, 0.15); border-radius: 10px; backdrop-filter: blur(10px);">
-                {% if wish.user.profile_picture %}
-                <img src="{{ wish.user.profile_picture }}" alt="{{ wish.user.name }}" 
-                     class="rounded-circle" style="width: 50px; height: 50px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                {% else %}
-                <div class="avatar avatar-lg rounded-circle bg-white text-primary d-flex align-items-center justify-content-center" 
-                     style="width: 50px; height: 50px; font-size: 1.25rem; font-weight: 600; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
-                    {{ wish.user.name[0]|upper }}
-                </div>
-                {% endif %}
+             <img src="{{ url_for('static', filename='uploads/profiles/' + (wish.user.profile_picture if wish.user.profile_picture else 'default.png')) }}" alt="{{ wish.user.name }}" class="avatar-img rounded-circle" style="width: 50px; height: 50px; border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                 <div class="flex-grow-1">
                     <p class="mb-1" style="font-weight: 500; font-size: 1rem;">{{ wish.message }}</p>
                     {% if wish.user.designation %}

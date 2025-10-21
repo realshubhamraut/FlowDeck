@@ -4,6 +4,7 @@ A Complete Production-Level Organization Workflow Management System
 
 FlowDeck is a modern, scalable web application built with Flask and SQLite, designed for comprehensive organization workflow management, real-time communication, and productivity tracking.
 
+![ER Diagram](instance/schema.svg)
 ---
 
 ## Features

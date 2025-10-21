@@ -18,7 +18,7 @@
             </a>
             <div class="position-relative">
               {% if recipient.profile_picture %}
-                <img src="{{ url_for('static', filename='uploads/profiles/' + recipient.profile_picture.split('/')[-1]) }}" 
+                <img src="{{ url_for('static', filename='uploads/profiles/' + (recipient.profile_picture if recipient.profile_picture else 'default.png')) }}" class="avatar-img" 
                      alt="{{ recipient.name }}" 
                      class="rounded-circle me-2" 
                      style="width: 40px; height: 40px; object-fit: cover;">
@@ -139,7 +139,7 @@
       </div>
       <div class="modal-body text-center">
         {% if recipient.profile_picture %}
-          <img src="{{ url_for('static', filename='uploads/profiles/' + recipient.profile_picture.split('/')[-1]) }}" 
+          <img src="{{ url_for('static', filename='uploads/profiles/' + (recipient.profile_picture if recipient.profile_picture else 'default.png')) }}" class="avatar-img" 
                alt="{{ recipient.name }}" 
                class="rounded-circle mb-3" 
                style="width: 120px; height: 120px; object-fit: cover;">

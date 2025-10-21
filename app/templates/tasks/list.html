@@ -564,7 +564,7 @@ body {
                                         <div class="d-flex align-items-center">
                                             {% for assignee in task.assignees[:3] %}
                                                 {% if assignee.profile_picture %}
-                                                    <img src="{{ assignee.profile_picture }}" 
+                                                    <img src="{{ url_for('static', filename='uploads/profiles/' + (assignee.profile_picture if assignee.profile_picture else 'default.png')) }}" class="avatar-img" 
                                                          class="rounded-circle me-1" width="32" height="32" 
                                                          title="{{ assignee.name }}" alt="" style="border: 2px solid white; box-shadow: 0 2px 8px rgba(0,0,0,0.1);">
                                                 {% else %}

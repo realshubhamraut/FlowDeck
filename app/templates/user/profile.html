@@ -395,7 +395,7 @@ body::before {
         <div class="profile-header text-white text-center">
             <div class="profile-avatar-wrapper">
                 {% if user.profile_picture %}
-                    <img src="{{ user.profile_picture }}" alt="{{ user.name }}" class="profile-avatar">
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + (user.profile_picture if user.profile_picture else 'default.png')) }}" alt="{{ user.name }}" class="profile-avatar avatar-img">
                 {% else %}
                     <div class="profile-avatar-placeholder">
                         {{ user.name[0].upper() }}

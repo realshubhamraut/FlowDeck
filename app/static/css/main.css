@@ -1,3 +1,12 @@
+/* Avatar image styling for profile pictures */
+.avatar-img {
+    object-fit: cover;
+    border-radius: 50%;
+    border: 2px solid #eee;
+    background: #fff;
+    width: 40px;
+    height: 40px;
+}
 /* FlowDeck Main CSS - Professional Theme */
 
 :root {

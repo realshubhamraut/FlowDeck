@@ -129,6 +129,9 @@ def create_app(config_name='development'):
         from flask import render_template
         return render_template('errors/403.html'), 403
     
+    # Add built-in functions to Jinja environment
+    app.jinja_env.globals.update(min=min, max=max)
+    
     # Context processors
     @app.context_processor
     def inject_globals():

@@ -1,0 +1,87 @@
+managers should be able to create the meetings and add the employees in selection like multiple employees on creation of meeting the employees should receive an email and in app chat message automatically with the link for the meeting a google link should be created with managers account
+
+And also after creating a task and if an employee manager assigns the tasks to more employees there should be messages in the chatbox as well
+
+Can we also have create a project along side with the create task
+
+But creating of the project will only be done by the manager  and very in that the whole project description should be assigned with the help of AI (basically ai reads the entire requirement files and assigns the tasks to the right people with emmployees with
+
+
+--- features implementing new
+
+Machine learning models and natural language models deployed
+
+
+
+Features directly query the meeting to the the people with ai gemini api
+
+Developer access - only manage the organizations and their subscriptions (this should happen only with the specified url
+
+Like Wordpress uses /admin
+We can use something like /developer
+To login and manage organizations and their subscriptions
+
+
+
+
+--- BUGS
+
+
+We should be able to search the assignees
+If email is not verified ask for verification or show the button-  of email on http://127.0.0.1:5010/user/profile
+
+Implement the read receipts single tick to send and double tick to read
+Also show if the user is online near the profile icon and name while chatting and the typing status in yellow dots in realtime in chat with bubble like apple does on the iPhone
+
+		
+Fix the footer it should be down at the bottom in the chat and below urls
+
+http://127.0.0.1:5010/chat/
+And
+http://127.0.0.1:5010/chat/direct/2
+	
+
+
+Can you integrate a free api that privides the calendar information such as holidays and other stuff to work upon
+
+
+
+And the employees should be able to ask for the leaves from managers and managers should  be able to ask for the leaves from the admin in the chat (add an option along side to selecting images icon to ask for leave icon)
+
+
+An employee should only have a specified number of leaves selected by their manager and for the manager the admin should specify the number of leaves
+
+
+
+
+
+
+
+I can't really see the avatar in circle alongside with the list of names of people 
+http://127.0.0.1:5010/chat/
+
+--- task creation enhancement 
+
+---
+
+contactshubhamraut@gmail.com
+q-4Td:FF#qLN
+
+
+
+
+
+----
+
+Forget password - link send
+Machine learning
+
+---
+
+🔐 LOGIN CREDENTIALS:
+   CEO Account:
+   Email: rajesh.kumar@techvista.in
+   Password: admin123
+
+   All other employees:
+   Password: password123

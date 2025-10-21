@@ -132,9 +132,13 @@ body {
               <a href="{{ url_for('chat.direct', user_id=user.id) }}" class="list-group-item list-group-item-action user-item">
                 <div class="d-flex align-items-center">
                   <div class="me-3">
-                    <div class="avatar-circle" style="background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][user.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][user.id % 8] }} 100%);">
-                      <span>{{ user.name[0].upper() }}</span>
-                    </div>
+                    {% if user.profile_picture %}
+                      <img src="{{ url_for('static', filename='uploads/profiles/' + user.profile_picture) }}" class="avatar-img" width="40" height="40" alt="{{ user.name }}">
+                    {% else %}
+                      <div class="avatar-circle" style="background: linear-gradient(135deg, {{ ['#FF6B6B', '#4ECDC4', '#45B7D1', '#FFA07A', '#98D8C8', '#F7DC6F', '#BB8FCE', '#85C1E2'][user.id % 8] }} 0%, {{ ['#EE5A6F', '#3DB3AA', '#3AA3C1', '#FF8C69', '#7FC8B8', '#E5CA5F', '#A97FB4', '#6FA8C8'][user.id % 8] }} 100%);">
+                        <span>{{ user.name[0].upper() }}</span>
+                      </div>
+                    {% endif %}
                   </div>
                   <div>
                     <div class="fw-semibold">{{ user.name }}</div>

@@ -101,6 +101,7 @@
     </div>
 
     <form method="POST" action="{{ url_for('meetings.edit_meeting', meeting_id=meeting.id) }}" enctype="multipart/form-data" id="meetingForm">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token() }}"/>
         <div class="row">
             <!-- Left Column -->
             <div class="col-md-8">
