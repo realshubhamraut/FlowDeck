@@ -46,11 +46,6 @@ FlowDeck is a modern, scalable web application built with Flask and SQLite, desi
 - Leave Management: Request and approve leaves with quota tracking
 - Notifications: Real-time in-app and email notifications
 
-### AI Integration
-- Smart task card generation from prompts
-- Auto-prioritization based on context
-- Meeting notes to action items extraction
-- Text summarization
 
 ### Analytics and Reports
 - Weekly and monthly productivity reports
@@ -90,7 +85,7 @@ FlowDeck is a modern, scalable web application built with Flask and SQLite, desi
 - **Real-time**: Socket.IO for messaging and notifications
 
 - **APIs**:
-  - OpenAI for AI task generation
+  - gemini for AI task generation
   - Google Calendar API
   - Indian Holidays API
   - SendGrid/Gmail for emails
@@ -163,7 +158,7 @@ FlowDeck/
 
 ### Step 1: Clone Repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/realshubhamraut/FlowDeck
 cd FlowDeck
 ```
 
@@ -442,6 +437,10 @@ This project is licensed under the MIT License.
 ## Roadmap
 
 
+- Smart task card generation from prompts
+- Auto-prioritization based on context
+- Meeting notes to action items extraction
+- Text summarization
 - Advanced AI features
 - Video conferencing integration
 - Advanced reporting with charts
@@ -460,7 +459,7 @@ This project is licensed under the MIT License.
 - Bootstrap team
 - Font Awesome
 - Socket.IO team
-- OpenAI
+- Google Gemini
 - All open-source contributors
 
 ---

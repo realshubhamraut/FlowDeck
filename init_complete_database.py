@@ -54,9 +54,9 @@ def init_complete_database():
         if 'notifications' in tables:
             columns = [col['name'] for col in inspector.get_columns('notifications')]
             if 'message' in columns:
-                print("\n   ✅ SUCCESS: notifications table has 'message' column!")
+                print("\n  SUCCESS: notifications table has 'message' column!")
             else:
-                print("\n   ❌ ERROR: notifications table missing 'message' column!")
+                print("\n  ERROR: notifications table missing 'message' column!")
                 print(f"      Columns found: {columns}")
                 return False
         
@@ -65,11 +65,11 @@ def init_complete_database():
         seed_database()
         
         print("\n" + "=" * 60)
-        print("✅ Database initialization completed successfully!")
-        print("\n📝 Demo Login Credentials:")
-        print("   Email: admin@flowdeck.org")
-        print("   Password: admin123")
-        print("\n⚠️  Remember to change the default password in production!")
+        print("Database initialization completed successfully!")
+        print("\nDemo Login Credentials:")
+        print("Email: admin@flowdeck.org")
+        print("Password: admin123")
+        print("\n Remember to change the default password in production!")
         print("=" * 60 + "\n")
         
         return True
