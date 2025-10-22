@@ -1,3 +1,46 @@
+## FlowDeck Project Modules Overview
+
+### 1. app/__init__.py
+Initializes the Flask app, configures extensions, and registers all blueprints.
+
+### 2. app/models/
+Contains database models for users, tasks, meetings, messages, analytics, etc. Each model maps to a table.
+
+### 3. app/routes/
+Holds route files (blueprints) for different features: user, admin, tasks, chat, dashboard, meetings, API, etc.
+
+### 4. app/database/
+Handles database initialization and schema setup.
+
+### 5. app/sockets/
+Implements real-time features using Socket.IO, like chat and notifications.
+
+### 6. app/static/
+Stores static files: CSS, images, uploads (profile pictures, attachments, etc.).
+
+### 7. app/templates/
+Jinja2 HTML templates for all pages and UI components.
+
+### 8. app/utils/
+Utility scripts for AI, email, seeding demo data, and validation helpers.
+
+### 9. instance/schema.sql
+SQL file for database schema (used for manual setup or reference).
+
+### 10. tests/
+Unit and integration tests for models, routes, authentication, API, and sockets.
+
+### 11. run.py
+Main entry point to start the Flask application.
+
+### 12. requirements.txt
+Lists all Python dependencies needed for the project.
+
+### 13. setup.sh / setup.bat
+Shell and batch scripts to automate project setup on Linux/Mac and Windows.
+
+---
+Each module is designed to keep the code organized, easy to maintain, and scalable for new features.
 # Database Initialization, Connection, and Dynamic Updates
 
 FlowDeck uses Flask-SQLAlchemy to manage database connections, initialization, and dynamic updates through Python code. 

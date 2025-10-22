@@ -85,7 +85,7 @@ FlowDeck is a modern, scalable web application built with Flask and SQLite, desi
 
 - **Real-time**: Socket.IO for messaging and notifications
 
-- **APIs**:
+- **APIs (will be implemented in future releases)**:
   - gemini for AI task generation
   - Google Calendar API
   - Indian Holidays API

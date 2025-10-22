@@ -85,3 +85,19 @@ Machine learning
 
    All other employees:
    Password: password123
+
+
+FlowDeck is a website that helps teams and companies work together better.
+It puts all the important things—like tasks, meetings, chatting, and leave requests—in one place so people don’t have to use lots of different apps.
+
+With FlowDeck, you can:
+
+See all your work and meetings on one dashboard.
+Chat with your team in real time, just like WhatsApp or Slack.
+Create tasks and projects, and assign them to the right people.
+Schedule meetings and send out links automatically.
+Ask for leaves and get them approved easily.
+Use your own profile picture and see others’ pictures too.
+Managers and admins get extra tools to see how everyone is doing, check stats, and keep things organized. There’s even some AI to help assign tasks and make smart suggestions.
+
+In short, FlowDeck makes teamwork simple, keeps everyone connected, and helps you get work done faster—all in one website.

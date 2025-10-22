@@ -105,9 +105,9 @@ def create_app(config_name='development'):
     app.register_blueprint(meetings.bp)
     
     # Debug: Print all registered routes
-    print(f"\n📍 Total routes registered: {len(list(app.url_map.iter_rules()))}")
+    print(f"\n Total routes registered: {len(list(app.url_map.iter_rules()))}")
     main_routes = [r.rule for r in app.url_map.iter_rules() if r.endpoint.startswith('main.')]
-    print(f"📍 Main blueprint routes: {main_routes}")
+    print(f" Main blueprint routes: {main_routes}")
     
     # Register Socket.IO events
     from app.sockets import chat_events, notification_events
