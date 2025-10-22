@@ -63,7 +63,7 @@ def edit_profile():
                 filename = f"user_{current_user.id}_{timestamp}_{filename}"
                 profile_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
                 file.save(profile_path)
-                current_user.profile_picture = f"/static/uploads/profiles/{filename}"
+                current_user.profile_picture = filename
         
         db.session.commit()
         flash('Profile updated successfully!', 'success')

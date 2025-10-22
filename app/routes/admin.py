@@ -181,7 +181,7 @@ def create_user():
                 filename = f"user_{timestamp}_{filename}"
                 profile_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
                 file.save(profile_path)
-                user.profile_picture = f"/static/uploads/profiles/{filename}"
+                user.profile_picture = filename
         
         db.session.add(user)
         db.session.flush()  # Get user ID
@@ -286,7 +286,7 @@ def edit_user(user_id):
                 filename = f"user_{user.id}_{timestamp}_{filename}"
                 profile_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
                 file.save(profile_path)
-                user.profile_picture = f"/static/uploads/profiles/{filename}"
+                user.profile_picture = filename
         
         db.session.commit()
         flash(f'User {user.name} updated successfully!', 'success')

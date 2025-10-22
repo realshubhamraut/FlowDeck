@@ -394,8 +394,9 @@ body::before {
     <div class="card mb-4 animate-slide-up" style="animation-delay: 0.1s;">
         <div class="profile-header text-white text-center">
             <div class="profile-avatar-wrapper">
-                {% if user.profile_picture %}
-                    <img src="{{ url_for('static', filename='uploads/profiles/' + (user.profile_picture if user.profile_picture else 'default.png')) }}" alt="{{ user.name }}" class="profile-avatar avatar-img">
+                {% set avatar = user.profile_picture if user.profile_picture else 'default.png' %}
+                {% if avatar and avatar != '' %}
+                    <img src="{{ url_for('static', filename='uploads/profiles/' + avatar) }}" alt="{{ user.name }}" class="profile-avatar avatar-img">
                 {% else %}
                     <div class="profile-avatar-placeholder">
                         {{ user.name[0].upper() }}

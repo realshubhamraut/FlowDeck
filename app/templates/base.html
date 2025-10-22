@@ -101,8 +101,9 @@
                     <!-- User Menu -->
                     <li class="nav-item dropdown">
                         <a class="nav-link dropdown-toggle d-flex align-items-center px-3 py-2 rounded-3 mx-1 nav-link-modern" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown" style="transition: all 0.2s ease; color: #2d3748;">
-                            {% if current_user.profile_picture %}
-                            <img src="{{ url_for('static', filename='uploads/profiles/' + (current_user.profile_picture if current_user.profile_picture else 'default.png')) }}" alt="{{ current_user.name }}" class="rounded-circle me-2 avatar-img" width="32" height="32">
+                            {% set avatar = current_user.profile_picture if current_user.profile_picture else 'default.png' %}
+                            {% if avatar and avatar != '' %}
+                            <img src="{{ url_for('static', filename='uploads/profiles/' + avatar) }}" alt="{{ current_user.name }}" class="rounded-circle me-2 avatar-img" width="32" height="32">
                             {% else %}
                             <div class="rounded-circle d-flex align-items-center justify-content-center me-2" style="width: 32px; height: 32px; background: linear-gradient(135deg, #6c7cdb, #8791e0); border: 2px solid #e9ecef; font-weight: 600; font-size: 0.875rem;">
                                 <span class="text-white">{{ current_user.name[0].upper() }}</span>

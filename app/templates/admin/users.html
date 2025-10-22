@@ -151,15 +151,15 @@ body {
                                 <tr>
                                     <td>
                                         <div class="d-flex align-items-center">
-                                            {% if user.profile_picture %}
-                                            <img src="{{ url_for('static', filename='uploads/profiles/' + (user.profile_picture if user.profile_picture else 'default.png')) }}" alt="{{ user.name }}" class="avatar-img">
-                                                 class="rounded-circle me-2" width="40" height="40">
-                                            {% else %}
-                                            <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
-                                                 style="width: 40px; height: 40px; font-size: 16px;">
-                                                {{ user.name[0].upper() }}
-                                            </div>
-                                            {% endif %}
+                                    {% set avatar = user.profile_picture if user.profile_picture else 'default.png' %}
+                                    {% if avatar and avatar != '' %}
+                                    <img src="{{ url_for('static', filename='uploads/profiles/' + avatar) }}" alt="{{ user.name }}" class="rounded-circle me-2 avatar-img" width="40" height="40">
+                                    {% else %}
+                                    <div class="bg-primary text-white rounded-circle d-flex align-items-center justify-content-center me-2"
+                                        style="width: 40px; height: 40px; font-size: 16px;">
+                                       {{ user.name[0].upper() }}
+                                    </div>
+                                    {% endif %}
                                             <div>
                                                 <strong>{{ user.name }}</strong>
                                                 {% if user.phone %}
