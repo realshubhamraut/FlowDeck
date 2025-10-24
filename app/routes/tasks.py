@@ -5,7 +5,7 @@ Tasks Blueprint - Task and project management
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Task, TaskComment, TaskAttachment, TimeLog, User, Department, Tag, Notification
+from app.models import Task, User
 from app.routes.auth import manager_required
 from werkzeug.utils import secure_filename
 from datetime import datetime
@@ -154,7 +154,7 @@ def create_task():
             return render_template('tasks/create.html',
                                  departments=get_departments(),
                                  users=get_users(),
-                                 tags=Tag.query.all())
+)
         
         # Parse start date
         start_date = None
@@ -184,7 +184,7 @@ def create_task():
             return render_template('tasks/create.html',
                                  departments=get_departments(),
                                  users=get_users(),
-                                 tags=Tag.query.all())
+)
         
         # Create task
         task = Task(
@@ -221,55 +221,10 @@ def create_task():
         if tag_ids:
             # Convert string IDs to integers
             tag_ids = [int(tid) for tid in tag_ids if tid]
-            tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
-            task.tags.extend(tags)
         
         # Commit task and relationships first
         db.session.commit()
         
-        # Handle file attachments
-        uploaded_files = request.files.getlist('attachments')
-        if uploaded_files:
-            upload_folder = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'attachments')
-            os.makedirs(upload_folder, exist_ok=True)
-            
-            for file in uploaded_files:
-                if file and file.filename:
-                    # Secure the filename
-                    original_filename = secure_filename(file.filename)
-                    filename = f"{task.id}_{datetime.utcnow().timestamp()}_{original_filename}"
-                    file_path = os.path.join(upload_folder, filename)
-                    
-                    # Save the file
-                    file.save(file_path)
-                    
-                    # Create attachment record
-                    attachment = TaskAttachment(
-                        filename=filename,
-                        original_filename=original_filename,
-                        file_path=file_path,
-                        file_size=os.path.getsize(file_path),
-                        mime_type=file.content_type,
-                        task_id=task.id,
-                        uploaded_by_id=current_user.id
-                    )
-                    db.session.add(attachment)
-            
-            db.session.commit()
-        
-        # Now create notifications for assignees (after commit)
-        if assignee_ids:
-            for assignee_id in assignee_ids:
-                notif = Notification(
-                    user_id=assignee_id,
-                    title='New Task Assigned',
-                    message=f'You have been assigned to: {task.title}',
-                    notification_type='task_assigned',
-                    task_id=task.id,
-                    action_url=f'/tasks/{task.id}'
-                )
-                db.session.add(notif)
-            db.session.commit()
         
         flash(f'Task "{task.title}" created successfully!', 'success')
         return redirect(url_for('tasks.view_task', task_id=task.id))
@@ -277,7 +232,7 @@ def create_task():
     return render_template('tasks/create.html',
                          departments=get_departments(),
                          users=get_users(),
-                         tags=Tag.query.all())
+)
 
 
 @bp.route('/<int:task_id>')
@@ -294,11 +249,6 @@ def view_task(task_id):
     # Get comments with user info
     comments = task.comments.all()
     
-    # Get attachments
-    attachments = task.attachments.all()
-    
-    # Get time logs
-    time_logs = task.time_logs.order_by(TimeLog.start_time.desc()).all()
     
     # Get task history
     from app.models import TaskHistory
@@ -309,8 +259,6 @@ def view_task(task_id):
     return render_template('tasks/view.html',
                          task=task,
                          comments=comments,
-                         attachments=attachments,
-                         time_logs=time_logs,
                          history=history)
 
 
@@ -361,10 +309,9 @@ def edit_task(task_id):
         if task.start_date and task.due_date and task.start_date > task.due_date:
             flash('Start date cannot be after due date.', 'warning')
             return render_template('tasks/edit.html',
-                                 task=task,
-                                 departments=get_departments(),
-                                 users=get_users(),
-                                 tags=Tag.query.all())
+                                    task=task,
+                                    users=get_users(),
+                                    tags=Tag.query.all())
         
         task.estimated_hours = request.form.get('estimated_hours', type=float) or task.estimated_hours
         
@@ -385,32 +332,20 @@ def edit_task(task_id):
         # Update tags
         tag_ids = request.form.getlist('tags')
         if tag_ids:
-            task.tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
         
         # Log history if status changed
-        if old_status != task.status:
-            from app.models import TaskHistory
-            history = TaskHistory(
-                task_id=task.id,
-                user_id=current_user.id,
-                action='status_changed',
-                field_changed='status',
-                old_value=old_status,
-                new_value=task.status
-            )
-            db.session.add(history)
-            
-            # Notify assignees about status change
-            for assignee in task.assignees:
-                notif = Notification(
-                    user_id=assignee.id,
-                    title='Task Status Updated',
-                    message=f'Task "{task.title}" status changed to {task.status}',
-                    notification_type='task_updated',
+            if old_status != task.status:
+                from app.models import TaskHistory
+                history = TaskHistory(
                     task_id=task.id,
-                    action_url=f'/tasks/{task.id}'
+                    user_id=current_user.id,
+                    action='status_changed',
+                    field_changed='status',
+                    old_value=old_status,
+                    new_value=task.status
                 )
-                db.session.add(notif)
+                db.session.add(history)
+            
         
         db.session.commit()
         flash('Task updated successfully!', 'success')
@@ -418,9 +353,8 @@ def edit_task(task_id):
     
     return render_template('tasks/edit.html',
                          task=task,
-                         departments=get_departments(),
-                         users=get_users(),
-                         tags=Tag.query.all())
+                             users=get_users(),
+)
 
 
 @bp.route('/<int:task_id>/delete', methods=['POST'])
@@ -478,95 +412,8 @@ def update_status(task_id):
     return jsonify({'success': True, 'status': new_status})
 
 
-@bp.route('/<int:task_id>/comment', methods=['POST'])
-@login_required
-def add_comment(task_id):
-    """Add comment to task"""
-    task = Task.query.get_or_404(task_id)
-    
-    if not can_access_task(task):
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    content = request.form.get('content', '').strip()
-    
-    if not content:
-        flash('Comment cannot be empty.', 'warning')
-        return redirect(url_for('tasks.view_task', task_id=task_id))
-    
-    comment = TaskComment(
-        content=content,
-        task_id=task_id,
-        user_id=current_user.id
-    )
-    db.session.add(comment)
-    db.session.commit()
-    
-    # Notify task creator and assignees
-    notify_users = set([task.creator] + task.assignees.all())
-    notify_users.discard(current_user)  # Don't notify self
-    
-    for user in notify_users:
-        if user:
-            notif = Notification(
-                user_id=user.id,
-                title='New Comment on Task',
-                message=f'{current_user.name} commented on: {task.title}',
-                notification_type='comment_added',
-                task_id=task.id,
-                action_url=f'/tasks/{task.id}'
-            )
-            db.session.add(notif)
-    
-    db.session.commit()
-    
-    flash('Comment added successfully!', 'success')
-    return redirect(url_for('tasks.view_task', task_id=task_id))
 
 
-@bp.route('/<int:task_id>/upload', methods=['POST'])
-@login_required
-def upload_attachment(task_id):
-    """Upload file attachment"""
-    task = Task.query.get_or_404(task_id)
-    
-    if not can_access_task(task):
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    if 'file' not in request.files:
-        flash('No file selected.', 'warning')
-        return redirect(url_for('tasks.view_task', task_id=task_id))
-    
-    file = request.files['file']
-    
-    if file.filename == '':
-        flash('No file selected.', 'warning')
-        return redirect(url_for('tasks.view_task', task_id=task_id))
-    
-    if file:
-        filename = secure_filename(file.filename)
-        timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-        unique_filename = f"task_{task_id}_{timestamp}_{filename}"
-        file_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'attachments', unique_filename)
-        file.save(file_path)
-        
-        # Get file size
-        file_size = os.path.getsize(file_path)
-        
-        attachment = TaskAttachment(
-            filename=unique_filename,
-            original_filename=filename,
-            file_path=f"/static/uploads/attachments/{unique_filename}",
-            file_size=file_size,
-            mime_type=file.content_type,
-            task_id=task_id,
-            uploaded_by_id=current_user.id
-        )
-        db.session.add(attachment)
-        db.session.commit()
-        
-        flash('File uploaded successfully!', 'success')
-    
-    return redirect(url_for('tasks.view_task', task_id=task_id))
 
 
 @bp.route('/<int:task_id>/checklist/update', methods=['POST'])
@@ -618,33 +465,6 @@ def update_checklist_item(task_id):
         return jsonify({'error': str(e), 'success': False}), 500
 
 
-@bp.route('/<int:task_id>/time-log', methods=['POST'])
-@login_required
-def add_time_log(task_id):
-    """Add time log entry"""
-    task = Task.query.get_or_404(task_id)
-    
-    if not can_access_task(task):
-        return jsonify({'error': 'Unauthorized'}), 403
-    
-    duration = request.form.get('duration', type=float)
-    notes = request.form.get('notes', '').strip()
-    
-    if not duration or duration <= 0:
-        flash('Please enter a valid duration.', 'warning')
-        return redirect(url_for('tasks.view_task', task_id=task_id))
-    
-    time_log = TimeLog(
-        task_id=task_id,
-        user_id=current_user.id,
-        duration=duration,
-        notes=notes
-    )
-    db.session.add(time_log)
-    db.session.commit()
-    
-    flash('Time log added successfully!', 'success')
-    return redirect(url_for('tasks.view_task', task_id=task_id))
 
 
 # Helper functions
@@ -670,12 +490,6 @@ def can_edit_task(task):
     return False
 
 
-def get_departments():
-    """Get departments for current organisation"""
-    return Department.query.filter_by(
-        organisation_id=current_user.organisation_id,
-        is_active=True
-    ).order_by(Department.name).all()
 
 
 def get_users():

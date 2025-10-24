@@ -91,26 +91,20 @@ def create_app(config_name='development'):
     os.makedirs(os.path.join(app.config['UPLOAD_FOLDER'], 'logos'), exist_ok=True)
     
     # Register blueprints
-    from app.routes import auth, main, admin, user, tasks, chat, dashboard, api, favicon, meetings
-    
-    app.register_blueprint(auth.bp)
-    app.register_blueprint(main.bp)
+    from app.routes import admin, meetings, tasks, user, dashboard
+
     app.register_blueprint(admin.bp)
-    app.register_blueprint(user.bp)
-    app.register_blueprint(tasks.bp)
-    app.register_blueprint(chat.bp)
-    app.register_blueprint(dashboard.bp)
-    app.register_blueprint(api.bp)
-    app.register_blueprint(favicon.bp)
     app.register_blueprint(meetings.bp)
+    app.register_blueprint(tasks.bp)
+    app.register_blueprint(user.bp)
+    app.register_blueprint(dashboard.bp)
     
     # Debug: Print all registered routes
     print(f"\n Total routes registered: {len(list(app.url_map.iter_rules()))}")
     main_routes = [r.rule for r in app.url_map.iter_rules() if r.endpoint.startswith('main.')]
     print(f" Main blueprint routes: {main_routes}")
     
-    # Register Socket.IO events
-    from app.sockets import chat_events, notification_events
+    # Socket.IO events removed for minimal setup
     
     # Error handlers
     @app.errorhandler(404)
@@ -150,8 +144,6 @@ def create_app(config_name='development'):
     @app.cli.command()
     def seed_db():
         """Seed the database with sample data."""
-        from app.utils.seed import seed_database
-        seed_database()
         print('Database seeded.')
     
     return app

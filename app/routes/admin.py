@@ -5,8 +5,7 @@ Admin Blueprint - Organisation and user management
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Organisation, Department, User, Role, Tag, AuditLog, Task
-from app.routes.auth import admin_required
+from app.models import User, Task
 from werkzeug.utils import secure_filename
 import os
 from datetime import datetime
@@ -16,30 +15,18 @@ bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 @bp.route('/')
 @login_required
-@admin_required
 def index():
-    """Admin dashboard"""
-    org = current_user.organisation
-    
+    """Minimal admin dashboard"""
     stats = {
-        'total_users': User.query.filter_by(organisation_id=org.id, is_active=True).count(),
-        'total_departments': Department.query.filter_by(organisation_id=org.id, is_active=True).count(),
-        'total_tasks': db.session.query(db.func.count(Task.id))
-            .join(User, Task.created_by_id == User.id)
-            .filter(User.organisation_id == org.id)
-            .scalar() or 0,
+        'total_users': User.query.count(),
+        'total_tasks': Task.query.count(),
     }
-    
-    recent_users = User.query.filter_by(organisation_id=org.id).order_by(
-        User.created_at.desc()
-    ).limit(5).all()
-    
+    recent_users = User.query.order_by(User.created_at.desc()).limit(5).all()
     return render_template('admin/dashboard.html', stats=stats, recent_users=recent_users)
 
 
 @bp.route('/organisation', methods=['GET', 'POST'])
 @login_required
-@admin_required
 def organisation():
     """Manage organisation settings"""
     org = current_user.organisation
@@ -71,19 +58,11 @@ def organisation():
 
 @bp.route('/users')
 @login_required
-@admin_required
 def users():
     """List all users"""
     page = request.args.get('page', 1, type=int)
     per_page = current_app.config.get('ITEMS_PER_PAGE', 20)
-    
-    users_query = User.query.filter_by(organisation_id=current_user.organisation_id)
-    
-    # Apply filters
-    department_id = request.args.get('department')
-    if department_id:
-        users_query = users_query.filter_by(department_id=department_id)
-    
+    users_query = User.query
     search = request.args.get('search')
     if search:
         users_query = users_query.filter(
@@ -93,297 +72,6 @@ def users():
                 User.designation.ilike(f'%{search}%')
             )
         )
-    
-    pagination = users_query.order_by(User.created_at.desc()).paginate(
-        page=page, per_page=per_page, error_out=False
-    )
-    
-    departments = Department.query.filter_by(
-        organisation_id=current_user.organisation_id, is_active=True
-    ).all()
-    
-    return render_template('admin/users.html', 
-                         pagination=pagination, 
-                         departments=departments)
-
-
-@bp.route('/users/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def create_user():
-    """Create new user"""
-    if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        email = request.form.get('email', '').strip().lower()
-        phone = request.form.get('phone', '').strip()
-        designation = request.form.get('designation', '').strip()
-        date_of_birth_str = request.form.get('date_of_birth', '').strip()
-        department_id = request.form.get('department_id')
-        role_ids = request.form.getlist('roles')
-        tag_ids = request.form.getlist('tags')
-        
-        # Parse date of birth
-        date_of_birth = None
-        if date_of_birth_str:
-            try:
-                date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
-            except ValueError:
-                pass
-        
-        # Social links
-        linkedin = request.form.get('linkedin', '').strip()
-        twitter = request.form.get('twitter', '').strip()
-        github = request.form.get('github', '').strip()
-        
-        # Validation
-        if not name or not email:
-            flash('Name and email are required.', 'warning')
-            return render_template('admin/create_user.html', 
-                                 departments=get_departments(),
-                                 roles=get_roles(),
-                                 tags=get_tags())
-        
-        # Check if email already exists
-        if User.query.filter_by(email=email).first():
-            flash('A user with this email already exists.', 'danger')
-            return render_template('admin/create_user.html',
-                                 departments=get_departments(),
-                                 roles=get_roles(),
-                                 tags=get_tags())
-        
-        # Generate random password
-        password = User.generate_random_password()
-        
-        # Create user
-        user = User(
-            name=name,
-            email=email,
-            phone=phone,
-            designation=designation,
-            date_of_birth=date_of_birth,
-            department_id=department_id if department_id else None,
-            organisation_id=current_user.organisation_id,
-            linkedin=linkedin,
-            twitter=twitter,
-            github=github
-        )
-        user.set_password(password)
-        
-        # Generate email verification token
-        verification_token = user.generate_verification_token()
-        
-        # Handle profile picture upload
-        if 'profile_picture' in request.files:
-            file = request.files['profile_picture']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"user_{timestamp}_{filename}"
-                profile_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
-                file.save(profile_path)
-                user.profile_picture = filename
-        
-        db.session.add(user)
-        db.session.flush()  # Get user ID
-        
-        # Assign roles
-        if role_ids:
-            roles = Role.query.filter(Role.id.in_(role_ids)).all()
-            user.roles.extend(roles)
-        
-        # Assign tags
-        if tag_ids:
-            tags = Tag.query.filter(Tag.id.in_(tag_ids)).all()
-            user.tags.extend(tags)
-        
-        db.session.commit()
-        
-        # IMPORTANT: Display password to admin (do NOT email it - email system may not be configured)
-        # Store password in session for one-time display on next page
-        from flask import session
-        session['new_user_password'] = {
-            'name': user.name,
-            'email': user.email,
-            'password': password
-        }
-        
-        flash(f'User {user.name} created successfully!', 'success')
-        return redirect(url_for('admin.show_new_user_credentials'))
-    
-    return render_template('admin/create_user.html',
-                         departments=get_departments(),
-                         roles=get_roles(),
-                         tags=get_tags(),
-                         today=datetime.now().strftime('%Y-%m-%d'))
-
-
-@bp.route('/users/credentials')
-@login_required
-@admin_required
-def show_new_user_credentials():
-    """Show newly created user credentials (one-time view)"""
-    from flask import session
-    
-    # Get credentials from session
-    creds = session.pop('new_user_password', None)
-    
-    if not creds:
-        flash('No credentials to display. Credentials can only be viewed once after user creation.', 'warning')
-        return redirect(url_for('admin.users'))
-    
-    return render_template('admin/user_credentials.html', credentials=creds)
-
-
-@bp.route('/users/<int:user_id>/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def edit_user(user_id):
-    """Edit user"""
-    user = User.query.get_or_404(user_id)
-    
-    # Check if user belongs to same organisation
-    if user.organisation_id != current_user.organisation_id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('admin.users'))
-    
-    if request.method == 'POST':
-        user.name = request.form.get('name', user.name)
-        user.email = request.form.get('email', user.email)
-        user.phone = request.form.get('phone', user.phone)
-        user.designation = request.form.get('designation', user.designation)
-        user.department_id = request.form.get('department_id') or None
-        user.is_active = request.form.get('is_active') == 'on'
-        
-        # Parse date of birth
-        date_of_birth_str = request.form.get('date_of_birth', '').strip()
-        if date_of_birth_str:
-            try:
-                user.date_of_birth = datetime.strptime(date_of_birth_str, '%Y-%m-%d').date()
-            except ValueError:
-                pass
-        else:
-            user.date_of_birth = None
-        
-        # Social links
-        user.linkedin = request.form.get('linkedin', '').strip()
-        user.twitter = request.form.get('twitter', '').strip()
-        user.github = request.form.get('github', '').strip()
-        
-        # Update roles
-        role_ids = request.form.getlist('roles')
-        user.roles = Role.query.filter(Role.id.in_(role_ids)).all() if role_ids else []
-        
-        # Update tags
-        tag_ids = request.form.getlist('tags')
-        user.tags = Tag.query.filter(Tag.id.in_(tag_ids)).all() if tag_ids else []
-        
-        # Handle profile picture upload
-        if 'profile_picture' in request.files:
-            file = request.files['profile_picture']
-            if file and file.filename:
-                filename = secure_filename(file.filename)
-                timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-                filename = f"user_{user.id}_{timestamp}_{filename}"
-                profile_path = os.path.join(current_app.config['UPLOAD_FOLDER'], 'profiles', filename)
-                file.save(profile_path)
-                user.profile_picture = filename
-        
-        db.session.commit()
-        flash(f'User {user.name} updated successfully!', 'success')
-        return redirect(url_for('admin.users'))
-    
-    return render_template('admin/edit_user.html',
-                         user=user,
-                         departments=get_departments(),
-                         roles=get_roles(),
-                         tags=get_tags(),
-                         today=datetime.now().strftime('%Y-%m-%d'))
-
-
-@bp.route('/users/<int:user_id>/delete', methods=['POST'])
-@login_required
-@admin_required
-def delete_user(user_id):
-    """Delete user"""
-    user = User.query.get_or_404(user_id)
-    
-    if user.organisation_id != current_user.organisation_id:
-        flash('Unauthorized access.', 'danger')
-        return redirect(url_for('admin.users'))
-    
-    if user.id == current_user.id:
-        flash('You cannot delete your own account.', 'warning')
-        return redirect(url_for('admin.users'))
-    
-    name = user.name
-    db.session.delete(user)
-    db.session.commit()
-    
-    flash(f'User {name} deleted successfully.', 'info')
-    return redirect(url_for('admin.users'))
-
-
-@bp.route('/departments')
-@login_required
-@admin_required
-def departments():
-    """List all departments"""
-    depts = Department.query.filter_by(
-        organisation_id=current_user.organisation_id
-    ).order_by(Department.name).all()
-    
-    return render_template('admin/departments.html', departments=depts)
-
-
-@bp.route('/departments/create', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def create_department():
-    """Create new department"""
-    if request.method == 'POST':
-        name = request.form.get('name', '').strip()
-        description = request.form.get('description', '').strip()
-        
-        if not name:
-            flash('Department name is required.', 'warning')
-            return render_template('admin/create_department.html')
-        
-        dept = Department(
-            name=name,
-            description=description,
-            organisation_id=current_user.organisation_id
-        )
-        db.session.add(dept)
-        db.session.commit()
-        
-        # Create default chat channel for department
-        from app.models import ChatChannel
-        channel = ChatChannel(
-            name=f"{name} - Team Chat",
-            description=f"Department chat for {name}",
-            channel_type='department',
-            department_id=dept.id,
-            organisation_id=current_user.organisation_id,
-            created_by_id=current_user.id
-        )
-        db.session.add(channel)
-        db.session.commit()
-        
-        flash(f'Department "{name}" created successfully!', 'success')
-        return redirect(url_for('admin.departments'))
-    
-    return render_template('admin/create_department.html')
-
-
-@bp.route('/departments/<int:dept_id>/edit', methods=['GET', 'POST'])
-@login_required
-@admin_required
-def edit_department(dept_id):
-    """Edit department"""
-    dept = Department.query.get_or_404(dept_id)
-    
-    if dept.organisation_id != current_user.organisation_id:
-        flash('Unauthorized access.', 'danger')
         return redirect(url_for('admin.departments'))
     
     if request.method == 'POST':
@@ -400,7 +88,6 @@ def edit_department(dept_id):
 
 @bp.route('/roles')
 @login_required
-@admin_required
 def roles():
     """List all roles"""
     all_roles = Role.query.all()
@@ -409,7 +96,6 @@ def roles():
 
 @bp.route('/analytics')
 @login_required
-@admin_required
 def analytics():
     """Organisation analytics dashboard"""
     from app.database import get_user_productivity_stats, calculate_department_completion_percentage
@@ -451,184 +137,3 @@ def analytics():
 
 
 # Helper functions
-def get_departments():
-    """Get departments for current organisation"""
-    return Department.query.filter_by(
-        organisation_id=current_user.organisation_id,
-        is_active=True
-    ).order_by(Department.name).all()
-
-
-def get_roles():
-    """Get all roles"""
-    return Role.query.all()
-
-
-def get_tags():
-    """Get all tags"""
-    return Tag.query.all()
-
-
-@bp.route('/leave-quotas')
-@login_required
-@admin_required
-def leave_quotas():
-    """Manage employee leave quotas"""
-    org = current_user.organisation
-    
-    # Get all active users in organization
-    users = User.query.filter_by(
-        organisation_id=org.id,
-        is_active=True
-    ).order_by(User.name).all()
-    
-    # Calculate used leave days for each user
-    from app.models import LeaveRequest
-    user_leave_data = []
-    
-    for user in users:
-        leave_data = {
-            'user': user,
-            'quotas': {
-                'annual': user.annual_leave_quota or 0,
-                'sick': user.sick_leave_quota or 0,
-                'personal': user.personal_leave_quota or 0
-            },
-            'used': {
-                'annual': user.get_used_leave_days('annual'),
-                'sick': user.get_used_leave_days('sick'),
-                'personal': user.get_used_leave_days('personal')
-            },
-            'remaining': {
-                'annual': user.get_remaining_leave_days('annual'),
-                'sick': user.get_remaining_leave_days('sick'),
-                'personal': user.get_remaining_leave_days('personal')
-            }
-        }
-        user_leave_data.append(leave_data)
-    
-    return render_template('admin/leave_quotas.html', user_leave_data=user_leave_data)
-
-
-@bp.route('/leave-quotas/<int:user_id>/edit', methods=['POST'])
-@login_required
-@admin_required
-def edit_leave_quota(user_id):
-    """Update leave quota for a user"""
-    user = User.query.get_or_404(user_id)
-    
-    # Verify user belongs to same organization
-    if user.organisation_id != current_user.organisation_id:
-        flash('Unauthorized access', 'danger')
-        return redirect(url_for('admin.leave_quotas'))
-    
-    # Update quotas
-    user.annual_leave_quota = int(request.form.get('annual_leave_quota', 0))
-    user.sick_leave_quota = int(request.form.get('sick_leave_quota', 0))
-    user.personal_leave_quota = int(request.form.get('personal_leave_quota', 0))
-    user.leave_quota_set_by_id = current_user.id
-    
-    db.session.commit()
-    
-    flash(f'Leave quotas updated for {user.name}', 'success')
-    return redirect(url_for('admin.leave_quotas'))
-
-
-@bp.route('/leave-requests')
-@login_required
-@admin_required
-def leave_requests():
-    """View and manage all leave requests"""
-    from app.models import LeaveRequest
-    
-    org = current_user.organisation
-    
-    # Get all leave requests for organization users
-    status_filter = request.args.get('status', 'pending')
-    
-    query = LeaveRequest.query.join(User).filter(
-        User.organisation_id == org.id
-    )
-    
-    if status_filter != 'all':
-        query = query.filter(LeaveRequest.status == status_filter)
-    
-    leave_requests = query.order_by(LeaveRequest.requested_at.desc()).all()
-    
-    return render_template('admin/leave_requests.html',
-                         leave_requests=leave_requests,
-                         status_filter=status_filter)
-
-
-@bp.route('/leave-requests/<int:request_id>/approve', methods=['POST'])
-@login_required
-@admin_required
-def approve_leave_request(request_id):
-    """Approve a leave request"""
-    from app.models import LeaveRequest, Notification
-    
-    leave_request = LeaveRequest.query.get_or_404(request_id)
-    
-    # Verify user belongs to same organization
-    if leave_request.user.organisation_id != current_user.organisation_id:
-        flash('Unauthorized access', 'danger')
-        return redirect(url_for('admin.leave_requests'))
-    
-    # Update status
-    leave_request.status = 'approved'
-    leave_request.approved_by_id = current_user.id
-    leave_request.approved_at = datetime.utcnow()
-    leave_request.approval_notes = request.form.get('notes', '')
-    
-    # Create notification for employee
-    notification = Notification(
-        user_id=leave_request.user_id,
-        title='Leave Request Approved',
-        message=f'Your {leave_request.leave_type} leave request from {leave_request.start_date} to {leave_request.end_date} has been approved by {current_user.name}',
-        notification_type='leave_approved',
-        link=f'/user/leave-requests',
-        is_read=False
-    )
-    db.session.add(notification)
-    
-    db.session.commit()
-    
-    flash(f'Leave request approved for {leave_request.user.name}', 'success')
-    return redirect(url_for('admin.leave_requests'))
-
-
-@bp.route('/leave-requests/<int:request_id>/reject', methods=['POST'])
-@login_required
-@admin_required
-def reject_leave_request(request_id):
-    """Reject a leave request"""
-    from app.models import LeaveRequest, Notification
-    
-    leave_request = LeaveRequest.query.get_or_404(request_id)
-    
-    # Verify user belongs to same organization
-    if leave_request.user.organisation_id != current_user.organisation_id:
-        flash('Unauthorized access', 'danger')
-        return redirect(url_for('admin.leave_requests'))
-    
-    # Update status
-    leave_request.status = 'rejected'
-    leave_request.approved_by_id = current_user.id
-    leave_request.approved_at = datetime.utcnow()
-    leave_request.approval_notes = request.form.get('notes', '')
-    
-    # Create notification for employee
-    notification = Notification(
-        user_id=leave_request.user_id,
-        title='Leave Request Rejected',
-        message=f'Your {leave_request.leave_type} leave request from {leave_request.start_date} to {leave_request.end_date} has been rejected by {current_user.name}',
-        notification_type='leave_rejected',
-        link=f'/user/leave-requests',
-        is_read=False
-    )
-    db.session.add(notification)
-    
-    db.session.commit()
-    
-    flash(f'Leave request rejected for {leave_request.user.name}', 'success')
-    return redirect(url_for('admin.leave_requests'))

@@ -6,9 +6,8 @@ Handles login, logout, registration, and email verification
 from flask import Blueprint, render_template, redirect, url_for, flash, request, current_app
 from flask_login import login_user, logout_user, login_required, current_user
 from app import db
-from app.models import User, Organisation, Role, AuditLog
+from app.models import User
 from werkzeug.security import generate_password_hash
-from app.utils.validators import validate_password_strength, validate_email
 from functools import wraps
 import secrets
 
@@ -92,9 +91,6 @@ def login():
             user.last_login = datetime.utcnow()
             db.session.commit()
             
-            # Log audit with login type
-            log_audit(user.id, user.organisation_id, 'user_login', 'User', user.id, 
-                     f'{login_type.capitalize()} login: {user.email}')
             
             # Redirect to next page or appropriate dashboard
             next_page = request.args.get('next')
@@ -123,7 +119,6 @@ def logout():
     org_id = current_user.organisation_id
     
     # Log audit
-    log_audit(user_id, org_id, 'user_logout', 'User', user_id, f'User logged out')
     
     logout_user()
     flash('You have been logged out successfully.', 'info')
@@ -195,11 +190,6 @@ def reset_password(token):
         password = request.form.get('password', '')
         confirm_password = request.form.get('confirm_password', '')
         
-        # Validate password strength
-        password_valid, password_error = validate_password_strength(password)
-        if not password_valid:
-            flash(f'Weak password: {password_error}', 'warning')
-            return render_template('auth/reset_password.html', token=token)
         
         if password != confirm_password:
             flash('Passwords do not match.', 'warning')
@@ -241,68 +231,14 @@ def register():
             flash('Admin name, email, and password are required.', 'warning')
             return render_template('auth/register.html')
         
-        # Validate email format
-        email_valid, email_error = validate_email(admin_email)
-        if not email_valid:
-            flash(f'Invalid admin email: {email_error}', 'warning')
-            return render_template('auth/register.html')
         
         # Validate password strength
-        password_valid, password_error = validate_password_strength(admin_password)
-        if not password_valid:
-            flash(f'Weak password: {password_error}', 'warning')
-            return render_template('auth/register.html')
-        
-        # Check if organization already exists
-        if Organisation.query.filter_by(email=org_email).first():
-            flash('An organization with this email already exists.', 'danger')
-            return render_template('auth/register.html')
         
         # Check if admin email already exists
         if User.query.filter_by(email=admin_email).first():
             flash('A user with this email already exists.', 'danger')
             return render_template('auth/register.html')
-        
-        try:
-            # Create organization
-            organisation = Organisation(
-                name=org_name,
-                email=org_email,
-                contact=org_contact,
-                is_active=True
-            )
-            db.session.add(organisation)
-            db.session.flush()  # Get the org ID
-            
-            # Get or create Admin role
-            admin_role = Role.query.filter_by(name='Admin').first()
-            if not admin_role:
-                admin_role = Role(name='Admin', description='Administrator with full access')
-                db.session.add(admin_role)
-                db.session.flush()
-            
-            # Create admin user
-            admin_user = User(
-                name=admin_name,
-                email=admin_email,
-                organisation_id=organisation.id,
-                is_active=True,
-                is_email_verified=True  # Auto-verify for initial setup
-            )
-            admin_user.set_password(admin_password)
-            admin_user.roles.append(admin_role)
-            
-            db.session.add(admin_user)
-            db.session.commit()
-            
-            flash(f'Organization "{org_name}" created successfully! You can now log in.', 'success')
-            return redirect(url_for('auth.login'))
-            
-        except Exception as e:
-            db.session.rollback()
-            current_app.logger.error(f"Error creating organization: {e}")
-            flash('An error occurred while creating your organization. Please try again.', 'danger')
-            return render_template('auth/register.html')
+        # Organisation creation removed for minimal project
     
     return render_template('auth/register.html')
 
@@ -337,20 +273,3 @@ def change_password():
     return render_template('auth/change_password.html')
 
 
-def log_audit(user_id, org_id, action, entity_type, entity_id, description):
-    """Helper function to log audit entries"""
-    try:
-        audit_log = AuditLog(
-            user_id=user_id,
-            organisation_id=org_id,
-            action=action,
-            entity_type=entity_type,
-            entity_id=entity_id,
-            new_value=description,
-            ip_address=request.remote_addr,
-            user_agent=request.headers.get('User-Agent', '')[:255]
-        )
-        db.session.add(audit_log)
-        db.session.commit()
-    except Exception as e:
-        current_app.logger.error(f"Error logging audit: {e}")

@@ -5,8 +5,8 @@ Meetings Blueprint - Meeting scheduling and management
 from flask import Blueprint, render_template, redirect, url_for, flash, request, jsonify, current_app
 from flask_login import login_required, current_user
 from app import db
-from app.models import Meeting, MeetingAgendaItem, MeetingNote, MeetingAttachment, User, Department, Notification, Task
-from app.models.meeting import meeting_attendees
+from app.models import Meeting, User, Task
+
 from app.routes.auth import manager_required
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta
@@ -27,13 +27,6 @@ def can_access_meeting(meeting):
     return False
 
 
-def get_departments():
-    """Get all departments"""
-    if current_user.is_admin():
-        return Department.query.all()
-    elif current_user.department:
-        return [current_user.department]
-    return []
 
 
 def get_users():
@@ -140,7 +133,6 @@ def create_meeting():
         if not title:
             flash('Meeting title is required.', 'warning')
             return render_template('meetings/create.html',
-                                 departments=get_departments(),
                                  users=get_users(),
                                  tasks=Task.query.filter_by(status='in_progress').all())
         
@@ -182,7 +174,6 @@ def create_meeting():
             end_time=end_time,
             priority=priority,
             is_private=is_private,
-            department_id=department_id if department_id else None,
             task_id=task_id if task_id else None,
             organizer_id=current_user.id
         )
@@ -197,70 +188,17 @@ def create_meeting():
             meeting.attendees.extend(attendees)
         
         # Add agenda items
-        if agenda_json:
-            try:
-                agenda_items = json.loads(agenda_json)
-                for idx, item in enumerate(agenda_items):
-                    if item.get('title'):
-                        agenda = MeetingAgendaItem(
-                            meeting_id=meeting.id,
-                            title=item.get('title'),
-                            description=item.get('description', ''),
-                            duration_minutes=item.get('duration_minutes'),
-                            order=idx
-                        )
-                        db.session.add(agenda)
-            except:
-                pass
         
         db.session.commit()
         
         # Handle file attachments
-        uploaded_files = request.files.getlist('attachments')
-        if uploaded_files:
-            upload_folder = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'meetings')
-            os.makedirs(upload_folder, exist_ok=True)
-            
-            for file in uploaded_files:
-                if file and file.filename:
-                    original_filename = secure_filename(file.filename)
-                    filename = f"{meeting.id}_{datetime.utcnow().timestamp()}_{original_filename}"
-                    file_path = os.path.join(upload_folder, filename)
-                    
-                    file.save(file_path)
-                    
-                    attachment = MeetingAttachment(
-                        filename=filename,
-                        original_filename=original_filename,
-                        file_path=file_path,
-                        file_size=os.path.getsize(file_path),
-                        mime_type=file.content_type,
-                        meeting_id=meeting.id,
-                        uploaded_by_id=current_user.id
-                    )
-                    db.session.add(attachment)
-            
-            db.session.commit()
         
         # Create notifications for attendees
-        if attendee_ids:
-            for attendee_id in attendee_ids:
-                if attendee_id != current_user.id:
-                    notif = Notification(
-                        user_id=attendee_id,
-                        title='New Meeting Invitation',
-                        message=f'You have been invited to: {meeting.title}',
-                        notification_type='meeting_invitation',
-                        action_url=f'/meetings/{meeting.id}'
-                    )
-                    db.session.add(notif)
-            db.session.commit()
         
         flash(f'Meeting "{meeting.title}" created successfully!', 'success')
         return redirect(url_for('meetings.view_meeting', meeting_id=meeting.id))
     
     return render_template('meetings/create.html',
-                         departments=get_departments(),
                          users=get_users(),
                          tasks=Task.query.filter(Task.status.in_(['todo', 'in_progress'])).all())
 
@@ -321,62 +259,16 @@ def edit_meeting(meeting_id):
             meeting.attendees = User.query.filter(User.id.in_(attendee_ids)).all()
         
         # Update agenda
-        agenda_json = request.form.get('agenda')
-        if agenda_json:
-            try:
-                # Clear existing agenda
-                MeetingAgendaItem.query.filter_by(meeting_id=meeting.id).delete()
-                
-                # Add new agenda items
-                agenda_items = json.loads(agenda_json)
-                for idx, item in enumerate(agenda_items):
-                    if item.get('title'):
-                        agenda = MeetingAgendaItem(
-                            meeting_id=meeting.id,
-                            title=item.get('title'),
-                            description=item.get('description', ''),
-                            duration_minutes=item.get('duration_minutes'),
-                            order=idx
-                        )
-                        db.session.add(agenda)
-            except:
-                pass
         
         db.session.commit()
         
         # Handle new file attachments
-        uploaded_files = request.files.getlist('attachments')
-        if uploaded_files:
-            upload_folder = os.path.join(current_app.config.get('UPLOAD_FOLDER', 'app/static/uploads'), 'meetings')
-            os.makedirs(upload_folder, exist_ok=True)
-            
-            for file in uploaded_files:
-                if file and file.filename:
-                    original_filename = secure_filename(file.filename)
-                    filename = f"{meeting.id}_{datetime.utcnow().timestamp()}_{original_filename}"
-                    file_path = os.path.join(upload_folder, filename)
-                    
-                    file.save(file_path)
-                    
-                    attachment = MeetingAttachment(
-                        filename=filename,
-                        original_filename=original_filename,
-                        file_path=file_path,
-                        file_size=os.path.getsize(file_path),
-                        mime_type=file.content_type,
-                        meeting_id=meeting.id,
-                        uploaded_by_id=current_user.id
-                    )
-                    db.session.add(attachment)
-            
-            db.session.commit()
         
         flash('Meeting updated successfully!', 'success')
         return redirect(url_for('meetings.view_meeting', meeting_id=meeting_id))
     
     return render_template('meetings/edit.html',
                          meeting=meeting,
-                         departments=get_departments(),
                          users=get_users(),
                          tasks=Task.query.filter(Task.status.in_(['todo', 'in_progress'])).all())
 
@@ -396,14 +288,7 @@ def respond_to_meeting(meeting_id):
         return jsonify({'error': 'Invalid response'}), 400
     
     # Update attendance status
-    db.session.execute(
-        db.update(meeting_attendees).where(
-            db.and_(
-                meeting_attendees.c.meeting_id == meeting_id,
-                meeting_attendees.c.user_id == current_user.id
-            )
-        ).values(status=response, responded_at=datetime.utcnow())
-    )
+    # Minimal version: just commit, no attendance table
     db.session.commit()
     
     return jsonify({'success': True, 'response': response})

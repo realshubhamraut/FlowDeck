@@ -2,6 +2,6 @@
 Routes __init__ - Import all blueprints
 """
 
-from app.routes import auth, main, admin, user, tasks, chat, dashboard, api, meetings
+from app.routes import admin, user, tasks, meetings, dashboard
 
-__all__ = ['auth', 'main', 'admin', 'user', 'tasks', 'chat', 'dashboard', 'api', 'meetings']
+__all__ = ['admin', 'user', 'tasks', 'meetings', 'dashboard']

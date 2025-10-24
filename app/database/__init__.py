@@ -5,7 +5,7 @@ SQLite advanced features implementation
 
 from app import db
 from sqlalchemy import event, text
-from app.models import Task, User, AnalyticsReport, AuditLog
+from app.models import Task
 
 
 def init_database_features(app):
